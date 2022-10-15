@@ -8,14 +8,21 @@ local directions = {
 	"up",
 	"down",
 	"left",
-	"right"
+	"right",
+}
+
+local direction_to_index = {
+	["up"] = 1,
+	["down"] = 2,
+	["left"] = 3,
+	["right"] = 4,
 }
 
 local oposite_direction = {
 	["up"] = "down",
 	["down"] = "up",
 	["left"] = "right",
-	["right"] = "left"
+	["right"] = "left",
 }
 
 -----------------------------------------------------------------------
@@ -48,6 +55,7 @@ function grid.new(matrix, collision_cells)
 	qpd_table.assign_methods(o, grid)
 	o.directions = directions
 	o.oposite_direction = oposite_direction
+	o.direction_to_index = direction_to_index
 
 	o._enabled_directions = {}
 	for i = 1, o.height do
@@ -194,6 +202,59 @@ function grid.clear_collisions(self)
 				position[k] = nil
 			end
 		end
+	end
+end
+
+function grid.get_random_valid_direction(self, cell_x, cell_y)
+	local enable_directions = self:get_enabled_directions(cell_x, cell_y)
+	local direction_select_list = {}
+
+	if enable_directions[1] == true then
+		table.insert(direction_select_list, 1)
+	end
+	if enable_directions[2] == true then
+		table.insert(direction_select_list, 2)
+	end
+	if enable_directions[3] == true then
+		table.insert(direction_select_list, 3)
+	end
+	if enable_directions[4] == true then
+		table.insert(direction_select_list, 4)
+	end
+
+	if #direction_select_list > 0 then
+		local selected_direction = qpd_random.choose_list(direction_select_list)
+		return self.directions[selected_direction]
+	else
+		print("Set random valid direction for invalid position:", self._cell.x, self._cell.y)
+		return nil
+	end
+end
+
+function grid.get_different_random_valid_direction(self, cell_x, cell_y, current_direction)
+	local enable_directions = self:get_enabled_directions(cell_x, cell_y)
+	local direction_select_list = {}
+
+	local current_direction_index = self.direction_to_index[current_direction]
+	if (enable_directions[1] == true) and (current_direction_index ~= 1) then
+		table.insert(direction_select_list, 1)
+	end
+	if (enable_directions[2] == true) and (current_direction_index ~= 2) then
+		table.insert(direction_select_list, 2)
+	end
+	if (enable_directions[3] == true) and (current_direction_index ~= 3) then
+		table.insert(direction_select_list, 3)
+	end
+	if (enable_directions[4] == true) and (current_direction_index ~= 4) then
+		table.insert(direction_select_list, 4)
+	end
+
+	if #direction_select_list > 0 then
+		local selected_direction = qpd_random.choose_list(direction_select_list)
+		return self.directions[selected_direction]
+	else
+		print("Set different random valid direction for invalid position:", self._cell.x, self._cell.y)
+		return nil
 	end
 end
 

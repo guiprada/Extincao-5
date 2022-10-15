@@ -1,6 +1,7 @@
 local qpd = {}
 
 qpd.ann = require "qpd.ann"
+qpd.ann_neat = require "qpd.ann_neat"
 qpd.array = require "qpd.array"
 qpd.camera = require "qpd.camera"
 qpd.collision = require "qpd.collision"

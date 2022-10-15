@@ -13,6 +13,7 @@ function qpd_timer.update(self, dt)
 	if self._enabled then
 		self._timer = self._timer - dt
 		if self._timer <= 0 then
+			self._timer = 0
 			self._enabled = false
 			self._callback(self._owner)
 		end

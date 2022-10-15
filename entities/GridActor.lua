@@ -55,7 +55,7 @@ function GridActor:new(o)
 	o._last_cell = {}
 
 	o._is_active = false
-	o._changed_tile = false
+	o._changed_grid_cell = false
 	o._has_collided = false
 	o._direction = "idle"
 	o._next_direction = "idle"
@@ -88,9 +88,7 @@ function GridActor:reset(cell)
 	GridActor._current_actor_id = GridActor._current_actor_id + 1
 	self._id = GridActor._current_actor_id
 
-	self:log("created")
-
-	self._changed_tile = false
+	self._changed_grid_cell = false
 	self._has_collided = false
 	self._direction = "idle"
 	self._next_direction = "idle"
@@ -115,6 +113,10 @@ function GridActor:reset(cell)
 	self._front.y = self.y
 
 	self._is_active = true
+
+	self._update_count = 0
+
+	self:log("created")
 end
 
 function GridActor:is_type(type_name)
@@ -133,19 +135,18 @@ function GridActor:draw()
 end
 
 function GridActor:update(dt, speed)
-	--speed*dt, which is the distance travelled cant be bigger than the tile
-	--grid_size*1.5 or the physics wont work
 	if speed*dt > (GridActor._tilesize/2) then
 		print("physics sanity check failed, Actor traveled distance > tilesize")
 	end
 
+	self._update_count = self._update_count + 1
+
 	if GridActor._tilesize ~= self._tilesize then
 		self._tilesize = GridActor._tilesize
-		-- here we just center on grid, we should perhaps do a scaling
+		-- here we just center on grid, we should perhaps do it smoother
 		self:center_on_cell()
 	end
 
-	-- print(speed)
 	if (self._is_active) then
 		-- apply next_direction
 		if self._next_direction ~= "idle" then
@@ -193,19 +194,19 @@ function GridActor:update(dt, speed)
 		self:update_cell()
 
 		--on change tile
-		self._changed_tile = false
+		self._changed_grid_cell = false
 		if  self._cell.x ~= self._last_cell.x then
-			self._changed_tile = "x"
+			self._changed_grid_cell = "x"
 		end
 		if self._cell.y ~= self._last_cell.y then
-			if self._changed_tile then
-				self._changed_tile = "xy"
+			if self._changed_grid_cell then
+				self._changed_grid_cell = "xy"
 			else
-				self._changed_tile = "y"
+				self._changed_grid_cell = "y"
 			end
 		end
 
-		if self._changed_tile then
+		if self._changed_grid_cell then
 			self._enabled_directions = self:get_enabled_directions()
 			self._last_cell.x = self._cell.x
 			self._last_cell.y = self._cell.y
@@ -228,29 +229,16 @@ function GridActor:update(dt, speed)
 	end
 end
 
+function GridActor:get_random_valid_direction()
+	return self._grid:get_random_valid_direction(self._cell.x, self._cell.y)
+end
+
 function GridActor:set_random_valid_direction()
-	local enable_directions = self:get_enabled_directions()
-	local direction_select_list = {}
+	self._next_direction = self._grid:get_random_valid_direction(self._cell.x, self._cell.y)
+end
 
-	if enable_directions[1] == true then
-		table.insert(direction_select_list, 1)
-	end
-	if enable_directions[2] == true then
-		table.insert(direction_select_list, 2)
-	end
-	if enable_directions[3] == true then
-		table.insert(direction_select_list, 3)
-	end
-	if enable_directions[4] == true then
-		table.insert(direction_select_list, 4)
-	end
-
-	if #direction_select_list > 0 then
-		local selected_direction = qpd.random.choose_list(direction_select_list)
-		self._direction = GridActor._grid.directions[selected_direction]
-	else
-		print("Set random valid direction for invalid position:", self._cell.x, self._cell.y)
-	end
+function GridActor:set_different_random_valid_direction()
+	self._next_direction = self._grid:get_different_random_valid_direction(self._cell.x, self._cell.y, self._direction)
 end
 
 function GridActor:center_on_cell()
@@ -309,19 +297,52 @@ function GridActor:is_front_wall()
 	return GridActor._grid:is_blocked_cell(cell_x, cell_y)
 end
 
-function GridActor:get_genes()
-	return ""
+function GridActor:get_id()
+	return self._id
 end
 
-function GridActor:log(event_type)
+function GridActor:get_update_count()
+	return self._update_count
+end
+
+function GridActor:get_no_pill_update_count()
+	return nil
+end
+
+function GridActor:get_visited_count()
+	return nil
+end
+
+function GridActor:get_grid_cell_changes()
+	return nil
+end
+
+function GridActor:get_genes()
+	return nil
+end
+
+function GridActor:get_fitness()
+	return nil
+end
+
+function GridActor:get_collision_count()
+	return nil
+end
+
+function GridActor:log(event_type, other)
 	local event_table = {}
-	-- {"timestamp", "actor_id", "actor_type", "event_type", "cell_x", "cell_y"}
 	event_table["timestamp"] = os.time()
-	event_table["actor_id"] = self._id
+	event_table["actor_id"] = self:get_id()
 	event_table["actor_type"] = registered_types_list[self._type]
 	event_table["event_type"] = event_type
+	event_table["other"] = other
 	event_table["cell_x"] = self._cell.x
 	event_table["cell_y"] = self._cell.y
+	event_table["updates"] = self:get_update_count()
+	event_table["no_pill_updates"] = self:get_no_pill_update_count()
+	event_table["visited_count"] = self:get_visited_count()
+	event_table["grid_cell_changes"] = self:get_grid_cell_changes()
+	event_table["collision_count"] = self:get_collision_count()
 	event_table["genes"] = self:get_genes()
 
 	GridActor._event_logger:log(event_table)

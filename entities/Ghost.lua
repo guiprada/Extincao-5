@@ -20,7 +20,7 @@ function Ghost.init(grid,
 					initial_state,
 					target_spread)
 	Ghost._grid = grid
-	Ghost._target_spread = target_spread
+	Ghost._target_spread = target_spread or 0
 	Ghost.set_state(initial_state)
 
 	GridActor.register_type(ghost_type_name)
@@ -79,6 +79,10 @@ function Ghost:reset(reset_table)
 	self:update_dynamic_front()
 end
 
+function Ghost:set_target_offset(value)
+	self._target_offset = value
+end
+
 function Ghost:get_history()
 	return {
 		_fitness = self._fitness,
@@ -88,15 +92,14 @@ function Ghost:get_history()
 end
 
 function Ghost:crossover(mom, dad, reset_table)
-	local son = {}
+	-- local son = {}
+	-- local target_offset = math.floor((mom._target_offset + dad._target_offset)/2)
 
-	local target_offset = math.floor((mom._target_offset + dad._target_offset)/2)
+	-- if (qpd.random.random(0, 10)<=3) then -- mutate
+	-- 	target_offset = target_offset + math.floor(qpd.random.random(-2, 2))
+	-- end
 
-	if (qpd.random.random(0, 10)<=3) then -- mutate
-		target_offset = target_offset + math.floor(qpd.random.random(-2, 2))
-	end
-
-	self:reset({target_offset = son._target_offset})
+	self:reset({target_offset = self._target_offset})
 end
 
 function Ghost:is_type(type_name)
@@ -154,11 +157,13 @@ function Ghost:collided(other)
 
 			self._n_catches = self._n_catches + 1
 			other._is_active = false
+			other:log("destroyed", self:get_id())
 		else
 			if self.got_ghost then
 				self:got_ghost()
 			end
 			self._is_active = false
+			self:log("destroyed", other:get_id())
 		end
 	end
 end
@@ -214,18 +219,18 @@ function Ghost:update(dt, speed, targets)
 		end
 
 		--on change tile
-		self._changed_tile = false
+		self._changed_grid_cell = false
 		if  self._cell.x ~= self._last_cell.x then
-			self._changed_tile = "x"
+			self._changed_grid_cell = "x"
 		end
 		if self._cell.y ~= self._last_cell.y then
-			if self._changed_tile then
-				self._changed_tile = "xy"
+			if self._changed_grid_cell then
+				self._changed_grid_cell = "xy"
 			else
-				self._changed_tile = "y"
+				self._changed_grid_cell = "y"
 			end
 		end
-		if self._changed_tile then
+		if self._changed_grid_cell then
 			self._debounce_get_next_direction = false
 		end
 
@@ -247,8 +252,9 @@ function Ghost:update(dt, speed, targets)
 			elseif self._direction == "left" then self.x = self.x -dt * speed
 			elseif self._direction == "right" then self.x = self.x +dt * speed
 			end
+		else
+			self._direction = self._next_direction
 		end
-
 	end
 end
 

@@ -1,0 +1,628 @@
+----------------- TODO
+- implementar NEAT
+- implementar funcoes que nao usam "self" para AutoplayerAnnModes.lua
+- implementar gameplay data capture and offline learning
+- implementar teste com o dataset mnist
+
+- NEAT para fantasmas
+
+- implementar load and save population
+- adicionar suporte a elitismo
+- Add map and population loading
+- add the pheromone thingy :)
+
+----------------- DONE
+- split population_size and _history size
+- Very simple, look at front and rotate_left(or rotate_right)
+
+----------------- TESTS
+1-----------------------------------------
+ghost_chase_time = 5
+ghost_scatter_time = 2
+ghost_speed_factor = 10
+
+headless = true
+__ghost_target_spread = 5
+__ghost_population = 0
+__ghost_active_population = 2
+ghost_population_target_offset_array = {2, -5}
+
+autoplayer_ann_mode = baseline
+autoplayer_fitness_mode = movement
+autoplayer_population = 0
+autoplayer_active_population = 1
+autoplayer_genetic_population = 0
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+
+pill_effect_time = 3
+pill_active_population = 2
+
+--
+
+ghost_chase_time = 5
+ghost_scatter_time = 2
+ghost_speed_factor = 10
+
+headless = true
+__ghost_target_spread = 5
+__ghost_population = 0
+__ghost_active_population = 2
+ghost_population_target_offset_array = {2, -5}
+
+autoplayer_ann_mode = baseline_collide_random
+autoplayer_fitness_mode = movement
+autoplayer_population = 0
+autoplayer_active_population = 1
+autoplayer_genetic_population = 0
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+
+pill_effect_time = 3
+pill_active_population = 2
+
+2-----------------------------------------
+ghost_chase_time = 5
+ghost_scatter_time = 2
+ghost_speed_factor = 10
+
+headless = true
+__ghost_target_spread = 5
+__ghost_population = 0
+__ghost_active_population = 2
+ghost_population_target_offset_array = {2, -5}
+
+autoplayer_ann_mode = baseline_pill
+autoplayer_fitness_mode = movement
+autoplayer_population = 0
+autoplayer_active_population = 1
+autoplayer_genetic_population = 0
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+
+pill_effect_time = 3
+pill_active_population = 2
+
+--
+ghost_chase_time = 5
+ghost_scatter_time = 2
+ghost_speed_factor = 10
+
+headless = true
+__ghost_target_spread = 5
+__ghost_population = 0
+__ghost_active_population = 2
+ghost_population_target_offset_array = {2, -5}
+
+autoplayer_ann_mode = baseline_full_random
+autoplayer_fitness_mode = movement
+autoplayer_population = 0
+autoplayer_active_population = 1
+autoplayer_genetic_population = 0
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+
+pill_effect_time = 3
+pill_active_population = 2
+
+3-----------------------------------------
+ghost_chase_time = 5
+ghost_scatter_time = 2
+ghost_speed_factor = 10
+
+headless = true
+__ghost_target_spread = 5
+__ghost_population = 0
+__ghost_active_population = 2
+ghost_population_target_offset_array = {2, -5}
+
+autoplayer_ann_mode = baseline_pill_ghost
+autoplayer_fitness_mode = movement
+autoplayer_population = 0
+autoplayer_active_population = 1
+autoplayer_genetic_population = 0
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+
+pill_effect_time = 3
+pill_active_population = 2
+
+--
+ghost_chase_time = 5
+ghost_scatter_time = 2
+ghost_speed_factor = 10
+
+headless = true
+__ghost_target_spread = 5
+__ghost_population = 0
+__ghost_active_population = 2
+ghost_population_target_offset_array = {2, -5}
+
+autoplayer_ann_mode = baseline_valid_random
+autoplayer_fitness_mode = movement
+autoplayer_population = 0
+autoplayer_active_population = 1
+autoplayer_genetic_population = 0
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+
+pill_effect_time = 3
+pill_active_population = 2
+
+4-----------------------------------------
+ghost_chase_time = 5
+ghost_scatter_time = 2
+ghost_speed_factor = 10
+
+headless = true
+__ghost_target_spread = 5
+__ghost_population = 0
+__ghost_active_population = 2
+ghost_population_target_offset_array = {2, -5}
+
+autoplayer_ann_mode = baseline_random
+autoplayer_fitness_mode = movement
+autoplayer_population = 0
+autoplayer_active_population = 1
+autoplayer_genetic_population = 0
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+
+pill_effect_time = 3
+pill_active_population = 2
+
+--
+ghost_chase_time = 5
+ghost_scatter_time = 2
+ghost_speed_factor = 10
+
+headless = true
+__ghost_target_spread = 5
+__ghost_population = 0
+__ghost_active_population = 2
+ghost_population_target_offset_array = {2, -5}
+
+autoplayer_ann_mode = baseline_valid_full_random
+autoplayer_fitness_mode = movement
+autoplayer_population = 0
+autoplayer_active_population = 1
+autoplayer_genetic_population = 0
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+
+pill_effect_time = 3
+pill_active_population = 2
+
+5-----------------------------------------
+ghost_chase_time = 5
+ghost_scatter_time = 2
+ghost_speed_factor = 10
+
+headless = false
+__ghost_target_spread = 5
+__ghost_population = 0
+__ghost_active_population = 2
+ghost_population_target_offset_array = {4, -5}
+
+autoplayer_ann_mode = nb4_path_grading
+autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {count = 5, activation_function_name = "relu"}, {count = 1, activation_function_name = "identity"}}
+__autoplayer_ann_initial_bias = 0
+__autoplayer_ann_initial_weights = 0
+autoplayer_ann_random_spread = 1
+autoplayer_fitness_mode = updates
+autoplayer_collision_purge = false
+autoplayer_rotate_purge = false
+autoplayer_population = 3000
+autoplayer_active_population = 1
+autoplayer_genetic_population = 100
+autoplayer_ann_backpropagation = false
+__autoplayer_ann_learning_rate = 0.1
+autoplayer_crossover = true
+autoplayer_mutate_chance = 0.05
+autoplayer_mutate_percentage = 0.05
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+
+pill_effect_time = 3
+pill_active_population = 2
+note = proportional bias
+
+6-----------------------------------------
+ghost_chase_time = 5
+ghost_scatter_time = 2
+ghost_speed_factor = 10
+
+headless = false
+__ghost_target_spread = 5
+__ghost_population = 0
+__ghost_active_population = 2
+ghost_population_target_offset_array = {4, -5}
+
+autoplayer_ann_mode = b1_path_grading_simple
+autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {count = 5, activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
+__autoplayer_ann_initial_bias = 0
+__autoplayer_ann_initial_weights = 0
+autoplayer_ann_random_spread = 1
+autoplayer_fitness_mode = updates
+autoplayer_collision_purge = false
+autoplayer_rotate_purge = false
+autoplayer_population = 3000
+autoplayer_active_population = 1
+autoplayer_genetic_population = 100
+autoplayer_ann_backpropagation = false
+__autoplayer_ann_learning_rate = 0.1
+autoplayer_crossover = true
+autoplayer_mutate_chance = 0.05
+autoplayer_mutate_percentage = 0.05
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+
+pill_effect_time = 3
+pill_active_population = 2
+note = proportional bias
+
+--
+ghost_chase_time = 5
+ghost_scatter_time = 2
+ghost_speed_factor = 10
+
+headless = false
+__ghost_target_spread = 5
+__ghost_population = 0
+__ghost_active_population = 2
+ghost_population_target_offset_array = {4, -5}
+
+autoplayer_ann_mode = b1_path_grading_simple
+autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {count = 5, activation_function_name = "relu"}, {count = 5, activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
+__autoplayer_ann_initial_bias = 0
+__autoplayer_ann_initial_weights = 0
+autoplayer_ann_random_spread = 1
+autoplayer_fitness_mode = no_pill_updates
+autoplayer_collision_purge = false
+autoplayer_rotate_purge = false
+autoplayer_population = 3000
+autoplayer_active_population = 1
+autoplayer_genetic_population = 100
+autoplayer_ann_backpropagation = false
+__autoplayer_ann_learning_rate = 0.1
+autoplayer_crossover = true
+autoplayer_mutate_chance = 0.05
+autoplayer_mutate_percentage = 0.05
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+
+pill_effect_time = 3
+pill_active_population = 2
+note = proportional bias
+
+7-----------------------------------------
+ghost_chase_time = 5
+ghost_scatter_time = 2
+ghost_speed_factor = 10
+
+headless = false
+__ghost_target_spread = 5
+__ghost_population = 0
+__ghost_active_population = 2
+ghost_population_target_offset_array = {4, -5}
+
+autoplayer_ann_mode = nb4
+autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {count = 5, activation_function_name = "relu"}, {count = 4, activation_function_name = "identity"}}
+__autoplayer_ann_initial_bias = 0
+__autoplayer_ann_initial_weights = 0
+autoplayer_ann_random_spread = 1
+autoplayer_fitness_mode = updates
+autoplayer_collision_purge = false
+autoplayer_rotate_purge = false
+autoplayer_population = 3000
+autoplayer_active_population = 1
+autoplayer_genetic_population = 100
+autoplayer_ann_backpropagation = false
+__autoplayer_ann_learning_rate = 0.1
+autoplayer_crossover = true
+autoplayer_mutate_chance = 0.05
+autoplayer_mutate_percentage = 0.05
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+
+pill_effect_time = 3
+pill_active_population = 2
+note = proportional bias
+
+-- ghost_chase_time = 5
+-- ghost_scatter_time = 0
+-- ghost_speed_factor = 10
+
+-- headless = false
+-- __ghost_target_spread = 5
+-- __ghost_population = 0
+-- __ghost_active_population = 2
+-- ghost_population_target_offset_array = {2, -8}
+
+-- autoplayer_ann_mode = b1_path_grading_simple
+-- autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {count = 5, activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
+-- __autoplayer_ann_initial_bias = 0
+-- __autoplayer_ann_initial_weights = 0
+-- autoplayer_ann_random_spread = 1
+-- autoplayer_fitness_mode = no_pill_updates
+-- autoplayer_collision_purge = false
+-- autoplayer_rotate_purge = false
+-- autoplayer_population = 3000
+-- autoplayer_active_population = 1
+-- autoplayer_genetic_population = 100
+-- autoplayer_ann_backpropagation = false
+-- __autoplayer_ann_learning_rate = 0.1
+-- autoplayer_crossover = true
+-- autoplayer_mutate_chance = 0.05
+-- autoplayer_mutate_percentage = 0.05
+-- autoplayer_speed_factor = 10
+-- autoplayer_search_path_length = 5
+
+-- pill_effect_time = 3
+-- pill_active_population = 2
+
+----------------------------------------------------------------------
+
+-- ghost_chase_time = 5
+-- ghost_scatter_time = 0
+-- ghost_speed_factor = 10
+
+-- headless = false
+-- __ghost_target_spread = 5
+-- __ghost_population = 0
+-- __ghost_active_population = 2
+-- ghost_population_target_offset_array = {-4, 4}
+
+-- autoplayer_ann_mode = b1_path_grading
+-- autoplayer_ann_layers = {{count = 3, activation_function_name = "binary_step"}, {count = 3, activation_function_name = "binary_step"}, {count = 1, activation_function_name = "binary_step"}}
+-- __autoplayer_ann_initial_bias = 0
+-- __autoplayer_ann_initial_weights = 0
+-- autoplayer_ann_random_spread = 1
+-- autoplayer_fitness_mode = no_pill_updates
+-- autoplayer_collision_purge = false
+-- autoplayer_rotate_purge = false
+-- autoplayer_population = 3000
+-- autoplayer_active_population = 1
+-- autoplayer_genetic_population = 100
+-- autoplayer_ann_backpropagation = false
+-- __autoplayer_ann_learning_rate = 0.1
+-- autoplayer_crossover = true
+-- autoplayer_mutate_chance = 0.05
+-- autoplayer_mutate_percentage = 0.01
+-- autoplayer_speed_factor = 10
+-- autoplayer_search_path_length = 5
+
+-- pill_effect_time = 3
+-- pill_active_population = 2
+
+8-----------------------------------------
+ghost_chase_time = 5
+ghost_scatter_time = 2
+ghost_speed_factor = 10
+
+headless = false
+__ghost_target_spread = 5
+__ghost_population = 0
+__ghost_active_population = 2
+ghost_population_target_offset_array = {4, -5}
+
+autoplayer_ann_mode = b1_path_grading_hack
+autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {count = 5, activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
+__autoplayer_ann_initial_bias = 0
+__autoplayer_ann_initial_weights = 0
+autoplayer_ann_random_spread = 1
+autoplayer_fitness_mode = updates
+autoplayer_collision_purge = false
+autoplayer_rotate_purge = false
+autoplayer_population = 3000
+autoplayer_active_population = 1
+autoplayer_genetic_population = 100
+autoplayer_ann_backpropagation = false
+__autoplayer_ann_learning_rate = 0.1
+autoplayer_crossover = true
+autoplayer_mutate_chance = 0.05
+autoplayer_mutate_percentage = 0.05
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+
+pill_effect_time = 3
+pill_active_population = 2
+note = proportional bias
+
+--
+ghost_chase_time = 5
+ghost_scatter_time = 2
+ghost_speed_factor = 10
+
+headless = false
+__ghost_target_spread = 5
+__ghost_population = 0
+__ghost_active_population = 2
+ghost_population_target_offset_array = {4, -5}
+
+autoplayer_ann_mode = b1_path_grading_hack
+autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {count = 3, activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
+__autoplayer_ann_initial_bias = 0
+__autoplayer_ann_initial_weights = 0
+autoplayer_ann_random_spread = 1
+autoplayer_fitness_mode = no_pill_updates
+autoplayer_collision_purge = false
+autoplayer_rotate_purge = false
+autoplayer_population = 3000
+autoplayer_active_population = 1
+autoplayer_genetic_population = 100
+autoplayer_ann_backpropagation = false
+__autoplayer_ann_learning_rate = 0.1
+autoplayer_crossover = true
+autoplayer_mutate_chance = 0.05
+autoplayer_mutate_percentage = 0.05
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+
+pill_effect_time = 3
+pill_active_population = 2
+note = proportional bias
+
+--
+
+-- ghost_chase_time = 5
+-- ghost_scatter_time = 0
+-- ghost_speed_factor = 10
+
+-- headless = false
+-- __ghost_target_spread = 5
+-- __ghost_population = 0
+-- __ghost_active_population = 2
+-- ghost_population_target_offset_array = {2, -5}
+
+-- autoplayer_ann_mode = b1_path_grading_hack
+-- autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {count = 5, activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
+-- __autoplayer_ann_initial_bias = 0
+-- __autoplayer_ann_initial_weights = 0
+-- autoplayer_ann_random_spread = 1
+-- autoplayer_fitness_mode = no_pill_updates
+-- autoplayer_collision_purge = false
+-- autoplayer_rotate_purge = false
+-- autoplayer_population = 3000
+-- autoplayer_active_population = 1
+-- autoplayer_genetic_population = 100
+-- autoplayer_ann_backpropagation = false
+-- __autoplayer_ann_learning_rate = 0.1
+-- autoplayer_crossover = true
+-- autoplayer_mutate_chance = 0.05
+-- autoplayer_mutate_percentage = 0.05
+-- autoplayer_speed_factor = 10
+-- autoplayer_search_path_length = 5
+
+-- pill_effect_time = 3
+-- pill_active_population = 2
+-- note = proportional bias
+
+-- ghost_chase_time = 5
+-- ghost_scatter_time = 0
+-- ghost_speed_factor = 10
+--------------------------------------------
+-- headless = false
+-- __ghost_target_spread = 5
+-- __ghost_population = 0
+-- __ghost_active_population = 2
+-- ghost_population_target_offset_array = {-4, 4}
+
+-- autoplayer_ann_mode = b1_path_grading_simple
+-- autoplayer_ann_layers = {{count = 3, activation_function_name = "binary_step"}, {count = 3, activation_function_name = "binary_step"}, {count = 1, activation_function_name = "binary_step"}}
+-- __autoplayer_ann_initial_bias = 0
+-- __autoplayer_ann_initial_weights = 0
+-- autoplayer_ann_random_spread = 1
+-- autoplayer_fitness_mode = no_pill_updates
+-- autoplayer_collision_purge = false
+-- autoplayer_rotate_purge = false
+-- autoplayer_population = 3000
+-- autoplayer_active_population = 1
+-- autoplayer_genetic_population = 100
+-- autoplayer_ann_backpropagation = false
+-- __autoplayer_ann_learning_rate = 0.1
+-- autoplayer_crossover = true
+-- autoplayer_mutate_chance = 0.05
+-- autoplayer_mutate_percentage = 0.01
+-- autoplayer_speed_factor = 10
+-- autoplayer_search_path_length = 5
+
+-- pill_effect_time = 3
+-- pill_active_population = 2
+
+
+-------------------------------------------------------------------------------
+-----------------------------------------
+----------------- NOTES
+** to adapt this to ghosts we could get a next position only when out of corridors **
+** should mutation be only  for greater amplitude?(since crossover always diminishes it) **
+
+- BASELINE, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, mas não sai da rota para procurar pilulas ou fantasmas.
+- BASELINE_PILL, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, desvia da rota para procurar pilulas mas não para fantasmas.
+- BASELINE_PILL_GHOST, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, desvia da rota para procurar pilulas e capturar fantasmas.
+- BASELINE_RANDOM, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, caso a rota atual seja ruim, assume uma outra rota aleatoriamente.
+- BASELINE_COLLIDE_RANDOM, um algoritmo especialista caso tenha ocorrido uma colisão, assume uma outra rota aleatoriamente.
+- BASELINE_FULL_RANDOM, um algoritmo especialista que, assume uma outra rota aleatoriamente.
+- BASELINE_VALID_RANDOM, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, caso a rota atual seja ruim, assume uma outra rota válida aleatoriamente.
+- BASELINE_VALID_FULL_RANDOM, um algoritmo especialista que, assume uma outra rota válida aleatoriamente.
+
+---
+ghost_chase_time = 5
+ghost_scatter_time = 2
+ghost_speed_factor = 10
+
+headless = false
+ghost_target_spread = 0
+ghost_population = 0
+ghost_active_population = 0
+
+autoplayer_ann_mode = ...
+autoplayer_ann_layers = ...
+__autoplayer_ann_initial_weights = 0
+autoplayer_fitness_mode = no_pill_updates
+autoplayer_collision_purge = true
+autoplayer_rotate_purge = true
+autoplayer_population = 100
+autoplayer_active_population = 1
+autoplayer_ann_backpropagation = false
+__autoplayer_ann_learning_rate = 0.1
+autoplayer_crossover = true
+autoplayer_mutate_chance = 0.1
+autoplayer_mutate_percentage = 0.05
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+
+pill_effect_time = 3
+pill_active_population = 0
+
+---base test
+ghost_chase_time = 5
+ghost_scatter_time = 2
+ghost_speed_factor = 10
+
+headless = true
+ghost_target_spread = 0
+ghost_population = 0
+ghost_active_population = 2
+
+autoplayer_ann_mode = baseline_valid_full_random
+autoplayer_fitness_mode = movement
+autoplayer_population = 0
+autoplayer_active_population = 1
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+
+pill_effect_time = 3
+pill_active_population = 2
+--
+
+-- converging
+ghost_chase_time = 5
+ghost_scatter_time = 0
+ghost_speed_factor = 10
+
+headless = false
+ghost_target_spread = 4
+ghost_population = 2
+ghost_active_population = 2
+
+autoplayer_ann_mode = nb4_path_grading
+autoplayer_ann_layers = {{count = 2, activation_function_name = "binary_step"}, {count = 5, activation_function_name = "binary_step"}, {count = 1, activation_function_name = "binary_step"}}
+__autoplayer_ann_initial_bias = 0
+__autoplayer_ann_initial_weights = 0
+autoplayer_ann_random_spread = 1
+autoplayer_fitness_mode = updates
+autoplayer_collision_purge = false
+autoplayer_rotate_purge = false
+autoplayer_population = 3000
+autoplayer_active_population = 1
+autoplayer_ann_backpropagation = false
+__autoplayer_ann_learning_rate = 0.1
+autoplayer_crossover = true
+autoplayer_mutate_chance = 0.05
+autoplayer_mutate_percentage = 0.05
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+
+pill_effect_time = 3
+pill_active_population = 2

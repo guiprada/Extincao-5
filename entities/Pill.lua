@@ -28,7 +28,7 @@ function Pill:new(new_table, o)
 	local o = GridActor:new(o or {})
 	setmetatable(o, self)
 
-	o._timer = qpd.timer.new(new_table.pill_time, timer_end_callback, o)
+	o._timer = qpd.timer.new(new_table.pill_effect_time, timer_end_callback, o)
 
 	o._type = GridActor.get_type_by_name(pill_type_name)
 
@@ -67,9 +67,7 @@ function Pill:collided(other)
 	if (Pill.pills_active) then
 		if other:is_type("player") then
 			self:effect_on()
-			-- if other.got_pill then
-			-- 	other:got_pill()
-			-- end
+			self:log("destroyed", other:get_id())
 		end
 	end
 end
@@ -82,7 +80,7 @@ function Pill:update(dt, ...)
 		if self:is_in_effect() then
 			self._timer:update(dt)
 			local remaining_time = self._timer:get_remaining_time()
-			if (remaining_time< 1) then
+			if (remaining_time < 1) then
 				pill_warning()
 			end
 			Pill.time_left_update(remaining_time)

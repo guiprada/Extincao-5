@@ -8,7 +8,7 @@ local AutoPlayer = require "entities.AutoPlayer"
 local Population = require "entities.Population"
 local Ghost = require "entities.Ghost"
 local Pill = require "entities.Pill"
-
+local ANN = require "qpd.ann"
 --------------------------------------------------------------------------------
 local color_array = {}
 color_array[1] = qpd.color.gray
@@ -54,8 +54,8 @@ local function got_pill_update_callback(value)
 	gs.got_pill = value
 end
 
-local function pill_time_left_update_callback(value)
-	gs.pill_time_left = value
+local function pill_effect_time_left_update_callback(value)
+	gs.pill_effect_time_left = value
 end
 
 local function add_ghost()
@@ -66,7 +66,7 @@ local function save_config_to_file(file_path, config_table)
 	local file, err = io.open(file_path, "w")
 	if file then
 		for key, value in pairs(config_table) do
-			file:write(key .. " = " .. value .. "\n")
+			file:write(key .. " = " .. tostring(value) .. "\n")
 		end
 	else
 		print("[ERROR] - extinction.load() - failed to save configurations used", err)
@@ -90,6 +90,7 @@ function gs.load(map_file_path)
 	if not gs.game_conf then
 		print("Failed to read games.conf or extinction.conf")
 	else
+		gs.headless = gs.game_conf.headless or false
 		gs.game_speed = 100
 		gs.default_zoom = gs.game_conf.default_zoom
 		-- local difficulty_factor = gs.game_conf.difficulty/3
@@ -128,6 +129,17 @@ function gs.load(map_file_path)
 		-- set camera zoom
 		-- gs.qpd.tilemap_view.camera:set_scale(gs.default_zoom)
 
+		-- set ANN learning rate
+		ANN.set_learning_rate(gs.game_conf.autoplayer_ann_learning_rate)
+
+		if gs.game_conf.autoplayer_ann_initial_weights then
+			ANN.set_initialize_value(gs.game_conf.autoplayer_ann_initial_weights)
+		end
+
+		if gs.game_conf.autoplayer_ann_random_spread then
+			ANN.set_randon_spread(gs.game_conf.autoplayer_ann_random_spread)
+		end
+
 		-- create grid
 		local collisions = {}
 		collisions[0] = false
@@ -146,7 +158,7 @@ function gs.load(map_file_path)
 
 		-- Create a logger
 		local event_logger_file_path = this_log_path .. ".data"
-		local event_logger_columns = {"timestamp", "actor_id", "actor_type", "event_type", "cell_x", "cell_y", "genes"}
+		local event_logger_columns = {"timestamp", "actor_id", "actor_type", "event_type", "other", "cell_x", "cell_y", "updates", "no_pill_updates", "visited_count", "grid_cell_changes", "collision_count", "genes"}
 		local event_logger = qpd.logger:new(event_logger_file_path, event_logger_columns, 10)
 
 		-- Initialze GridActor
@@ -155,37 +167,75 @@ function gs.load(map_file_path)
 		-- pills
 		gs.got_pill = false
 		gs.pill_is_in_effect = false
-		Pill.init(gs.grid, got_pill_update_callback, pill_time_left_update_callback)
-		gs.pillsPopulation = Population:new(Pill, 2, {pill_time = gs.game_conf.pill_time})
+		Pill.init(
+			gs.grid,
+			got_pill_update_callback,
+			pill_effect_time_left_update_callback
+		)
+		gs.pill_effect_time = gs.game_conf.pill_effect_time
+		gs.pillsPopulation = Population:new(
+			Pill,
+			gs.game_conf.pill_active_population,
+			{pill_effect_time = gs.pill_effect_time}
+		)
 
 		-- Initialize Ghosts
 		gs.ghost_chase_time = gs.game_conf.ghost_chase_time
 		gs.ghost_scatter_time = gs.game_conf.ghost_scatter_time
 		gs.ghost_speed_factor = gs.game_conf.ghost_speed_factor
-		gs.ghost_active_population = gs.game_conf.ghost_active_population
-		gs.ghost_population = gs.game_conf.ghost_population
 
 		gs.ghost_state_timer = qpd.timer.new(gs.ghost_scatter_time, change_ghost_state)
 		gs.ghost_state_timer:reset()
 		gs.ghost_state = "scattering"
 		-- gs.ghost_states = {"scattering", "chasing", "frightened"}
-		gs.ghost_target_spread = gs.game_conf.ghost_target_spread
-		Ghost.init(gs.grid, gs.ghost_state, gs.ghost_target_spread)
-		gs.GhostPopulation = GeneticPopulation:new(Ghost, gs.ghost_active_population, gs.ghost_population)
+		Ghost.init(
+			gs.grid,
+			gs.ghost_state,
+			gs.game_conf.ghost_target_spread
+		)
+
+		if gs.game_conf.ghost_population_target_offset_array then
+			local ghost_population_target_offset_array = qpd.table.read_from_string(gs.game_conf.ghost_population_target_offset_array)
+			gs.GhostPopulation = GeneticPopulation:new(
+				Ghost,
+				#ghost_population_target_offset_array,
+				0,
+				0
+			)
+			local ghost_population = gs.GhostPopulation:get_population()
+			for i, target in ipairs(ghost_population_target_offset_array) do
+				ghost_population[i]:set_target_offset(target)
+			end
+		else
+			gs.GhostPopulation = GeneticPopulation:new(
+				Ghost,
+				gs.game_conf.ghost_active_population,
+				gs.game_conf.ghost_population,
+				gs.game_conf.ghost_genetic_population or 0
+			)
+		end
 
 		-- Initalize Autoplayer
 		gs.autoplayer_speed_factor = gs.game_conf.autoplayer_speed_factor
-		gs.autoplayer_active_population = gs.game_conf.autoplayer_active_population
-		gs.autoplayer_population = gs.game_conf.autoplayer_population
-		gs.autoplayer_search_path_length = gs.game_conf.autoplayer_search_path_length
-		gs.autoplayer_mutate_chance = gs.game_conf.autoplayer_mutate_chance
-		gs.autoplayer_mutate_percentage = gs.game_conf.autoplayer_mutate_percentage
-		gs.autoplayer_ann_mode = gs.game_conf.autoplayer_ann_mode
-		gs.autoplayer_ann_depth = gs.game_conf.autoplayer_ann_depth
-		gs.autoplayer_ann_width = gs.game_conf.autoplayer_ann_width
-
-		AutoPlayer.init(gs.grid, gs.autoplayer_search_path_length, gs.autoplayer_mutate_chance, gs.autoplayer_mutate_percentage, gs.autoplayer_ann_depth, gs.autoplayer_ann_width, gs.autoplayer_ann_mode)
-		gs.AutoPlayerPopulation = GeneticPopulation:new(AutoPlayer, gs.autoplayer_active_population, gs.autoplayer_population)
+		AutoPlayer.init(
+			gs.game_conf.autoplayer_search_path_length,
+			gs.game_conf.autoplayer_mutate_chance,
+			gs.game_conf.autoplayer_mutate_percentage,
+			gs.game_conf.autoplayer_ann_layers or false,
+			gs.game_conf.autoplayer_ann_mode,
+			gs.game_conf.autoplayer_crossover,
+			gs.game_conf.autoplayer_ann_backpropagation,
+			gs.game_conf.autoplayer_fitness_mode,
+			gs.game_conf.autoplayer_collision_purge or false,
+			gs.game_conf.autoplayer_rotate_purge or false,
+			gs.game_conf.autoplayer_ann_initial_bias
+		)
+		gs.AutoPlayerPopulation = GeneticPopulation:new(
+			AutoPlayer,
+			gs.game_conf.autoplayer_active_population,
+			gs.game_conf.autoplayer_population,
+			gs.game_conf.autoplayer_genetic_population
+		)
 
 		-- max dt
 		gs.max_dt = (gs.tilemap_view.tilesize / 4) / qpd.value.max(gs.autoplayer_speed_factor * gs.game_speed, gs.ghost_speed_factor * gs.game_speed)
@@ -209,11 +259,16 @@ function gs.load(map_file_path)
 			function ()
 				if gs.game_speed > 10 then
 					gs.game_speed = gs.game_speed - 10
+				else
+					gs.game_speed = 0.1
 				end
 				print("speed:", gs.game_speed)
 			end
 		gs.actions_keyup['s'] =
 			function ()
+				if gs.game_speed < 10 then
+					gs.game_speed = 10
+				end
 				if gs.game_speed < 150 then
 					gs.game_speed = gs.game_speed + 10
 				end
@@ -228,13 +283,15 @@ function gs.load(map_file_path)
 end
 
 function gs.draw()
-	gs.tilemap_view.camera:draw(
-		function ()
-			gs.tilemap_view:draw()
-			gs.pillsPopulation:draw()
-			gs.AutoPlayerPopulation:draw()
-			gs.GhostPopulation:draw(gs.ghost_state)
-		end)
+	if not gs.headless then
+		gs.tilemap_view.camera:draw(
+			function ()
+				gs.tilemap_view:draw()
+				gs.pillsPopulation:draw()
+				gs.AutoPlayerPopulation:draw()
+				gs.GhostPopulation:draw(gs.ghost_state)
+			end)
+	end
 
 	gs.fps:draw()
 	love.graphics.print(
@@ -284,7 +341,7 @@ function gs.update(dt)
 		-- game.ghost_state timer
 		gs.ghost_state_timer:update(dt)
 
-		-- randomize ghost_state
+		-- set ghost state
 		Ghost.set_state(gs.ghost_state)
 		gs.GhostPopulation:update(dt, gs.ghost_speed_factor * gs.game_speed, gs.AutoPlayerPopulation:get_population())
 

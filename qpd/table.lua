@@ -68,7 +68,7 @@ function qpd_table.read_from_data(filepath, separator)
 	-- Supports numbers and strings for keys and values,
 	-- but keys cant be utf8 strings
 	-- Supports multiline strings between quotes, double or single.
-	-- Supports nested quotes as long as they are diferent from,
+	-- Supports nested quotes as long as they are different from,
 	-- the external one used.
 	-- New lines are scaped and "\n" should be used to split lines.
 	-- Separator should be different of magic characters ^$()%.[]*+-?
@@ -158,6 +158,10 @@ function qpd_table.read_from_conf(filepath, separator)
 	end
 
 	return new_table, err
+end
+
+function qpd_table.read_from_string(str)
+	return assert(loadstring("return" .. str))()
 end
 
 function qpd_table.write_to_file(this_table, filepath, separator)

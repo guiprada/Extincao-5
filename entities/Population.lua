@@ -35,12 +35,11 @@ end
 
 function Population:update(dt, ...)
 	for i = 1, #self._population do
-		local this = self._population[i]
-		if this._is_active == false then
-			this:log("destroyed")
+		local actor = self._population[i]
+		if actor._is_active == false then
 			self:replace(i)
 		else
-			this:update(dt, ...)
+			actor:update(dt, ...)
 		end
 	end
 end

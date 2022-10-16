@@ -9,6 +9,8 @@ function GeneticPopulation:new(class, active_size, population_size, genetic_popu
 	local o = o or {}
 	setmetatable(o, self)
 
+	o._fitness_attribute = "_fitness"
+
 	o._class = class
 	o._active_size = active_size
 	o._population_size = population_size
@@ -31,12 +33,25 @@ function GeneticPopulation:new(class, active_size, population_size, genetic_popu
 	return o
 end
 
+function GeneticPopulation:set_fitness_attribute(value)
+	self._fitness_attribute = value
+end
+
+function GeneticPopulation:set_neat_selection(value)
+	self._neat_selection = value or true
+end
+
+function GeneticPopulation:set_neat_mode(value)
+	self:set_fitness_attribute("_own_fitness")
+	self:set_neat_selection(true)
+end
+
 function GeneticPopulation:add_to_history(actor)
 	local actor_history = actor:get_history()
 
 	-- if #self._history > math.floor(self._population_size/10) then
 	if #self._history > self._genetic_population_size then
-		local lowest, lowest_index = qpd.table.get_lowest(self._history, "_fitness")
+		local lowest, lowest_index = qpd.table.get_lowest(self._history, self._fitness_attribute)
 
 		if actor_history._fitness > lowest._fitness then
 			self._history_fitness_sum = self._history_fitness_sum - lowest._fitness
@@ -50,8 +65,8 @@ function GeneticPopulation:add_to_history(actor)
 	end
 end
 
-local function roulette(population, total_fitness)
-	local total_fitness = total_fitness or qpd.table.sum(population, "_fitness")
+ function GeneticPopulation:_roulette(population, total_fitness)
+	local total_fitness = total_fitness or qpd.table.sum(population, self._fitness_attribute)
 	local slice = total_fitness * qpd.random.random()
 	local sum = 0
 
@@ -62,7 +77,7 @@ local function roulette(population, total_fitness)
 		end
 	end
 
-	print("[WARN] - GeneticPopulation:roulette() - Returning last actor!")
+	print("[WARN] - GeneticPopulation:_roulette() - Returning last actor!")
 	return population[#population]
 
 -- SGenome& CgaBob::RouletteWheelSelection() { //(BUCKLAND, 113)
@@ -82,7 +97,7 @@ local function roulette(population, total_fitness)
 -- }
 end
 
-function GeneticPopulation:selection()
+function GeneticPopulation:_selection()
 	local everybody = qpd.table.clone(self._history)
 
 	-- add living actors
@@ -92,13 +107,25 @@ function GeneticPopulation:selection()
 		end
 	end
 
-	local mom = roulette(everybody)
-	local dad = roulette(everybody)
+	local mom = self:_roulette(everybody)
+	local dad = self:_roulette(everybody)
 	if not (mom and dad) then
-		print("[WARN] - GeneticPopulation:selection() - Did not get an actor from roulette(), choosing randomly!")
+		print("[WARN] - GeneticPopulation:_selection() - Did not get an actor from roulette(), choosing randomly!")
 		mom = mom or self._history[#self._population]
 		dad = dad or self._history[#self._history]
 		print(string.format("mom: %s  | dad: %s", mom, dad))
+	end
+
+	if self._neat_selection then
+		-- Use the best fitness genome as base, if they have equal fitness them use the shortest
+		if mom[self._fitness_attribute] < dad[self._fitness_attribute] then
+			mom, dad = dad, mom
+		elseif mom[self._fitness_attribute] == dad[self._fitness_attribute] then
+			-- they have equal fitness
+			if mom:gene_count() > dad:gene_count() then
+				mom, dad = dad, mom
+			end
+		end
 	end
 
 	return mom, dad
@@ -113,7 +140,7 @@ function GeneticPopulation:replace(i)
 		self._population[i]:reset(self:get_reset_table())
 	else
 		-- find parents
-		local mom, dad = self:selection()
+		local mom, dad = self:_selection()
 
 		-- cross
 		self._population[i]:crossover(mom, dad, self:get_reset_table())
@@ -130,7 +157,7 @@ function GeneticPopulation:add_active()
 		self._population[i]:reset(self:get_reset_table())
 	else
 		-- find parents
-		local mom, dad = self:selection()
+		local mom, dad = self:_selection()
 		-- cross
 		self._population[i]:crossover(mom, dad, self:get_reset_table())
 	end

@@ -92,7 +92,7 @@ function _Neuron:update(inputs)
 		print("[ERROR] - _Neuron:update() - Received a bogus input:", inputs)
 		return
 	end
-	self._activation_output = self.activation_function(self._activation_sum, self.activation_function_parameters or self.bias)
+	self._activation_output = self.activation_function(self._activation_sum, self.bias, self.activation_function_parameters)
 end
 
 function _Neuron:adjust_weights_output(inputs, output, target)

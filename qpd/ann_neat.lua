@@ -288,6 +288,8 @@ function _Genome:crossover(dad, mutate_chance, mutate_percentage, crossover)
 			local new_neuron = qpd_table.clone(mom_neuron)
 			table.insert(neurons, new_neuron)
 			mom_index = mom_index + 1
+		else
+			dad_index = dad_index + 1
 		end
 	end
 
@@ -305,6 +307,8 @@ function _Genome:crossover(dad, mutate_chance, mutate_percentage, crossover)
 			local new_link = qpd_table.clone(mom_link)
 			table.insert(links, new_link)
 			mom_index = mom_index + 1
+		else
+			dad_index = dad_index + 1
 		end
 	end
 

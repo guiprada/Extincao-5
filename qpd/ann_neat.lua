@@ -98,12 +98,30 @@ function _Link:new(input_neuron, output_neuron, weight, recurrent, o)
 	local o = o or {}
 	setmetatable(o, self)
 
-	o._input = input_neuron
-	o._output = output_neuron
+	o._input_neuron = input_neuron
+	o._output_neuron = output_neuron
 	o._weight = weight
 	o._recurrent = recurrent
 
 	return o
+end
+
+function _Link:new_from_gene(link_gene, layers, neuron_id_to_position)
+	local input_neuron_position  = neuron_id_to_position[link_gene.input]
+	local output_neuron_position = neuron_id_to_position[link_gene.output]
+
+	local input_neuron = layers[input_neuron_position._x][input_neuron_position._y]
+	local output_neuron = layers[output_neuron_position._x][output_neuron_position._y]
+
+	return _Link:new(input_neuron, output_neuron, link_gene._weight, link_gene._recurrent)
+end
+
+function _Link:get_input_neuron()
+	return self._input_neuron
+end
+
+function _Link:get_output_neuron()
+	return self._output_neuron
 end
 
 function _Link:type()
@@ -114,13 +132,15 @@ end
 ------------------------------------------------------------------------------- Neuron
 local _Neuron_Gene = {}
 
-function _Neuron_Gene:new(type, recurrent, activation_response, innovation_id, x, y, o)
+function _Neuron_Gene:new(type, recurrent, activation_response, activation_function, activation_function_parameters, innovation_id, x, y, o)
 	local o = o or {}
 	setmetatable(o, self)
 
 	o._type = type
 	o._recurrent = recurrent
 	o._activation_response = activation_response
+	o._activation_function = activation_function
+	o._activation_function_parameters = activation_function_parameters
 	o._innovation_id = innovation_id
 	o._x = x
 	o._y = y
@@ -160,7 +180,7 @@ end
 -------------------------------------------------------------------------------
 local _Neuron = {}
 
-function _Neuron:new(type, innovation_id, input_links, output_links, activatation_function, activation_response, activation_parameters, o)
+function _Neuron:new(type, innovation_id, input_links, output_links, activation_response, activatation_function, activation_function_parameters, o)
 	local o = o or {}
 	setmetatable(o, self)
 
@@ -173,7 +193,7 @@ function _Neuron:new(type, innovation_id, input_links, output_links, activatatio
 
 	o._activation_response = activation_response
 	o._activation_function = activatation_function
-	o._activation_parameters = activation_parameters
+	o._activation_function_parameters = activation_function_parameters
 
 	o._inputs = {}
 	for i = 1, #o._input_links do
@@ -183,6 +203,17 @@ function _Neuron:new(type, innovation_id, input_links, output_links, activatatio
 	o._activation_output = 0
 
 	return o
+end
+
+function _Neuron:new_from_gene(neuron_gene)
+	return _Neuron:new(
+		neuron_gene._type,
+		neuron_gene._innovation_id,
+		nil,
+		nil,
+		neuron_gene._activation_response,
+		neuron_gene._activation_function,
+		neuron_gene._activation_function_parameters)
 end
 
 function _Neuron:add_input_link(link)
@@ -197,13 +228,13 @@ end
 function _Neuron:update(input)
 	if input then
 		self._activation_sum = input
-		self._activation_output = self._activation_function(self._activation_sum, self._activation_response, self._activation_parameters)
+		self._activation_output = self._activation_function(self._activation_sum, self._activation_response, self._activation_function_parameters)
 	else
 		self._activation_sum = 0
 		for i = 1, #self._input_links do
 			local this_link = self._input_links[i]
 			self._activation_sum = self._activation_sum + this_link._weight * this_link._activation_output
-			self._activation_output = self._activation_function(self._activation_sum, self._activation_response, self._activation_parameters)
+			self._activation_output = self._activation_function(self._activation_sum, self._activation_response, self._activation_function_parameters)
 		end
 	end
 end
@@ -533,7 +564,7 @@ end
 ------------------------------------------------------------------------------- ANN
 local ANN = {}
 
-function ANN:new(genome, entry_layer_activation_function_name, hidden_layer_activation_function_name, output_layer_activation_function_name, activation_response, activation_function_parameters, o)
+function ANN:new(genome, entry_layer_activation_function_name, o)
 	local o = o or {}
 	setmetatable(o, self)
 
@@ -553,22 +584,8 @@ function ANN:new(genome, entry_layer_activation_function_name, hidden_layer_acti
 	for i = 1, #genome._neurons do
 		local this_neuron_gene = genome._neurons[i]
 		local this_layer = layer_to_layer_position_dict[this_neuron_gene._x]
+		local this_neuron = _Neuron:new_from_gene(this_neuron_gene)
 
-		local activation_function
-		if i == 1 then
-			activation_function = ann_activation_functions[entry_layer_activation_function_name]
-		elseif i == #genome._neurons then
-			activation_function = ann_activation_functions[output_layer_activation_function_name]
-		else
-			activation_function = ann_activation_functions[hidden_layer_activation_function_name]
-		end
-
-		local this_neuron = _Neuron:new(
-			this_neuron_gene._type,
-			this_neuron_gene._innovation_id,
-			activation_function,
-			this_neuron_gene._activation_response,
-			this_neuron_gene._activation_parameters)
 		table.insert(o._layers[this_layer], this_neuron)
 	end
 
@@ -586,15 +603,10 @@ function ANN:new(genome, entry_layer_activation_function_name, hidden_layer_acti
 	-- create links
 	for i = 1, #genome._links do
 		local this_link_gene = genome._links[i]
-		local input_neuron_position  = neuron_id_to_position[this_link_gene.input]
-		local output_neuron_position = neuron_id_to_position[this_link_gene.output]
 
-		local input_neuron = o._layers[input_neuron_position._x][input_neuron_position._y]
-		local output_neuron = o._layers[output_neuron_position._x][output_neuron_position._y]
-
-		local this_link = _Link:new(input_neuron, output_neuron, this_link_gene._weight, this_link_gene._recurrent)
-		input_neuron:add_output_link(this_link)
-		output_neuron:add_input_link(this_link)
+		local this_link = _Link:new_from_gene(this_link_gene, o._layers, neuron_id_to_position)
+		this_link:get_input_neuron():add_output_link(this_link)
+		this_link:get_output_neuron():add_input_link(this_link)
 	end
 
 	return o

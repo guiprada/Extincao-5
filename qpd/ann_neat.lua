@@ -10,6 +10,9 @@ local MAX_LOOPBACK_LINK_TRIES = 5
 local MAX_LINK_TRIES = 10
 local Innovation_manager -- create singleton instance, will be initialized after _Innovation_manager implementation
 
+local _genome_count = 0
+local _species_count = 0
+
 ------------------------------------------------------------------------------- Types
 local _link_types = {
 	"forward",
@@ -35,13 +38,17 @@ local _ann_run_types = {
 }
 
 -- internal functions
-local function get_random_link_weight()
+local function _get_random_link_weight()
 	return qpd_random.random()
 end
 
-local function get_random_activation_response(input_count)
+local function _get_random_activation_response(input_count)
 	input_count = input_count or 1
 	return qpd_random.random() * input_count
+end
+
+local function _innovation_sorter(a, b)
+	return a._innovation_id < b._innovation_id
 end
 
 -- Internal Classes
@@ -97,6 +104,10 @@ function _Link:new(input_neuron, output_neuron, weight, recurrent, o)
 	o._recurrent = recurrent
 
 	return o
+end
+
+function _Link:type()
+	return "_Link"
 end
 
 -------------------------------------------------------------------------------
@@ -197,6 +208,10 @@ function _Neuron:update(input)
 	end
 end
 
+function _Neuron:type()
+	return "_Neuron"
+end
+
 -------------------------------------------------------------------------------
 ------------------------------------------------------------------------------- Innovation Manager
 local _Innovation_manager = {}
@@ -244,14 +259,15 @@ function _Innovation_manager:get_link_innovation_id(from_neuron, to_neuron)
 	return innovation_id
 end
 
+function _Innovation_manager:type()
+	return "_Innovation_manager"
+end
 -- assign singleton instance
 Innovation_manager = _Innovation_manager:new()
 
 -------------------------------------------------------------------------------
 ------------------------------------------------------------------------------- Species
 local _Species = {}
-
-local _species_count = 0
 
 function _Species:new(leader, o)
 	local o = o or {}
@@ -288,15 +304,12 @@ function _Species:spawn()
 	-- from the best CParams::dSurvivalRate percent
 end
 
+function _Species:type()
+	return "_Species"
+end
 -------------------------------------------------------------------------------
 ------------------------------------------------------------------------------- Genome
 local _Genome = {}
-
-local _genome_count = 0
-
-local function _innovation_sorter(a, b)
-	return a._innovation_id < b._innovation_id
-end
 
 function _Genome:new(n_inputs, n_outputs, neurons, links, o)
 	local o = o or {}
@@ -305,7 +318,9 @@ function _Genome:new(n_inputs, n_outputs, neurons, links, o)
 	_genome_count = _genome_count + 1
 	o._id = _genome_count
 
-	o:sort_genes()
+	o._neurons = neurons
+	o._links = links
+	o:_sort_genes()
 
 	o._n_inputs = n_inputs
 	o._n_outputs = n_outputs
@@ -398,27 +413,40 @@ function _Genome:gene_count()
 	return #self._neurons + #self._links
 end
 
-function _Genome:sort_links()
+function _Genome:_sort_links()
 	table.sort(self._links, _innovation_sorter)
 end
 
-function _Genome:sort_neurons()
+function _Genome:_sort_neurons()
 	table.sort(self._neurons, _innovation_sorter)
 end
 
-function _Genome:sort_genes()
-	self:sort_neurons()
-	self:sort_links()
+function _Genome:_sort_genes()
+	self:_sort_neurons()
+	self:_sort_links()
 end
 
 function _Genome:add_neuron()
 
-	self:sort_neurons()
+	self:_sort_neurons()
+end
+
+function _Genome:_has_link(link_gene_id)
+	for i = 1, #self._links do
+		local this_link_gene_id = self._links[i]:get_id()
+		if this_link_gene_id == link_gene_id then
+			return true
+		elseif this_link_gene_id < link_gene_id then
+			return false
+		end
+	end
+	return false
 end
 
 function _Genome:add_link(chance_loopback)
 	local selected_from_neuron
 	local selected_to_neuron
+	local innovationId
 
 	-- check if we should attempt to create a loopback link
 	if qpd_random.toss(chance_loopback) then
@@ -430,15 +458,19 @@ function _Genome:add_link(chance_loopback)
 			if 	self._neurons[neuron_index]._type ~= "input" and
 				self._neurons[neuron_index]._type ~= "bias" and
 				self._neurons[neuron_index]._loopback ~= true then
-				tries_count = 0
-				selected_from_neuron = self._neurons[neuron_index]
-				selected_to_neuron = selected_from_neuron
+
+				innovationId = Innovation_manager:get_link_innovation_id(self._neurons[neuron_index]:get_id(), self._neurons[neuron_index]:get_id())
+				if not self:_has_link(innovationId) then
+					tries_count = 0
+					selected_from_neuron = self._neurons[neuron_index]
+					selected_to_neuron = selected_from_neuron
+				end
 			else
 				tries_count = tries_count - 1
 			end
 		end
 	end
-	if not selected_from_neuron and not selected_to_neuron then
+	if (not selected_from_neuron) and (not selected_to_neuron) then
 		-- try to find to unlinked neurons
 		local tries_count = MAX_LINK_TRIES
 		while (tries_count > 0) do
@@ -448,9 +480,12 @@ function _Genome:add_link(chance_loopback)
 			-- they can not be the same
 			if 	self._neurons[from_neuron_index]:get_id() ~= self._neurons[to_neuron_index]:get_id() and
 				self._neurons[to_neuron_index]._type ~= "input" then
-				tries_count = 0
-				selected_from_neuron = self._neurons[from_neuron_index]
-				selected_to_neuron = self._neurons[from_neuron_index]
+				innovationId = Innovation_manager:get_link_innovation_id(self._neurons[from_neuron_index], self._neurons[to_neuron_index])
+				if not self:_has_link(innovationId) then
+					tries_count = 0
+					selected_from_neuron = self._neurons[from_neuron_index]
+					selected_to_neuron = self._neurons[from_neuron_index]
+				end
 			else
 				tries_count = tries_count - 1
 			end
@@ -464,15 +499,15 @@ function _Genome:add_link(chance_loopback)
 		local new_link = _Link_Gene:new(
 			selected_from_neuron._innovation_id,
 			selected_to_neuron._innovation_id,
-			get_random_link_weight(),
+			_get_random_link_weight(),
 			true,
-			Innovation_manager:get_link_innovation_id(selected_from_neuron._innovation_id, selected_to_neuron._innovation_id)
+			innovationId
 		)
-		table.insert(self._links, new_link)
+		-- if not self:_has_link(new_link) then
+			table.insert(self._links, new_link)
+			self:_sort_links()
+		-- end
 	end
-
-	--
-	self:sort_links()
 end
 
 function _Genome:get_compatibility_score(other)
@@ -488,6 +523,10 @@ end
 
 function _Genome:already_have_this_neuron_id(id)
 	-- tests if the passed ID is the same as any existing neuron IDs. Used in add_neuron()
+end
+
+function _Genome:type()
+	return "_Genome"
 end
 
 -------------------------------------------------------------------------------
@@ -591,6 +630,10 @@ function ANN:get_outputs(inputs, run_type)
 	end
 
 	return outputs
+end
+
+function ANN:type()
+	return "ANN_neat"
 end
 
 return ANN

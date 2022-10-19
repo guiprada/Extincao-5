@@ -58,22 +58,22 @@ end
 ------------------------------------------------------------------------------- Link
 local _Link_Gene = {}
 
-function _Link_Gene:new(from_neuron, to_neuron, weight, innovation_id, o)
+function _Link_Gene:new(input_neuron, output_neuron, weight, innovation_id, o)
 	local o = o or {}
 	setmetatable(o, self)
 
-	o._from_neuron = from_neuron
-	o._to_neuron = to_neuron
+	o._input_neuron = input_neuron
+	o._output_neuron = output_neuron
 	o._weight = weight
 	o._enabled = true
 	o._innovation_id = innovation_id
 
 
 	o._recurrent = false
-	local from_neuron = Innovation_manager:get_innovation(from_neuron)
-	local to_neuron = Innovation_manager:get_innovation(to_neuron)
+	local input_neuron = Innovation_manager:get_innovation(input_neuron)
+	local output_neuron = Innovation_manager:get_innovation(output_neuron)
 
-	o._recurrent = from_neuron:is_link_recurrent(to_neuron)
+	o._recurrent = input_neuron:is_link_recurrent(output_neuron)
 
 	return o
 end
@@ -96,6 +96,22 @@ end
 
 function _Link_Gene:set_enabled(value)
 	self._enabled = value or true
+end
+
+function _Link_Gene:get_input_x()
+	return self._input_neuron:get_x()
+end
+
+function _Link_Gene:get_input_y()
+	return self._input_neuron:get_y()
+end
+
+function _Link_Gene:get_output_x()
+	return self._output_neuron:get_x()
+end
+
+function _Link_Gene:get_output_y()
+	return self._output_neuron:get_y()
 end
 
 function _Link_Gene:get_id()
@@ -354,28 +370,28 @@ function _Innovation_manager:get_innovation(innovation_id)
 	return self._innovations[innovation_id]
 end
 
-function _Innovation_manager:_new_link(from_neuron, to_neuron)
+function _Innovation_manager:_new_link(input_neuron, output_neuron)
 	self._id_count = self._id_count + 1
 
-	local new_link = _Link_Gene:new(from_neuron, to_neuron, 0, false, self._id_count)
+	local new_link = _Link_Gene:new(input_neuron, output_neuron, 0, false, self._id_count)
 	self._innovations[self._id_count] = new_link
 	return new_link
 end
 
-function _Innovation_manager:get_link_innovation_id(from_neuron, to_neuron)
+function _Innovation_manager:get_link_innovation_id(input_neuron, output_neuron)
 	local innovation_id
-	if self._links[from_neuron] then
-		if self._links[from_neuron][to_neuron] then
-			innovation_id = self._links[from_neuron][to_neuron]
+	if self._links[input_neuron] then
+		if self._links[input_neuron][output_neuron] then
+			innovation_id = self._links[input_neuron][output_neuron]
 		end
 	else
-		self._links[from_neuron] = {}
+		self._links[input_neuron] = {}
 	end
 
 	if not innovation_id then
-		local new_link = self:_new_link(from_neuron, to_neuron)
+		local new_link = self:_new_link(input_neuron, output_neuron)
 		innovation_id = new_link:get_id()
-		self._links[from_neuron][to_neuron] = innovation_id
+		self._links[input_neuron][output_neuron] = innovation_id
 	end
 
 	return innovation_id
@@ -594,8 +610,8 @@ function _Genome:_has_link(link_gene_id)
 end
 
 function _Genome:add_link(chance_loopback)
-	local selected_from_neuron
-	local selected_to_neuron
+	local selected_input_neuron
+	local selected_output_neuron
 	local innovation_id
 
 	-- check if we should attempt to create a loopback link
@@ -614,8 +630,8 @@ function _Genome:add_link(chance_loopback)
 					tries = 0
 					local selected_neuron = self._neurons[neuron_index]
 					selected_neuron:set_loopback(true)
-					selected_from_neuron = selected_neuron
-					selected_to_neuron = selected_neuron
+					selected_input_neuron = selected_neuron
+					selected_output_neuron = selected_neuron
 				end
 			else
 				tries = tries - 1
@@ -625,17 +641,17 @@ function _Genome:add_link(chance_loopback)
 		-- try to find to unlinked neurons
 		local tries = MAX_LINK_TRIES
 		while (tries > 0) do
-			local from_neuron_index = qpd_random.random(#self._neurons)
-			local to_neuron_index = qpd_random.random(#self._neurons)
-			-- the to_neuron can not be an input
+			local input_neuron_index = qpd_random.random(#self._neurons)
+			local output_neuron_index = qpd_random.random(#self._neurons)
+			-- the output_neuron can not be an input
 			-- they can not be the same
-			if 	self._neurons[from_neuron_index]:get_id() ~= self._neurons[to_neuron_index]:get_id() and
-				self._neurons[to_neuron_index]:get_neuron_type() ~= "input" then
-				innovation_id = Innovation_manager:get_link_innovation_id(self._neurons[from_neuron_index], self._neurons[to_neuron_index])
+			if 	self._neurons[input_neuron_index]:get_id() ~= self._neurons[output_neuron_index]:get_id() and
+				self._neurons[output_neuron_index]:get_neuron_type() ~= "input" then
+				innovation_id = Innovation_manager:get_link_innovation_id(self._neurons[input_neuron_index], self._neurons[output_neuron_index])
 				if not self:_has_link(innovation_id) then
 					tries = 0
-					selected_from_neuron = self._neurons[from_neuron_index]
-					selected_to_neuron = self._neurons[from_neuron_index]
+					selected_input_neuron = self._neurons[input_neuron_index]
+					selected_output_neuron = self._neurons[input_neuron_index]
 				end
 			else
 				tries = tries - 1
@@ -643,13 +659,13 @@ function _Genome:add_link(chance_loopback)
 		end
 	end
 
-	if selected_from_neuron and selected_to_neuron then
+	if selected_input_neuron and selected_output_neuron then
 		-- create link
-		-- _Link_Gene:new(from_neuron, to_neuron, weight, enabled, innovation_id, o)
+		-- _Link_Gene:new(input_neuron, output_neuron, weight, enabled, innovation_id, o)
 
 		local new_link = _Link_Gene:new(
-			selected_from_neuron._innovation_id,
-			selected_to_neuron._innovation_id,
+			selected_input_neuron._innovation_id,
+			selected_output_neuron._innovation_id,
 			_get_random_link_weight(),
 			innovation_id
 		)

@@ -56,14 +56,14 @@ end
 ------------------------------------------------------------------------------- Link
 local _Link_Gene = {}
 
-function _Link_Gene:new(from_neuron, to_neuron, weight, enabled, innovation_id, o)
+function _Link_Gene:new(from_neuron, to_neuron, weight, innovation_id, o)
 	local o = o or {}
 	setmetatable(o, self)
 
 	o._from_neuron = from_neuron
 	o._to_neuron = to_neuron
 	o._weight = weight
-	o._enabled = enabled
+	o._enabled = true
 	o._innovation_id = innovation_id
 
 
@@ -84,13 +84,30 @@ function _Link_Gene:inherit(mutate_chance, mutate_percentage)
 	return qpd_table.clone(self):mutate(mutate_chance, mutate_percentage)
 end
 
+function _Link_Gene:get_weight()
+	return self._weight
+end
+
+function _Link_Gene:is_enabled()
+	return self._enabled
+end
+
+function _Link_Gene:set_enabled(value)
+	self._enabled = value or true
+end
+
 function _Link_Gene:get_id()
 	return self._innovation_id
+end
+
+function _Link_Gene:is_recurrent()
+	return self._recurrent
 end
 
 function _Link_Gene:type()
 	return "_Link_Gene"
 end
+
 -------------------------------------------------------------------------------
 local _Link = {}
 
@@ -110,10 +127,10 @@ function _Link:new_from_gene(link_gene, layers, neuron_id_to_position)
 	local input_neuron_position  = neuron_id_to_position[link_gene.input]
 	local output_neuron_position = neuron_id_to_position[link_gene.output]
 
-	local input_neuron = layers[input_neuron_position._x][input_neuron_position._y]
-	local output_neuron = layers[output_neuron_position._x][output_neuron_position._y]
+	local input_neuron = layers[input_neuron_position:get_x()][input_neuron_position:get_y()]
+	local output_neuron = layers[output_neuron_position:get_y()][output_neuron_position:get_y()]
 
-	return _Link:new(input_neuron, output_neuron, link_gene._weight, link_gene._recurrent)
+	return _Link:new(input_neuron, output_neuron, link_gene:get_weight(), link_gene:is_recurrent())
 end
 
 function _Link:get_input_neuron()
@@ -122,6 +139,10 @@ end
 
 function _Link:get_output_neuron()
 	return self._output_neuron
+end
+
+function _Link:get_output()
+	return self._weight * self:get_input_neuron():get_output()
 end
 
 function _Link:type()
@@ -149,7 +170,7 @@ function _Neuron_Gene:new(type, recurrent, activation_response, activation_funct
 end
 
 function _Neuron_Gene:mutate(mutate_chance, mutate_percentage)
-	self._activation_response = self._activation_response * (qpd_random.toss(mutate_chance) and (qpd_random.choose(-mutate_percentage, mutate_percentage) + 1) or 1)
+	self:set_activation_response(self:get_activation_response() * (qpd_random.toss(mutate_chance) and (qpd_random.choose(-mutate_percentage, mutate_percentage) + 1) or 1))
 end
 
 function _Neuron_Gene:inherit(mutate_chance, mutate_percentage)
@@ -169,8 +190,44 @@ function _Neuron_Gene:is_link_recurrent(other)
 	return false
 end
 
+function _Neuron_Gene:get_activation_response()
+	return self._activation_response
+end
+
+function _Neuron_Gene:set_activation_response(value)
+	self._activation_response = value
+end
+
+function _Neuron_Gene:get_activation_function()
+	return self._activation_function
+end
+
+function _Neuron_Gene:get_activation_function_parameters()
+	return self._activation_function_parameters
+end
+
+function _Neuron_Gene:get_x()
+	return self._x
+end
+
+function _Neuron_Gene:get_y()
+	return self._y
+end
+
+function _Neuron_Gene:set_loopback(value)
+	self._loopback = value or true
+end
+
+function _Neuron_Gene:is_loopback()
+	return self._loopback
+end
+
 function _Neuron_Gene:get_id()
 	return self._innovation_id
+end
+
+function _Neuron_Gene:get_neuron_type()
+	return self._type
 end
 
 function _Neuron_Gene:type()
@@ -207,13 +264,13 @@ end
 
 function _Neuron:new_from_gene(neuron_gene)
 	return _Neuron:new(
-		neuron_gene._type,
-		neuron_gene._innovation_id,
+		neuron_gene:get_neuron_type(),
+		neuron_gene:get_id(),
 		nil,
 		nil,
-		neuron_gene._activation_response,
-		neuron_gene._activation_function,
-		neuron_gene._activation_function_parameters)
+		neuron_gene:get_activation_response(),
+		neuron_gene:get_activation_function(),
+		neuron_gene:get_activation_function_parameters())
 end
 
 function _Neuron:add_input_link(link)
@@ -228,15 +285,47 @@ end
 function _Neuron:update(input)
 	if input then
 		self._activation_sum = input
-		self._activation_output = self._activation_function(self._activation_sum, self._activation_response, self._activation_function_parameters)
+		self._activation_output = self:get_activation_function()(self:get_activation_sum(), self:get_activation_response(), self:get_activation_function_parameters())
 	else
 		self._activation_sum = 0
 		for i = 1, #self._input_links do
 			local this_link = self._input_links[i]
-			self._activation_sum = self._activation_sum + this_link._weight * this_link._activation_output
-			self._activation_output = self._activation_function(self._activation_sum, self._activation_response, self._activation_function_parameters)
+			self._activation_sum = self._activation_sum + this_link:get_output()
 		end
+		self._activation_output = self:get_activation_function()(self:get_activation_sum(), self:get_activation_response(), self:get_activation_function_parameters())
 	end
+end
+
+function _Neuron:get_activation_response()
+	return self._activation_response
+end
+
+function _Neuron:get_activation_function()
+	return self._activation_function
+end
+
+function _Neuron:get_activation_function_parameters()
+	return self._activation_function_parameters
+end
+
+function _Neuron:get_activation_sum()
+	return self._activation_sum
+end
+
+function _Neuron:get_output()
+	return self._activation_output
+end
+
+function _Neuron:get_x()
+	return self._x
+end
+
+function _Neuron:get_y()
+	return self._y
+end
+
+function _Neuron:get_neuron_type()
+	return self._type
 end
 
 function _Neuron:type()
@@ -342,7 +431,7 @@ end
 ------------------------------------------------------------------------------- Genome
 local _Genome = {}
 
-function _Genome:new(n_inputs, n_outputs, neurons, links, o)
+function _Genome:new(neurons, links, o)
 	local o = o or {}
 	setmetatable(o, self)
 
@@ -353,16 +442,37 @@ function _Genome:new(n_inputs, n_outputs, neurons, links, o)
 	o._links = links
 	o:_sort_genes()
 
-	o._n_inputs = n_inputs
-	o._n_outputs = n_outputs
-
-	o._layers = _Genome:get_layers()
+	o:_init_n_inputs()
+	o:_init_n_outputs()
+	o:_init_unique_layers()
 
 	-- o._amount_to_spawn = 0
 	return o
 end
 
-function _Genome:get_layers()
+function _Genome:_init_n_inputs()
+	local n_inputs = 0
+	for i = 1, #self._neurons do
+		local this_neuron = self._neurons[i]
+		if this_neuron:get_neuron_type() == "input" then
+			n_inputs = n_inputs + 1
+		end
+	end
+	self._n_inputs = n_inputs
+end
+
+function _Genome:_init_n_outputs()
+	local n_outputs = 0
+	for i = 1, #self._neurons do
+		local this_neuron = self._neurons[i]
+		if this_neuron:get_neuron_type() == "output" then
+			n_outputs = n_outputs + 1
+		end
+	end
+	self._n_inputs = n_outputs
+end
+
+function _Genome:_init_unique_layers()
 	local unique_layer_dict = {}
 	for i = 1, #self._neurons do
 		local this_layer = self._neurons[i]
@@ -379,7 +489,7 @@ function _Genome:get_layers()
 
 	table.sort(unique_layers)
 
-	return unique_layers
+	self._unique_layers = unique_layers
 end
 
 function _Genome:crossover(dad, mutate_chance, mutate_percentage, chance_add_neuron, chance_add_link, chance_loopback)
@@ -428,7 +538,7 @@ function _Genome:crossover(dad, mutate_chance, mutate_percentage, chance_add_neu
 		end
 	end
 
-	local new_genome = _Genome:new(mom._n_inputs, mom._n_outputs, neurons, links)
+	local new_genome = _Genome:new(neurons, links)
 
 	if qpd_random.toss(chance_add_neuron) then
 		new_genome:add_neuron()
@@ -441,6 +551,18 @@ function _Genome:crossover(dad, mutate_chance, mutate_percentage, chance_add_neu
 end
 
 function _Genome:gene_count()
+	return #self._neurons + #self._links
+end
+
+function _Genome:get_n_inputs()
+	return self._n_inputs
+end
+
+function _Genome:get_n_outputs()
+	return self._n_outputs
+end
+
+function _Genome:get_size()
 	return #self._neurons + #self._links
 end
 
@@ -457,17 +579,12 @@ function _Genome:_sort_genes()
 	self:_sort_links()
 end
 
-function _Genome:add_neuron()
-
-	self:_sort_neurons()
-end
-
 function _Genome:_has_link(link_gene_id)
 	for i = 1, #self._links do
 		local this_link_gene_id = self._links[i]:get_id()
 		if this_link_gene_id == link_gene_id then
 			return true
-		elseif this_link_gene_id < link_gene_id then
+		elseif this_link_gene_id < link_gene_id then -- the links are ordered, so we can do an early exit
 			return false
 		end
 	end
@@ -486,15 +603,17 @@ function _Genome:add_link(chance_loopback)
 		local tries_count = MAX_LOOPBACK_LINK_TRIES
 		while (tries_count > 0) do
 			local neuron_index = qpd_random.random(#self._neurons)
-			if 	self._neurons[neuron_index]._type ~= "input" and
-				self._neurons[neuron_index]._type ~= "bias" and
-				self._neurons[neuron_index]._loopback ~= true then
+			if 	self._neurons[neuron_index]:get_neuron_type() ~= "input" and
+				self._neurons[neuron_index]:get_neuron_type() ~= "bias" and
+				self._neurons[neuron_index]:is_loopback() then
 
 				innovationId = Innovation_manager:get_link_innovation_id(self._neurons[neuron_index]:get_id(), self._neurons[neuron_index]:get_id())
 				if not self:_has_link(innovationId) then
 					tries_count = 0
-					selected_from_neuron = self._neurons[neuron_index]
-					selected_to_neuron = selected_from_neuron
+					local selected_neuron = self._neurons[neuron_index]
+					selected_neuron:set_loopback(true)
+					selected_from_neuron = selected_neuron
+					selected_to_neuron = selected_neuron
 				end
 			else
 				tries_count = tries_count - 1
@@ -510,7 +629,7 @@ function _Genome:add_link(chance_loopback)
 			-- the to_neuron can not be an input
 			-- they can not be the same
 			if 	self._neurons[from_neuron_index]:get_id() ~= self._neurons[to_neuron_index]:get_id() and
-				self._neurons[to_neuron_index]._type ~= "input" then
+				self._neurons[to_neuron_index]:get_neuron_type() ~= "input" then
 				innovationId = Innovation_manager:get_link_innovation_id(self._neurons[from_neuron_index], self._neurons[to_neuron_index])
 				if not self:_has_link(innovationId) then
 					tries_count = 0
@@ -531,14 +650,26 @@ function _Genome:add_link(chance_loopback)
 			selected_from_neuron._innovation_id,
 			selected_to_neuron._innovation_id,
 			_get_random_link_weight(),
-			true,
 			innovationId
 		)
 		-- if not self:_has_link(new_link) then
-			table.insert(self._links, new_link)
-			self:_sort_links()
+		table.insert(self._links, new_link)
+		self:_sort_links()
 		-- end
 	end
+end
+
+function _Genome:add_neuron()
+	-- if the genome is smaller than threshold we select with a bias towards older links to avoid a chaining effect
+	local size_threshold = self:get_n_inputs() + self:get_n_outputs() + 5
+
+	if self:get_size() < size_threshold then
+		-- no chaining bias
+	else
+
+	end
+
+	self:_sort_neurons()
 end
 
 function _Genome:get_compatibility_score(other)
@@ -573,8 +704,8 @@ function ANN:new(genome, entry_layer_activation_function_name, o)
 	-- fill in layer_to_layer_position_dict and start layers array.
 	o._layers = {}
 	local layer_to_layer_position_dict = {}
-	for i = 1, #genome._layers do
-		local this_layer = genome._layers[i]
+	for i = 1, #genome._unique_layers do
+		local this_layer = genome._unique_layers[i]
 		layer_to_layer_position_dict[this_layer] = i
 
 		o._layers[i] = {}
@@ -591,7 +722,7 @@ function ANN:new(genome, entry_layer_activation_function_name, o)
 
 	-- sort layer and fill neuron_id_to_position
 	local neuron_id_to_position = {}
-	for i = 1, #genome._layers do
+	for i = 1, #genome._unique_layers do
 		table.sort(o._layers[i], function (a, b) return a.y < b.y end)
 
 		for j = 1, #self._layers[i] do
@@ -603,10 +734,11 @@ function ANN:new(genome, entry_layer_activation_function_name, o)
 	-- create links
 	for i = 1, #genome._links do
 		local this_link_gene = genome._links[i]
-
-		local this_link = _Link:new_from_gene(this_link_gene, o._layers, neuron_id_to_position)
-		this_link:get_input_neuron():add_output_link(this_link)
-		this_link:get_output_neuron():add_input_link(this_link)
+		if this_link_gene:is_enabled() then
+			local this_link = _Link:new_from_gene(this_link_gene, o._layers, neuron_id_to_position)
+			this_link:get_input_neuron():add_output_link(this_link)
+			this_link:get_output_neuron():add_input_link(this_link)
+		end
 	end
 
 	return o
@@ -638,7 +770,7 @@ function ANN:get_outputs(inputs, run_type)
 	-- get outputs
 	local outputs = {}
 	for i = 1, #self._layers[#self._layers] do
-		outputs[i] = self._layers[#self._layers][i]._activation_output
+		outputs[i] = self._layers[#self._layers][i]:get_output()
 	end
 
 	return outputs

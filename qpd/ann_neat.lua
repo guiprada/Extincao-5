@@ -8,6 +8,8 @@ local ann_activation_functions = require "qpd.ann_activation_functions"
 
 local MAX_LOOPBACK_LINK_TRIES = 5
 local MAX_LINK_TRIES = 10
+local MAX_NEURON_TRIES = 5
+
 local Innovation_manager -- create singleton instance, will be initialized after _Innovation_manager implementation
 
 local _genome_count = 0
@@ -594,50 +596,49 @@ end
 function _Genome:add_link(chance_loopback)
 	local selected_from_neuron
 	local selected_to_neuron
-	local innovationId
+	local innovation_id
 
 	-- check if we should attempt to create a loopback link
 	if qpd_random.toss(chance_loopback) then
 		-- create loopback
 		-- find suitable neuron(no input, no bias and not already looped)
-		local tries_count = MAX_LOOPBACK_LINK_TRIES
-		while (tries_count > 0) do
+		local tries = MAX_LOOPBACK_LINK_TRIES
+		while (tries > 0) do
 			local neuron_index = qpd_random.random(#self._neurons)
 			if 	self._neurons[neuron_index]:get_neuron_type() ~= "input" and
 				self._neurons[neuron_index]:get_neuron_type() ~= "bias" and
 				self._neurons[neuron_index]:is_loopback() then
 
-				innovationId = Innovation_manager:get_link_innovation_id(self._neurons[neuron_index]:get_id(), self._neurons[neuron_index]:get_id())
-				if not self:_has_link(innovationId) then
-					tries_count = 0
+				innovation_id = Innovation_manager:get_link_innovation_id(self._neurons[neuron_index]:get_id(), self._neurons[neuron_index]:get_id())
+				if not self:_has_link(innovation_id) then
+					tries = 0
 					local selected_neuron = self._neurons[neuron_index]
 					selected_neuron:set_loopback(true)
 					selected_from_neuron = selected_neuron
 					selected_to_neuron = selected_neuron
 				end
 			else
-				tries_count = tries_count - 1
+				tries = tries - 1
 			end
 		end
-	end
-	if (not selected_from_neuron) and (not selected_to_neuron) then
+	else
 		-- try to find to unlinked neurons
-		local tries_count = MAX_LINK_TRIES
-		while (tries_count > 0) do
+		local tries = MAX_LINK_TRIES
+		while (tries > 0) do
 			local from_neuron_index = qpd_random.random(#self._neurons)
 			local to_neuron_index = qpd_random.random(#self._neurons)
 			-- the to_neuron can not be an input
 			-- they can not be the same
 			if 	self._neurons[from_neuron_index]:get_id() ~= self._neurons[to_neuron_index]:get_id() and
 				self._neurons[to_neuron_index]:get_neuron_type() ~= "input" then
-				innovationId = Innovation_manager:get_link_innovation_id(self._neurons[from_neuron_index], self._neurons[to_neuron_index])
-				if not self:_has_link(innovationId) then
-					tries_count = 0
+				innovation_id = Innovation_manager:get_link_innovation_id(self._neurons[from_neuron_index], self._neurons[to_neuron_index])
+				if not self:_has_link(innovation_id) then
+					tries = 0
 					selected_from_neuron = self._neurons[from_neuron_index]
 					selected_to_neuron = self._neurons[from_neuron_index]
 				end
 			else
-				tries_count = tries_count - 1
+				tries = tries - 1
 			end
 		end
 	end
@@ -650,7 +651,7 @@ function _Genome:add_link(chance_loopback)
 			selected_from_neuron._innovation_id,
 			selected_to_neuron._innovation_id,
 			_get_random_link_weight(),
-			innovationId
+			innovation_id
 		)
 		-- if not self:_has_link(new_link) then
 		table.insert(self._links, new_link)
@@ -660,16 +661,55 @@ function _Genome:add_link(chance_loopback)
 end
 
 function _Genome:add_neuron()
+	local chosen_link
 	-- if the genome is smaller than threshold we select with a bias towards older links to avoid a chaining effect
 	local size_threshold = self:get_n_inputs() + self:get_n_outputs() + 5
 
 	if self:get_size() < size_threshold then
-		-- no chaining bias
-	else
+		-- no chaining bias, choose an older link
+		local tries = MAX_NEURON_TRIES
+		while (tries > 0) do
+			local n_links = #self._links
+			chosen_link = self._links[qpd_random(1, n_links - 1 - math.floor(n_links))]
 
+			-- link has to be enabled, is not recurrent and does not have a bias input neuron
+			local input_neuron = chosen_link:get_input_neuron()
+			if 	chosen_link:is_enabled() and
+				(not chosen_link:is_recurrent()) and
+				input_neuron:get_neuron_type() ~= "bias" then
+					tries = 0
+			else
+				chosen_link = nil
+			end
+			tries = tries - 1
+		end
+	else
+		local tries = MAX_NEURON_TRIES
+		while (tries > 0) do
+			local n_links = #self._links
+			chosen_link = self._links[qpd_random(1, n_links)]
+
+			-- link has to be enabled, is not recurrent and does not have a bias input neuron
+			local input_neuron = chosen_link:get_input_neuron()
+			if 	chosen_link:is_enabled() and
+				(not chosen_link:is_recurrent()) and
+				input_neuron:get_neuron_type() ~= "bias" then
+					tries = 0
+			else
+				chosen_link = nil
+			end
+			tries = tries - 1
+		end
 	end
 
-	self:_sort_neurons()
+	if chosen_link then
+		-- disable link
+		-- create new neuron
+		-- check innovation_id
+		-- create new links
+
+		self:_sort_neurons()
+	end
 end
 
 function _Genome:get_compatibility_score(other)

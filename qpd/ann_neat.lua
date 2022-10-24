@@ -58,22 +58,20 @@ end
 ------------------------------------------------------------------------------- Link
 local _Link_Gene = {}
 
-function _Link_Gene:new(input_neuron, output_neuron, weight, innovation_id, o)
+function _Link_Gene:new(input_neuron_gene, output_neuron_gene, weight, innovation_id, o)
 	local o = o or {}
 	setmetatable(o, self)
 
-	o._input_neuron = input_neuron
-	o._output_neuron = output_neuron
+	o._input_neuron = input_neuron_gene
+	o._output_neuron = output_neuron_gene
 	o._weight = weight
 	o._enabled = true
 	o._innovation_id = innovation_id
 
 
 	o._recurrent = false
-	local input_neuron = Innovation_manager:get_innovation(input_neuron)
-	local output_neuron = Innovation_manager:get_innovation(output_neuron)
 
-	o._recurrent = input_neuron:is_link_recurrent(output_neuron)
+	o._recurrent = o._input_neuron:is_link_recurrent(o._output_neuron)
 
 	return o
 end
@@ -96,6 +94,14 @@ end
 
 function _Link_Gene:set_enabled(value)
 	self._enabled = value or true
+end
+
+function _Link_Gene:get_input_neuron()
+	return self._input_neuron
+end
+
+function _Link_Gene:get_output_neuron()
+	return self._output_neuron
 end
 
 function _Link_Gene:get_input_x()
@@ -361,37 +367,49 @@ function _Innovation_manager:new(o)
 	o._id_count = 0
 	o._links = {}
 	o._neurons = {}
-	o._innovations = {}
 
 	return o
 end
 
-function _Innovation_manager:get_innovation(innovation_id)
-	return self._innovations[innovation_id]
-end
-
-function _Innovation_manager:_new_link(input_neuron, output_neuron)
+function _Innovation_manager:_new_innovation()
 	self._id_count = self._id_count + 1
-
-	local new_link = _Link_Gene:new(input_neuron, output_neuron, 0, false, self._id_count)
-	self._innovations[self._id_count] = new_link
-	return new_link
+	return self._id_count
 end
 
-function _Innovation_manager:get_link_innovation_id(input_neuron, output_neuron)
+function _Innovation_manager:get_link_innovation_id(input_neuron_gene, output_neuron_gene)
+	local input_neuron_id = input_neuron_gene:get_id()
+	local output_neuron_id = output_neuron_gene:get_id()
 	local innovation_id
-	if self._links[input_neuron] then
-		if self._links[input_neuron][output_neuron] then
-			innovation_id = self._links[input_neuron][output_neuron]
+
+	if self._links[input_neuron_id] then
+		if self._links[input_neuron_id][output_neuron_id] then
+			innovation_id = self._links[input_neuron_id][output_neuron_id]
 		end
 	else
-		self._links[input_neuron] = {}
+		self._links[input_neuron_id] = {}
 	end
 
 	if not innovation_id then
-		local new_link = self:_new_link(input_neuron, output_neuron)
-		innovation_id = new_link:get_id()
-		self._links[input_neuron][output_neuron] = innovation_id
+		innovation_id = self:_new_innovation()
+		self._links[input_neuron_id][output_neuron_id] = innovation_id
+	end
+
+	return innovation_id
+end
+
+function _Innovation_manager:get_neuron_innovation_id(x, y)
+	local innovation_id
+	if self._neurons[x]	then
+		if self._neurons[x][y] then
+			innovation_id = self._neurons[x][y]
+		end
+	else
+		self._neurons[x] = {}
+	end
+
+	if not innovation_id then
+		innovation_id = self:_new_innovation()
+		self._neurons[x][y] = innovation_id
 	end
 
 	return innovation_id
@@ -449,7 +467,7 @@ end
 ------------------------------------------------------------------------------- Genome
 local _Genome = {}
 
-function _Genome:new(neurons, links, o)
+function _Genome:new(neurons, links, hidden_layers_activation_function_name, hidden_layers_activation_function_parameters, o)
 	local o = o or {}
 	setmetatable(o, self)
 
@@ -463,6 +481,15 @@ function _Genome:new(neurons, links, o)
 	o:_init_n_inputs()
 	o:_init_n_outputs()
 	o:_init_unique_layers()
+
+	local activation_function = ann_activation_functions[hidden_layers_activation_function_name]
+	if activation_function then
+		o._hidden_layers_activation_function = activation_function
+	else
+		print("[ERROR] - _Genome:new() - Invalid activation function:", hidden_layers_activation_function_name)
+	end
+
+	o._hidden_layers_activation_function_parameters = hidden_layers_activation_function_parameters
 
 	-- o._amount_to_spawn = 0
 	return o
@@ -720,11 +747,45 @@ function _Genome:add_neuron()
 
 	if chosen_link then
 		-- disable link
-		-- create new neuron
-		-- check innovation_id
-		-- create new links
+		chosen_link:set_enabled(false)
 
-		self:_sort_neurons()
+		-- create new neuron
+		local x = (chosen_link:get_input_x() + chosen_link:get_output_x())/2
+		local y = (chosen_link:get_input_y() + chosen_link:get_output_y())/2
+
+		local new_neuron_innovation_id = Innovation_manager:get_neuron_innovation_id(x, y)
+		local activation_response = _get_random_activation_response()
+		local new_neuron = _Neuron_Gene:new(
+			"hidden",
+			chosen_link:is_recurrent(),
+			self._hidden_layers_activation_function,
+			self._hidden_layers_activation_function_parameters,
+			new_neuron_innovation_id,
+			x,
+			y
+		)
+		table.insert(self._neurons, new_neuron)
+
+		-- create new links
+		local new_link_input_innovation_id = Innovation_manager:get_link_innovation_id(chosen_link:get_input_neuron(), new_neuron)
+		local new_link_input = _Link_Gene:new(
+			chosen_link:get_input_neuron(),
+			new_neuron,
+			_get_random_link_weight(),
+			new_link_input_innovation_id
+		)
+		table.insert(self._links, new_link_input)
+
+		local new_link_output_innovation_id = Innovation_manager:get_link_innovation_id(new_neuron, chosen_link:get_output_neuron())
+		local new_link_output = _Link_Gene:new(
+			new_neuron,
+			chosen_link:get_output_neuron(),
+			_get_random_link_weight(),
+			new_link_output_innovation_id
+		)
+		table.insert(self._links, new_link_output)
+
+		self:_sort_genes()
 	end
 end
 

@@ -12,7 +12,7 @@ function ann_activation_functions.binary_step(a, bias)
 	end
 end
 
-function ann_activation_functions.sigmoid(a, _, parameters)
+function ann_activation_functions.sigmoid(a, _bias, parameters)
 	local p = parameters and parameters.sigmoid
 	return 1 / (1 + math.exp(-a/p))
 end

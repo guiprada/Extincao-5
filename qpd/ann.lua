@@ -256,12 +256,12 @@ function ANN:crossover(mom, dad, mutate_chance, mutate_percentage, crossover)
 
 		local crossover_layer
 		local crossover_neuron
-		if crossover then
-			crossover_layer = qpd_random.random(1, #layer)
-			crossover_neuron = qpd_random.random(1, #layer[1])
-		else
+		if crossover == false then
 			crossover_layer = 0
 			crossover_neuron = 0
+		else
+			crossover_layer = qpd_random.random(1, #layer)
+			crossover_neuron = qpd_random.random(1, #layer[1])
 		end
 
 		for j = 1, #layer do

@@ -5,7 +5,7 @@ local GeneticPopulation = {}
 GeneticPopulation.__index = GeneticPopulation
 qpd.table.assign_methods(GeneticPopulation, Population)
 
-function GeneticPopulation:new(class, active_size, population_size, genetic_population_size, new_table, reset_table, o)
+function GeneticPopulation:new(class, active_size, population_size, genetic_population_size, reset_table, o)
 	local o = o or {}
 	setmetatable(o, self)
 
@@ -103,16 +103,18 @@ function GeneticPopulation:_selection()
 	-- add living actors
 	for _, actor in ipairs(self._population) do
 		if actor and actor._is_active then
-			table.insert(everybody, actor)
+			local actor_history = actor:get_history()
+			table.insert(everybody, actor_history)
 		end
 	end
 
 	local mom = self:_roulette(everybody)
 	local dad = self:_roulette(everybody)
+
 	if not (mom and dad) then
 		print("[WARN] - GeneticPopulation:_selection() - Did not get an actor from roulette(), choosing randomly!")
-		mom = mom or self._history[#self._population]
-		dad = dad or self._history[#self._history]
+		mom = mom or everybody[qpd.random.random(#everybody)]
+		dad = dad or everybody[qpd.random.random(#everybody)]
 		print(string.format("mom: %s  | dad: %s", mom, dad))
 	end
 
@@ -122,7 +124,7 @@ function GeneticPopulation:_selection()
 			mom, dad = dad, mom
 		elseif mom[self._fitness_attribute] == dad[self._fitness_attribute] then
 			-- they have equal fitness
-			if mom:gene_count() > dad:gene_count() then
+			if mom._genome:gene_count() > dad._genome:gene_count() then
 				mom, dad = dad, mom
 			end
 		end
@@ -158,6 +160,7 @@ function GeneticPopulation:add_active()
 	else
 		-- find parents
 		local mom, dad = self:_selection()
+
 		-- cross
 		self._population[i]:crossover(mom, dad, self:get_reset_table())
 	end

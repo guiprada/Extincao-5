@@ -190,6 +190,12 @@ end
 
 function qpd_table.clone(source, dest)
 	local dest = dest or {}
+
+	local source_metatable = getmetatable(source)
+	if source_metatable then
+		setmetatable(dest, getmetatable(source))
+	end
+
 	for k, value in pairs(source) do
 		if(type(value) == "table")then
 			dest[k] = {}

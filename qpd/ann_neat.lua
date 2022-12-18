@@ -593,7 +593,7 @@ function _Genome:crossover(dad, mutate_chance, mutate_percentage, chance_add_neu
 		elseif dad_neuron_gene then
 			local new_neuron = dad_neuron_gene:inherit(mutate_chance, mutate_percentage)
 			table.insert(neurons, new_neuron)
-			dad_index = mom_index + 1
+			dad_index = dad_index + 1
 		end
 
 		mom_neuron_gene = mom._neurons[mom_index]

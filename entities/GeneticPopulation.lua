@@ -124,7 +124,7 @@ function GeneticPopulation:_selection()
 			mom, dad = dad, mom
 		elseif mom[self._fitness_attribute] == dad[self._fitness_attribute] then
 			-- they have equal fitness
-			if mom._genome:gene_count() > dad._genome:gene_count() then
+			if mom._genome:get_gene_count() > dad._genome:get_gene_count() then
 				mom, dad = dad, mom
 			end
 		end

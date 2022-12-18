@@ -24,12 +24,15 @@ fitness_modes.no_pill_updates = function (self)
 end
 
 -------------------------------------------------------------------------------
-function AutoPlayer_NEAT.init(search_path_length, mutate_chance, mutate_percentage, ann_layers, ann_mode, crossover, fitness_mode)
+function AutoPlayer_NEAT.init(search_path_length, mutate_chance, mutate_percentage, add_neuron_chance, add_link_chance, loopback_chance, ann_layers, ann_mode, crossover, fitness_mode)
 	--AutoPlayer.init(search_path_length, mutate_chance, mutate_percentage, ann_layers, ann_mode, crossover, autoplayer_ann_backpropagation, autoplayer_fitness_mode, collision_purge, rotate_purge, initial_bias)
 	AutoPlayer_NEAT._search_path_length = search_path_length
 
 	AutoPlayer_NEAT._mutate_chance = mutate_chance
 	AutoPlayer_NEAT._mutate_percentage = mutate_percentage
+	AutoPlayer_NEAT._add_neuron_chance = add_neuron_chance
+	AutoPlayer_NEAT._add_link_chance = add_link_chance
+	AutoPlayer_NEAT._loopback_chance = loopback_chance
 	AutoPlayer_NEAT._ann_layers = ann_layers and qpd.table.read_from_string(ann_layers) or false
 	AutoPlayer_NEAT._ann_mode = ann_mode
 	AutoPlayer_NEAT._crossover = crossover
@@ -107,7 +110,7 @@ function AutoPlayer_NEAT:reset(reset_table)
 end
 
 function AutoPlayer_NEAT:crossover(mom, dad)
-	local new_ann = qpd.ann_neat:crossover(mom, dad, self._mutate_chance, self._mutate_percentage, 0.05, 0.05, 0.05, self._crossover)
+	local new_ann = qpd.ann_neat:crossover(mom, dad, self._mutate_chance, self._mutate_percentage, AutoPlayer_NEAT._add_neuron_chance, AutoPlayer_NEAT._add_link_chance, AutoPlayer_NEAT._loopback_chance, self._crossover)
 	-- reset
 	self:reset({ann = new_ann})
 end

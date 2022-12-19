@@ -572,21 +572,30 @@ function _Genome:crossover(dad, mutate_chance, mutate_percentage, chance_add_neu
 
 	local mom_neuron_gene = mom._neurons[mom_index]
 	local dad_neuron_gene = dad._neurons[dad_index]
-	while mom_neuron_gene do
-		if mom_neuron_gene:get_id() == dad_neuron_gene:get_id() then
-			local chosen = qpd_random.choose(mom_neuron_gene, dad_neuron_gene)
-			local new_neuron = chosen:inherit(mutate_chance, mutate_percentage)
-			table.insert(neurons, new_neuron)
-			mom_index = mom_index + 1
-			dad_index = dad_index + 1
-			if not new_neuron then print("Try to insert nil neuron 1") end
-		elseif mom_neuron_gene:get_id() < dad_neuron_gene:get_id() then
+	while mom_neuron_gene do -- or dad_neuron_gene do
+		if mom_neuron_gene and dad_neuron_gene then
+			if mom_neuron_gene:get_id() == dad_neuron_gene:get_id() then
+				local chosen = qpd_random.choose(mom_neuron_gene, dad_neuron_gene)
+				local new_neuron = chosen:inherit(mutate_chance, mutate_percentage)
+				table.insert(neurons, new_neuron)
+				mom_index = mom_index + 1
+				dad_index = dad_index + 1
+			elseif mom_neuron_gene:get_id() < dad_neuron_gene:get_id() then
+				local new_neuron = mom_neuron_gene:inherit(mutate_chance, mutate_percentage)
+				table.insert(neurons, new_neuron)
+				mom_index = mom_index + 1
+			else
+				dad_index = dad_index + 1
+			end
+		elseif mom_neuron_gene then
 			local new_neuron = mom_neuron_gene:inherit(mutate_chance, mutate_percentage)
 			table.insert(neurons, new_neuron)
 			mom_index = mom_index + 1
-			if not new_neuron then print("Try to insert nil neuron 2") end
-		else
-			dad_index = dad_index + 1
+		-- elseif dad_neuron_gene then
+		-- 	local new_neuron = dad_neuron_gene:inherit(mutate_chance, mutate_percentage)
+		-- 	table.insert(neurons, new_neuron)
+		-- 	dad_index = dad_index + 1
+		-- 	if not new_neuron then print("Try to insert nil neuron 4") end
 		end
 
 		mom_neuron_gene = mom._neurons[mom_index]
@@ -600,21 +609,30 @@ function _Genome:crossover(dad, mutate_chance, mutate_percentage, chance_add_neu
 
 	local mom_link_gene = mom._links[mom_index]
 	local dad_link_gene = dad._links[dad_index]
-	while mom_link_gene do
-		if mom_link_gene:get_id() == dad_link_gene:get_id() then
-			local chosen = qpd_random.choose(mom_link_gene, dad_link_gene)
-			local new_link = chosen:inherit(mutate_chance, mutate_percentage)
-			table.insert(links, new_link)
-			mom_index = mom_index + 1
-			dad_index = dad_index + 1
-		elseif mom_link_gene:get_id() < dad_link_gene:get_id() then
+	while mom_link_gene do -- or dad_link_gene do
+		if mom_link_gene and dad_link_gene then
+			if mom_link_gene:get_id() == dad_link_gene:get_id() then
+				local chosen = qpd_random.choose(mom_link_gene, dad_link_gene)
+				local new_link = chosen:inherit(mutate_chance, mutate_percentage)
+				table.insert(links, new_link)
+				mom_index = mom_index + 1
+				dad_index = dad_index + 1
+			elseif mom_link_gene:get_id() < dad_link_gene:get_id() then
+				local new_link = mom_link_gene:inherit(mutate_chance, mutate_percentage)
+				table.insert(links, new_link)
+				mom_index = mom_index + 1
+			else
+				dad_index = dad_index + 1
+			end
+		elseif mom_link_gene then
 			local new_link = mom_link_gene:inherit(mutate_chance, mutate_percentage)
 			table.insert(links, new_link)
 			mom_index = mom_index + 1
-		else
-			dad_index = dad_index + 1
+		-- elseif dad_link_gene then
+		-- 	local new_link = dad_link_gene:inherit(mutate_chance, mutate_percentage)
+		-- 	table.insert(links, new_link)
+		-- 	dad_index = dad_index + 1
 		end
-
 
 		mom_link_gene = mom._links[mom_index]
 		dad_link_gene = dad._links[dad_index]

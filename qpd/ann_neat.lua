@@ -2,6 +2,7 @@
 local ANN = {}
 ANN.__index = ANN
 
+local qpd_gamestate = require "qpd.gamestate"
 local qpd_table = require "qpd.table"
 local qpd_random = require "qpd.random"
 local ann_activation_functions = require "qpd.ann_activation_functions"
@@ -571,28 +572,20 @@ function _Genome:crossover(dad, mutate_chance, mutate_percentage, chance_add_neu
 
 	local mom_neuron_gene = mom._neurons[mom_index]
 	local dad_neuron_gene = dad._neurons[dad_index]
-	while mom_neuron_gene or dad_neuron_gene do
-		if mom_neuron_gene and dad_neuron_gene then
-			if mom_neuron_gene._innovation_id == dad_neuron_gene._innovation_id then
-				local chosen = qpd_random.choose(mom_neuron_gene, dad_neuron_gene)
-				local new_neuron = chosen:inherit(mutate_chance, mutate_percentage)
-				table.insert(neurons, new_neuron)
-				mom_index = mom_index + 1
-				dad_index = dad_index + 1
-			elseif mom_neuron_gene._innovation_id < dad_neuron_gene._innovation_id then
-				local new_neuron = mom_neuron_gene:inherit(mutate_chance, mutate_percentage)
-				table.insert(neurons, new_neuron)
-				mom_index = mom_index + 1
-			else
-				dad_index = dad_index + 1
-			end
-		elseif mom_neuron_gene then
+	while mom_neuron_gene do
+		if mom_neuron_gene:get_id() == dad_neuron_gene:get_id() then
+			local chosen = qpd_random.choose(mom_neuron_gene, dad_neuron_gene)
+			local new_neuron = chosen:inherit(mutate_chance, mutate_percentage)
+			table.insert(neurons, new_neuron)
+			mom_index = mom_index + 1
+			dad_index = dad_index + 1
+			if not new_neuron then print("Try to insert nil neuron 1") end
+		elseif mom_neuron_gene:get_id() < dad_neuron_gene:get_id() then
 			local new_neuron = mom_neuron_gene:inherit(mutate_chance, mutate_percentage)
 			table.insert(neurons, new_neuron)
 			mom_index = mom_index + 1
-		elseif dad_neuron_gene then
-			local new_neuron = dad_neuron_gene:inherit(mutate_chance, mutate_percentage)
-			table.insert(neurons, new_neuron)
+			if not new_neuron then print("Try to insert nil neuron 2") end
+		else
 			dad_index = dad_index + 1
 		end
 
@@ -607,30 +600,21 @@ function _Genome:crossover(dad, mutate_chance, mutate_percentage, chance_add_neu
 
 	local mom_link_gene = mom._links[mom_index]
 	local dad_link_gene = dad._links[dad_index]
-	while mom_link_gene or dad_link_gene do
-		if mom_link_gene and dad_link_gene then
-			if mom_link_gene._innovation_id == dad_link_gene._innovation_id then
-				local chosen = qpd_random.choose(mom_link_gene, dad_link_gene)
-				local new_link = chosen:inherit(mutate_chance, mutate_percentage)
-				table.insert(links, new_link)
-				mom_index = mom_index + 1
-				dad_index = dad_index + 1
-			elseif mom_link_gene._innovation_id < dad_link_gene._innovation_id then
-				local new_link = mom_link_gene:inherit(mutate_chance, mutate_percentage)
-				table.insert(links, new_link)
-				mom_index = mom_index + 1
-			else
-				dad_index = dad_index + 1
-			end
-		elseif mom_link_gene then
+	while mom_link_gene do
+		if mom_link_gene:get_id() == dad_link_gene:get_id() then
+			local chosen = qpd_random.choose(mom_link_gene, dad_link_gene)
+			local new_link = chosen:inherit(mutate_chance, mutate_percentage)
+			table.insert(links, new_link)
+			mom_index = mom_index + 1
+			dad_index = dad_index + 1
+		elseif mom_link_gene:get_id() < dad_link_gene:get_id() then
 			local new_link = mom_link_gene:inherit(mutate_chance, mutate_percentage)
 			table.insert(links, new_link)
 			mom_index = mom_index + 1
-		elseif dad_link_gene then
-			local new_link = dad_link_gene:inherit(mutate_chance, mutate_percentage)
-			table.insert(links, new_link)
+		else
 			dad_index = dad_index + 1
 		end
+
 
 		mom_link_gene = mom._links[mom_index]
 		dad_link_gene = dad._links[dad_index]
@@ -645,6 +629,13 @@ function _Genome:crossover(dad, mutate_chance, mutate_percentage, chance_add_neu
 		new_genome:add_link(chance_loopback)
 	end
 
+	for i = 1, #new_genome._links do
+		local this_link = new_genome._links[i]
+		if not new_genome:_is_link_valid(this_link) then
+			print("ERROR - _Genome:crossover() - Genome has invalid link!")
+			print("Link is enabled: ", this_link:is_enabled())
+		end
+	end
 	print("neurons ", new_genome:get_neuron_count())
 	print("links ", new_genome:get_link_count())
 
@@ -685,15 +676,43 @@ function _Genome:_sort_genes()
 end
 
 function _Genome:_has_link(link_gene_id)
+	-- self:_sort_links()
 	for i = 1, #self._links do
 		local this_link_gene_id = self._links[i]:get_id()
 		if this_link_gene_id == link_gene_id then
 			return true
-		elseif this_link_gene_id < link_gene_id then -- the links are ordered, so we can do an early exit
+		elseif this_link_gene_id > link_gene_id then -- the links are ordered, so we can do an early exit
 			return false
 		end
 	end
 	return false
+end
+
+function _Genome:_has_neuron(neuron_gene_id)
+	-- self:_sort_neurons()
+	for i = 1, #self._neurons do
+		local this_neuron_gene_id = self._neurons[i]:get_id()
+		if this_neuron_gene_id == neuron_gene_id then
+			return true
+		elseif this_neuron_gene_id > neuron_gene_id then -- the links are ordered, so we can do an early exit
+			return false
+		end
+	end
+	return false
+end
+
+function _Genome:_is_link_valid(link_gene)
+	local input_neuron_gene_id = link_gene:get_input_neuron():get_id()
+	if not self:_has_neuron(input_neuron_gene_id) then
+		return false
+	end
+
+	local output_neuron_gene_id = link_gene:get_output_neuron():get_id()
+	if not self:_has_neuron(output_neuron_gene_id) then
+		return false
+	end
+
+	return true
 end
 
 function _Genome:create_link(input_neuron, output_neuron, innovation_id)
@@ -706,10 +725,10 @@ function _Genome:create_link(input_neuron, output_neuron, innovation_id)
 			_get_random_link_weight(),
 			innovation_id
 		)
-		-- if not self:_has_link(new_link) then
-		table.insert(self._links, new_link)
-		self:_sort_links()
-		-- end
+		if not self:_has_link(new_link:get_id()) then
+			table.insert(self._links, new_link)
+			self:_sort_links()
+		end
 	end
 end
 
@@ -979,9 +998,17 @@ function ANN:new(genome, o)
 	for i = 1, #genome._links do
 		local this_link_gene = genome._links[i]
 		if this_link_gene:is_enabled() then
-			local this_link = _Link:new_from_gene(this_link_gene, o._layers, neuron_id_to_position)
-			this_link:get_input_neuron():add_output_link(this_link)
-			this_link:get_output_neuron():add_input_link(this_link)
+			-- check neurons exist in this genome
+			if 	neuron_id_to_position[this_link_gene:get_input_neuron():get_id()] and
+				neuron_id_to_position[this_link_gene:get_output_neuron():get_id()] then
+
+				local this_link = _Link:new_from_gene(this_link_gene, o._layers, neuron_id_to_position)
+				this_link:get_input_neuron():add_output_link(this_link)
+				this_link:get_output_neuron():add_input_link(this_link)
+			else
+				print("ERROR - _ANN:new() - Invalid Link - Neuron not registered in neuron_id_to_position!")
+				qpd_gamestate.switch("menu")
+			end
 		end
 	end
 

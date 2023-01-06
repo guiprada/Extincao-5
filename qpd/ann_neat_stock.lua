@@ -846,7 +846,7 @@ function _Genome:mutate_activation_response(mutation_rate, max_perturbation)
 end
 
 function _Genome:get_compatibility_score(other)
-	-- calculates the compatibility score between this genome and another genome(BUCKLAND, 387)
+-- calculates the compatibility score between this genome and another genome(BUCKLAND, 387)
 
 -- 	double CGenome: :GetCompatibilityScore(const CGenome &genome)
 -- 	{

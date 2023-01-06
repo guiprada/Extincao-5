@@ -27,10 +27,15 @@ function GeneticPopulation:new(class, active_size, population_size, genetic_popu
 	for i = 1, o._active_size do
 		o._population[i] = o._class:new(o._new_table)
 		o._population[i]:reset(o:get_reset_table())
+
 		o._count = o._count + 1
 	end
 
 	return o
+end
+
+function GeneticPopulation:get_species()
+	return self._species
 end
 
 function GeneticPopulation:set_fitness_attribute(value)
@@ -39,6 +44,14 @@ end
 
 function GeneticPopulation:set_neat_selection(value)
 	self._neat_selection = value or true
+
+	if self._neat_selection then
+		if not self._species then
+			self._species = {}
+		end
+	else
+		self._species = nil
+	end
 end
 
 function GeneticPopulation:set_neat_mode(value)
@@ -141,11 +154,21 @@ function GeneticPopulation:replace(i)
 		self._random_init = self._random_init - 1
 		self._population[i]:reset(self:get_reset_table())
 	else
+		-- remove from species
+		if self._neat_selection then
+			self._population[i]:get_ann():remove_from_species(self:get_species())
+		end
+
 		-- find parents
 		local mom, dad = self:_selection()
 
 		-- cross
 		self._population[i]:crossover(mom, dad, self:get_reset_table())
+
+		-- speciate
+		if self._neat_selection then
+			self._population[i]:get_ann():speciate(self:get_species())
+		end
 	end
 end
 

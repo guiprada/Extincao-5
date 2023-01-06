@@ -247,4 +247,8 @@ function AutoPlayer_NEAT:get_history()
 	return {_fitness = self:get_fitness(), _genome = genome}
 end
 
+function AutoPlayer_NEAT:type()
+	return "AutoPlayer_NEAT"
+end
+
 return AutoPlayer_NEAT

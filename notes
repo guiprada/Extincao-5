@@ -1,9 +1,9 @@
 ----------------- TODO
 - implementar NEAT
+	- option to add aumentating neurons and links with fixed(0.5 or 1) weight(disturb less the genome's functionality)
 	- should links be reactivate on crossover?
-	- :new_from_gene()
-	- suporte a species
-
+	- speciation
+	- remove unused neurons from fenotype
 
 - implementar funcoes que nao usam "self" para AutoplayerAnnModes.lua
 - implementar gameplay data capture and offline learning
@@ -34,28 +34,31 @@ __ghost_population = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 
+autoplayer_neat_enable = true
 autoplayer_ann_mode = b1
-autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {count = 3, activation_function_name = "tanh"}, {count = 3, activation_function_name = "tanh"}, {count = 1, activation_function_name = "binary_step"}}
+autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {count = 1, activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
-autoplayer_ann_random_spread = 1
+__autoplayer_ann_random_spread = 1
 autoplayer_fitness_mode = updates
-autoplayer_collision_purge = false
-autoplayer_rotate_purge = false
-autoplayer_population = 3000
+__autoplayer_collision_purge = false
+__autoplayer_rotate_purge = false
+autoplayer_population = 300
 autoplayer_active_population = 1
-autoplayer_genetic_population = 300
-autoplayer_ann_backpropagation = false
+autoplayer_genetic_population = 100
+__autoplayer_ann_backpropagation = false
 __autoplayer_ann_learning_rate = 0.1
 autoplayer_crossover = true
 autoplayer_mutate_chance = 0.05
 autoplayer_mutate_percentage = 0.05
+autoplayer_add_neuron_chance = 0.05
+autoplayer_add_link_chance = 0.05
+autoplayer_loopback_chance = 0.05
 autoplayer_speed_factor = 10
 autoplayer_search_path_length = 5
 
 pill_effect_time = 3
 pill_active_population = 2
-note = proportional bias
 
 2-----------------------------------------
 ghost_chase_time = 5
@@ -68,28 +71,31 @@ __ghost_population = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 
-autoplayer_ann_mode = b2
-autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {count = 3, activation_function_name = "tanh"}, {count = 3, activation_function_name = "tanh"}, {count = 2, activation_function_name = "binary_step"}}
+autoplayer_neat_enable = true
+autoplayer_ann_mode = b1_path_grading_hack
+autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {count = 1, activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
-autoplayer_ann_random_spread = 1
+__autoplayer_ann_random_spread = 1
 autoplayer_fitness_mode = updates
-autoplayer_collision_purge = false
-autoplayer_rotate_purge = false
-autoplayer_population = 3000
+__autoplayer_collision_purge = false
+__autoplayer_rotate_purge = false
+autoplayer_population = 300
 autoplayer_active_population = 1
-autoplayer_genetic_population = 300
-autoplayer_ann_backpropagation = false
+autoplayer_genetic_population = 100
+__autoplayer_ann_backpropagation = false
 __autoplayer_ann_learning_rate = 0.1
 autoplayer_crossover = true
 autoplayer_mutate_chance = 0.05
 autoplayer_mutate_percentage = 0.05
+autoplayer_add_neuron_chance = 0.05
+autoplayer_add_link_chance = 0.05
+autoplayer_loopback_chance = 0.05
 autoplayer_speed_factor = 10
 autoplayer_search_path_length = 5
 
 pill_effect_time = 3
 pill_active_population = 2
-note = proportional bias
 
 3-----------------------------------------
 ghost_chase_time = 5
@@ -102,28 +108,31 @@ __ghost_population = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 
-autoplayer_ann_mode = b3
-autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {count = 3, activation_function_name = "tanh"}, {count = 3, activation_function_name = "tanh"}, {count = 3, activation_function_name = "binary_step"}}
+autoplayer_neat_enable = true
+autoplayer_ann_mode = b1_path_grading_simple
+autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {count = 1, activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
-autoplayer_ann_random_spread = 1
+__autoplayer_ann_random_spread = 1
 autoplayer_fitness_mode = updates
-autoplayer_collision_purge = false
-autoplayer_rotate_purge = false
-autoplayer_population = 3000
+__autoplayer_collision_purge = false
+__autoplayer_rotate_purge = false
+autoplayer_population = 300
 autoplayer_active_population = 1
-autoplayer_genetic_population = 300
-autoplayer_ann_backpropagation = false
+autoplayer_genetic_population = 100
+__autoplayer_ann_backpropagation = false
 __autoplayer_ann_learning_rate = 0.1
 autoplayer_crossover = true
 autoplayer_mutate_chance = 0.05
 autoplayer_mutate_percentage = 0.05
+autoplayer_add_neuron_chance = 0.05
+autoplayer_add_link_chance = 0.05
+autoplayer_loopback_chance = 0.05
 autoplayer_speed_factor = 10
 autoplayer_search_path_length = 5
 
 pill_effect_time = 3
 pill_active_population = 2
-note = proportional bias
 
 4-----------------------------------------
 ghost_chase_time = 5
@@ -136,28 +145,31 @@ __ghost_population = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 
-autoplayer_ann_mode = b1
-autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {count = 3, activation_function_name = "tanh"}, {count = 1, activation_function_name = "binary_step"}}
+autoplayer_neat_enable = true
+autoplayer_ann_mode = b2
+autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {count = 1, activation_function_name = "relu"}, {count = 2, activation_function_name = "binary_step"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
-autoplayer_ann_random_spread = 1
+__autoplayer_ann_random_spread = 1
 autoplayer_fitness_mode = updates
-autoplayer_collision_purge = false
-autoplayer_rotate_purge = false
-autoplayer_population = 3000
+__autoplayer_collision_purge = false
+__autoplayer_rotate_purge = false
+autoplayer_population = 300
 autoplayer_active_population = 1
-autoplayer_genetic_population = 300
-autoplayer_ann_backpropagation = false
+autoplayer_genetic_population = 100
+__autoplayer_ann_backpropagation = false
 __autoplayer_ann_learning_rate = 0.1
 autoplayer_crossover = true
 autoplayer_mutate_chance = 0.05
 autoplayer_mutate_percentage = 0.05
+autoplayer_add_neuron_chance = 0.05
+autoplayer_add_link_chance = 0.05
+autoplayer_loopback_chance = 0.05
 autoplayer_speed_factor = 10
 autoplayer_search_path_length = 5
 
 pill_effect_time = 3
 pill_active_population = 2
-note = proportional bias
 
 5-----------------------------------------
 ghost_chase_time = 5
@@ -170,28 +182,31 @@ __ghost_population = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 
-autoplayer_ann_mode = b2
-autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {count = 3, activation_function_name = "tanh"}, {count = 2, activation_function_name = "binary_step"}}
+autoplayer_neat_enable = true
+autoplayer_ann_mode = b3
+autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {count = 1, activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
-autoplayer_ann_random_spread = 1
+__autoplayer_ann_random_spread = 1
 autoplayer_fitness_mode = updates
-autoplayer_collision_purge = false
-autoplayer_rotate_purge = false
-autoplayer_population = 3000
+__autoplayer_collision_purge = false
+__autoplayer_rotate_purge = false
+autoplayer_population = 300
 autoplayer_active_population = 1
-autoplayer_genetic_population = 300
-autoplayer_ann_backpropagation = false
+autoplayer_genetic_population = 100
+__autoplayer_ann_backpropagation = false
 __autoplayer_ann_learning_rate = 0.1
 autoplayer_crossover = true
 autoplayer_mutate_chance = 0.05
 autoplayer_mutate_percentage = 0.05
+autoplayer_add_neuron_chance = 0.05
+autoplayer_add_link_chance = 0.05
+autoplayer_loopback_chance = 0.05
 autoplayer_speed_factor = 10
 autoplayer_search_path_length = 5
 
 pill_effect_time = 3
 pill_active_population = 2
-note = proportional bias
 
 6-----------------------------------------
 ghost_chase_time = 5
@@ -204,41 +219,6 @@ __ghost_population = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 
-autoplayer_ann_mode = b3
-autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {count = 3, activation_function_name = "tanh"}, {count = 3, activation_function_name = "binary_step"}}
-__autoplayer_ann_initial_bias = 0
-__autoplayer_ann_initial_weights = 0
-autoplayer_ann_random_spread = 1
-autoplayer_fitness_mode = updates
-autoplayer_collision_purge = false
-autoplayer_rotate_purge = false
-autoplayer_population = 3000
-autoplayer_active_population = 1
-autoplayer_genetic_population = 300
-autoplayer_ann_backpropagation = false
-__autoplayer_ann_learning_rate = 0.1
-autoplayer_crossover = true
-autoplayer_mutate_chance = 0.05
-autoplayer_mutate_percentage = 0.05
-autoplayer_speed_factor = 10
-autoplayer_search_path_length = 5
-
-pill_effect_time = 3
-pill_active_population = 2
-note = proportional bias
-
-
-7----------------------------------------- NEAT
-ghost_chase_time = 5
-ghost_scatter_time = 2
-ghost_speed_factor = 10
-
-headless = false
-__ghost_target_spread = 5
-__ghost_population = 0
-__ghost_active_population = 2
-ghost_population_target_offset_array = {4, -5}
-
 autoplayer_neat_enable = true
 autoplayer_ann_mode = nb4
 autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {count = 1, activation_function_name = "relu"}, {count = 4, activation_function_name = "identity"}}
@@ -265,7 +245,8 @@ autoplayer_search_path_length = 5
 pill_effect_time = 3
 pill_active_population = 2
 
-8----------------------------------------- NEAT
+
+7-----------------------------------------
 ghost_chase_time = 5
 ghost_scatter_time = 2
 ghost_speed_factor = 10
@@ -278,7 +259,7 @@ ghost_population_target_offset_array = {4, -5}
 
 autoplayer_neat_enable = true
 autoplayer_ann_mode = nb4_path_grading
-autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {count = 1, activation_function_name = "relu"}, {count = 4, activation_function_name = "identity"}}
+autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {count = 1, activation_function_name = "relu"}, {count = 1, activation_function_name = "identity"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
@@ -302,76 +283,8 @@ autoplayer_search_path_length = 5
 pill_effect_time = 3
 pill_active_population = 2
 
-9----------------------------------------- NEAT TEST
-ghost_chase_time = 5
-ghost_scatter_time = 2
-ghost_speed_factor = 10
+8-----------------------------------------
 
-headless = false
-__ghost_target_spread = 5
-__ghost_population = 0
-__ghost_active_population = 2
-ghost_population_target_offset_array = {4, -5}
-
-autoplayer_neat_enable = true
-autoplayer_ann_mode = nb4
-autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {count = 1, activation_function_name = "relu"}, {count = 4, activation_function_name = "identity"}}
-__autoplayer_ann_initial_bias = 0
-__autoplayer_ann_initial_weights = 0
-__autoplayer_ann_random_spread = 1
-autoplayer_fitness_mode = updates
-__autoplayer_collision_purge = false
-__autoplayer_rotate_purge = false
-autoplayer_population = 3
-autoplayer_active_population = 1
-autoplayer_genetic_population = 1
-__autoplayer_ann_backpropagation = false
-__autoplayer_ann_learning_rate = 0.1
-autoplayer_crossover = true
-autoplayer_mutate_chance = 0.05
-autoplayer_mutate_percentage = 0.05
-autoplayer_add_neuron_chance = 0.5
-autoplayer_add_link_chance = 0.5
-autoplayer_loopback_chance = 0.05
-autoplayer_speed_factor = 10
-autoplayer_search_path_length = 5
-
-pill_effect_time = 3
-pill_active_population = 2
-
--------------------------------------------------------------------------------
-ghost_chase_time = 5
-ghost_scatter_time = 2
-ghost_speed_factor = 10
-
-headless = false
-__ghost_target_spread = 5
-__ghost_population = 0
-__ghost_active_population = 2
-ghost_population_target_offset_array = {4, -5}
-
-autoplayer_ann_mode = b3
-autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {count = 3, activation_function_name = "relu"}, {count = 3, activation_function_name = "binary_step"}}
-__autoplayer_ann_initial_bias = 0
-__autoplayer_ann_initial_weights = 0
-autoplayer_ann_random_spread = 1
-autoplayer_fitness_mode = updates
-autoplayer_collision_purge = false
-autoplayer_rotate_purge = false
-autoplayer_population = 3000
-autoplayer_active_population = 1
-autoplayer_genetic_population = 300
-autoplayer_ann_backpropagation = false
-__autoplayer_ann_learning_rate = 0.1
-autoplayer_crossover = true
-autoplayer_mutate_chance = 0.05
-autoplayer_mutate_percentage = 0.05
-autoplayer_speed_factor = 10
-autoplayer_search_path_length = 5
-
-pill_effect_time = 3
-pill_active_population = 2
-note = proportional bias
 
 -----------------------------------------
 ----------------- NOTES

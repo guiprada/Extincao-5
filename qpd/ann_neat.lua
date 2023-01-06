@@ -447,6 +447,7 @@ local _Species = {}
 _Species.__index = _Species
 
 function _Species:new(leader, o)
+	print("New Species :)")
 	local o = o or {}
 	setmetatable(o, self)
 
@@ -454,19 +455,72 @@ function _Species:new(leader, o)
 	o._specimes = {}
 	_species_count = _species_count + 1
 	o._id = _species_count
-	o._best_fitness = o._leader:get_fitness()
-	o._av_fitness = o._best_fitness
-	o._generations_with_no_fitness_improvement = 0
-	o._age = 0
-	o._required_spawns = 0
+	-- o._best_fitness = o._leader:get_fitness()
+	-- o._av_fitness = o._best_fitness
+	-- o._generations_with_no_fitness_improvement = 0
+	-- o._age = 0
+	-- o._required_spawns = 0
 
 	return o
 end
 
-function _Species:adjusted_fitnesses()
+function _Species:get_leader()
+	return self._leader
 end
 
-function _Species:add_member(new_genome)
+function _Species:get_compatibility_score(ann)
+	return ann:get_genome():get_compatibility_score(self:get_leader():get_genome())
+end
+
+function _Species:adjusted_fitnesses()
+	-- this method boosts the fitnesses of the young, penalizes the
+	-- fitnesses of the old and then performs fitness sharing over
+	-- all the members of the species(BUCKLAND, 392)
+
+	-- 	void CSpecies::AdjustFitnesses()
+	-- 	{
+	-- 		double total = 0;
+	-- 		for (int gen=0; gen<m_vecMembers.size(); ++gen) {
+	-- 			double fitness = m_vecMembers[gen]->Fitness();
+	--
+	-- 			//boost the fitness scores if the species is young
+	-- 			if (m_iAge < CParams::iYoungBonusAgeThreshhold) {
+	-- 				fitness *= CParams::dYoungFitnessBonus;
+	-- 			}
+	--
+	-- 			//punish older species
+	-- 			if (m_iAge > CParams::iOldAgeThreshold) {
+	-- 				fitness *= CParams::dOldAgePenalty;
+	-- 			}
+	--
+	-- 			total += fitness;
+	--
+	-- 			//apply fitness sharing to adjusted fitnesses
+	-- 			double AdjustedFitness = fitness/m_vecMembers.size();
+	-- 			m_vecMembers[gen]->SetAdjFitness(AdjustedFitness);
+	-- 		}
+	-- 	}
+end
+
+function _Species:add_member(new_ann)
+	table.insert(self._specimes, new_ann)
+end
+
+function _Species:remove_member(ann)
+	if #self._specimes < 1 then
+		self._specimes = nil
+		print("Species extinguished :|")
+		return true
+	else
+		for i = 1, #self._specimes do
+			local this_ann = self._specimes[i]
+			if ann == this_ann then
+				self._specimes[i] = self._specimes[#self._specimes]
+				self._specimes[#self._specimes] = nil
+				return false
+			end
+		end
+	end
 end
 
 function _Species:purge()
@@ -894,9 +948,6 @@ function _Genome:add_neuron()
 	end
 end
 
-function _Genome:get_compatibility_score(other)
-end
-
 function _Genome:duplicate_link()
 	-- returns true if the specified link is already part of the genome
 end
@@ -907,6 +958,104 @@ end
 
 function _Genome:already_have_this_neuron_id(id)
 	-- tests if the passed ID is the same as any existing neuron IDs. Used in add_neuron()
+end
+
+function _Genome:get_compatibility_score(other)
+	-- calculates the compatibility score between this genome and another genome(BUCKLAND, 387)
+
+	-- travel down the length of each genome counting the number of
+	-- disjoint genes, the number of excess genes and the number of
+	-- matched genes
+	local n_disjoint = 0
+	local n_excess = 0
+	local n_matched = 0
+
+	-- this records the summed difference of weights in matched genes
+	local acc_weight_difference = 0
+
+	local this_index = 1
+	local other_index = 1
+
+	local this_neuron_gene = self._neurons[this_index]
+	local other_neuron_gene = other._neurons[other_index]
+	while this_neuron_gene or other_neuron_gene do
+		if this_neuron_gene and other_neuron_gene then
+			local this_id = this_neuron_gene:get_id()
+			local other_id = other_neuron_gene:get_id()
+			if this_id == other_id then
+				n_matched = n_matched + 1
+				local weight_difference = math.abs(this_neuron_gene:get_activation_response() - other_neuron_gene:get_activation_response())
+				acc_weight_difference = acc_weight_difference + weight_difference
+
+				this_index = this_index + 1
+				other_index = other_index + 1
+			elseif this_id > other_id then
+				n_disjoint = n_disjoint + 1
+				other_index = other_index + 1
+			else -- if other_id > this_id then
+				n_disjoint = n_disjoint + 1
+				this_index = this_index + 1
+			end
+		elseif this_neuron_gene then
+			n_excess = n_excess + 1
+			this_index = this_index + 1
+		else -- if other_neuron_gene then
+			n_excess = n_excess + 1
+			other_index = other_index + 1
+		end
+
+		this_neuron_gene = self._neurons[this_index]
+		other_neuron_gene = other._neurons[other_index]
+	end
+
+	this_index = 1
+	other_index = 1
+	local this_link_gene = self._links[this_index]
+	local other_link_gene = other._links[other_index]
+	while this_link_gene or other_link_gene do
+		if this_link_gene and other_link_gene then
+			local this_id = this_link_gene:get_id()
+			local other_id = other_link_gene:get_id()
+			if this_id == other_id then
+				n_matched = n_matched + 1
+				local weight_difference = math.abs(this_link_gene:get_weight() - other_link_gene:get_weight())
+				acc_weight_difference = acc_weight_difference + weight_difference
+
+				this_index = this_index + 1
+				other_index = other_index + 1
+			elseif this_id > other_id then
+				n_disjoint = n_disjoint + 1
+				other_index = other_index + 1
+			else -- if other_id > this_id then
+				n_disjoint = n_disjoint + 1
+				this_index = this_index + 1
+			end
+		elseif this_link_gene then
+			n_excess = n_excess + 1
+			this_index = this_index + 1
+		else -- if other_link_gene then
+			n_excess = n_excess + 1
+			other_index = other_index + 1
+		end
+
+		this_link_gene = self._links[this_index]
+		other_link_gene = other._links[other_index]
+	end
+
+	local disjoint_factor = 1
+	local excess_factor = 1
+	local matched_factor = 0.4
+
+	-- get the longest length
+	local longest_length = self:get_gene_count()
+	if other:get_gene_count() > longest_length then
+		longest_length = other:get_gene_count()
+	end
+
+	local score = 	((disjoint_factor * n_disjoint) / longest_length) +
+					((excess_factor * n_excess) + (matched_factor * n_matched) / longest_length) +
+					((matched_factor * acc_weight_difference) / n_matched)
+	return score
 end
 
 function _Genome:type()
@@ -982,6 +1131,7 @@ function ANN:new(genome, o)
 	setmetatable(o, self)
 
 	o._genome = genome
+	o._specie = nil
 
 	-- fill in layer_to_layer_position_dict and start layers array.
 	o._layers = {}
@@ -997,6 +1147,11 @@ function ANN:new(genome, o)
 		local this_neuron_gene = genome._neurons[i]
 		local this_layer = layer_to_layer_position_dict[this_neuron_gene:get_x()]
 		local this_neuron = _Neuron:new_from_gene(this_neuron_gene)
+
+		if not this_neuron then
+			print("Invalid Neuron")
+			qpd_gamestate.switch("menu")
+		end
 
 		table.insert(o._layers[this_layer], this_neuron)
 	end
@@ -1039,15 +1194,81 @@ function ANN:crossover(mom, dad, mutate_chance, mutate_percentage, chance_add_ne
 	return new_ann
 end
 
+function ANN:speciate(species, threshold)
+	local ann_specie
+	if #species >= 1 then
+		local first_specie = species[1]
+		local closest_specie = first_specie
+		local closest_compatibility = first_specie:get_compatibility_score(self)
+
+		for i = 2, #species do
+			local this_specie = species[i]
+			local this_compatibility = this_specie:get_compatibility_score(self)
+			print(this_compatibility)
+			if this_compatibility < closest_compatibility then
+				closest_specie = this_specie
+				closest_compatibility = this_compatibility
+			end
+		end
+
+		threshold = threshold or 1
+		print("closest_compatibility: ", closest_compatibility, threshold)
+		if closest_compatibility < threshold then
+			ann_specie = closest_specie
+		end
+	end
+
+	if ann_specie then
+		ann_specie:add_member(self)
+		self._specie = ann_specie
+	else
+		local new_specie = _Species:new(self)
+		self._specie = new_specie
+		table.insert(species, new_specie)
+	end
+end
+
+function ANN:remove_from_species(species)
+	local ann_specie = self._specie
+	if ann_specie then
+		local extinguished = ann_specie:remove_member(self)
+		if extinguished then
+			for i = 1, #species do
+				local this_specie = species[i]
+				if ann_specie == this_specie then
+					species[i] = species[#species]
+					species[#species] = nil
+				end
+			end
+		end
+	else
+		print("not speciated!")
+	end
+end
+
 function ANN:get_gene_count()
 	return self._genome:get_gene_count()
 end
 
 function ANN:get_outputs(inputs, run_type)
 	-- update input layer
-	for i = 1, #self._layers[1] do
-		local this_neuron = self._layers[1][i]
-		this_neuron:update(inputs[i])
+	-- print(#self._layers[1])
+	-- for i = 1, #(self._layers[1]) do
+	-- 	local this_neuron = self._layers[1][i]
+	-- 	-- if not this_neuron then
+	-- 	-- 	print(i)
+	-- 	-- 	print(#self._layers[1])
+	-- 	-- 	print(":")
+	-- 	-- 	print(self)
+	-- 	-- 	print(self._layers)
+	-- 	-- 	print(self._layers[1][i])
+	-- 	-- 	print(this_neuron:type())
+	-- 	-- end
+	-- 	this_neuron:update(inputs[i])
+	-- end
+
+	for index, value in ipairs(self._layers[1]) do
+		value:update(inputs[index])
 	end
 
 	-- update other layers
@@ -1068,7 +1289,7 @@ function ANN:get_outputs(inputs, run_type)
 end
 
 function ANN:to_string()
-	return "ANN_NEAT to string not implemented!"
+	return "{neuron count: " .. self._genome:get_neuron_count() .. ", link count: " .. self._genome:get_link_count() .. "}"
 end
 
 function ANN:get_genome()

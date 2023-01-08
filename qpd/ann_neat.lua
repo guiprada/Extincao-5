@@ -451,7 +451,9 @@ function _Species:new(leader, o)
 	setmetatable(o, self)
 
 	o._leader = leader
-	o._specimes = {}
+	o._fitness_attribute = "_fitness"
+	o._history_fitness_sum = 0
+	o._history = {}
 	_species_count = _species_count + 1
 	o._id = _species_count
 	-- o._best_fitness = o._leader:get_fitness()
@@ -468,7 +470,26 @@ function _Species:get_leader()
 end
 
 function _Species:get_member()
-	return qpd_random.choose_list(self._specimes)
+	return qpd_random.choose_list(self._history)
+end
+
+function _Species:add_to_history(actor)
+	local actor_history = actor:get_history()
+
+	-- if #self._history > math.floor(self._population_size/10) then
+	if #self._history > 50 then
+		local lowest, lowest_index = qpd_table.get_lowest(self._history, self._fitness_attribute)
+
+		if actor_history._fitness > lowest._fitness then
+			self._history_fitness_sum = self._history_fitness_sum - lowest._fitness
+
+			self._history[lowest_index] = actor_history
+			self._history_fitness_sum = self._history_fitness_sum + actor_history._fitness
+		end
+	else
+		table.insert(self._history, actor_history)
+		self._history_fitness_sum = self._history_fitness_sum + actor_history._fitness
+	end
 end
 
 function _Species:get_compatibility_score(ann)
@@ -503,39 +524,6 @@ function _Species:adjusted_fitnesses()
 	-- 			m_vecMembers[gen]->SetAdjFitness(AdjustedFitness);
 	-- 		}
 	-- 	}
-end
-
-function _Species:add_member(new_ann)
-	table.insert(self._specimes, new_ann)
-end
-
-function _Species:remove_member(ann)
-	if #self._specimes < 1 then
-		self._specimes = nil
-		print("Species extinguished :|")
-		return true
-	else
-		for i = 1, #self._specimes do
-			local this_ann = self._specimes[i]
-			if ann == this_ann then
-				self._specimes[i] = self._specimes[#self._specimes]
-				self._specimes[#self._specimes] = nil
-				return false
-			end
-		end
-	end
-end
-
-function _Species:purge()
-end
-
-function _Species:calculate_spawn_amount()
-	-- calculates how many offspring this species should spawn
-end
-
-function _Species:spawn()
-	-- spawns an individual from the species selected at random
-	-- from the best CParams::dSurvivalRate percent
 end
 
 function _Species:type()
@@ -1221,7 +1209,7 @@ function ANN:speciate(species, threshold)
 	end
 
 	if ann_specie then
-		ann_specie:add_member(self)
+		-- ann_specie:add_member(self)
 		self._specie = ann_specie
 		return false
 	else

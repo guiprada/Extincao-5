@@ -447,7 +447,6 @@ local _Species = {}
 _Species.__index = _Species
 
 function _Species:new(leader, o)
-	print("New Species :)")
 	local o = o or {}
 	setmetatable(o, self)
 
@@ -460,12 +459,16 @@ function _Species:new(leader, o)
 	-- o._generations_with_no_fitness_improvement = 0
 	-- o._age = 0
 	-- o._required_spawns = 0
-
+	print("New Species :) ", o._id)
 	return o
 end
 
 function _Species:get_leader()
 	return self._leader
+end
+
+function _Species:get_member()
+	return qpd_random.choose_list(self._specimes)
 end
 
 function _Species:get_compatibility_score(ann)
@@ -1204,14 +1207,13 @@ function ANN:speciate(species, threshold)
 		for i = 2, #species do
 			local this_specie = species[i]
 			local this_compatibility = this_specie:get_compatibility_score(self)
-			print(this_compatibility)
 			if this_compatibility < closest_compatibility then
 				closest_specie = this_specie
 				closest_compatibility = this_compatibility
 			end
 		end
 
-		threshold = threshold or 1
+		threshold = threshold or 3
 		print("closest_compatibility: ", closest_compatibility, threshold)
 		if closest_compatibility < threshold then
 			ann_specie = closest_specie
@@ -1221,10 +1223,12 @@ function ANN:speciate(species, threshold)
 	if ann_specie then
 		ann_specie:add_member(self)
 		self._specie = ann_specie
+		return false
 	else
 		local new_specie = _Species:new(self)
 		self._specie = new_specie
 		table.insert(species, new_specie)
+		return new_specie
 	end
 end
 

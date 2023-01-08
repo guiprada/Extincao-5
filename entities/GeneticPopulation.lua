@@ -12,6 +12,14 @@ function GeneticPopulation:new(class, active_size, population_size, genetic_popu
 	o._fitness_attribute = "_fitness"
 
 	o._class = class
+	o._speciatable = o._class._speciatable
+	if o._speciatable then
+		self._species = {}
+		self._specie_niche = {}
+	else
+		self._species = nil
+	end
+
 	o._active_size = active_size
 	o._population_size = population_size
 	o._random_init = population_size
@@ -28,8 +36,14 @@ function GeneticPopulation:new(class, active_size, population_size, genetic_popu
 		o._population[i] = o._class:new(o._new_table)
 		o._population[i]:reset(o:get_reset_table())
 
+		if o._speciatable then
+			o._population[i]:get_ann():speciate(self:get_species())
+		end
+
 		o._count = o._count + 1
 	end
+
+
 
 	return o
 end
@@ -44,14 +58,6 @@ end
 
 function GeneticPopulation:set_neat_selection(value)
 	self._neat_selection = value or true
-
-	if self._neat_selection then
-		if not self._species then
-			self._species = {}
-		end
-	else
-		self._species = nil
-	end
 end
 
 function GeneticPopulation:set_neat_mode(value)
@@ -153,11 +159,27 @@ function GeneticPopulation:replace(i)
 	if self._random_init > 0 then
 		self._random_init = self._random_init - 1
 		self._population[i]:reset(self:get_reset_table())
+	elseif self._speciatable and #self._specie_niche > 0 then
+		local specie = self._specie_niche[#self._specie_niche]
+		local mom = specie:get_leader()
+		print("other_______________: ", specie:get_leader())
+		local dad = specie:get_member() or mom
+		self._population[i]:crossover(mom, dad, self:get_reset_table())
+		self._specie_niche[#self._specie_niche] = nil
+
+		-- speciate
+		local new_specie = self._population[i]:get_ann():speciate(self:get_species())
+		if new_specie then
+			print("[WARN] - Speciating in speciation niche!")
+			for i = 1, self._population_size do
+				self._specie_niche[#self._specie_niche + 1] = new_specie
+			end
+		end
 	else
 		-- remove from species
-		if self._neat_selection then
-			self._population[i]:get_ann():remove_from_species(self:get_species())
-		end
+		-- if self._class._speciatable then
+		-- 	self._population[i]:get_ann():remove_from_species(self:get_species())
+		-- end
 
 		-- find parents
 		local mom, dad = self:_selection()
@@ -166,8 +188,13 @@ function GeneticPopulation:replace(i)
 		self._population[i]:crossover(mom, dad, self:get_reset_table())
 
 		-- speciate
-		if self._neat_selection then
-			self._population[i]:get_ann():speciate(self:get_species())
+		if self._speciatable then
+			local new_specie = self._population[i]:get_ann():speciate(self:get_species())
+			if new_specie then
+				for _ = 1, self._population_size do
+					self._specie_niche[#self._specie_niche + 1] = new_specie
+				end
+			end
 		end
 	end
 end

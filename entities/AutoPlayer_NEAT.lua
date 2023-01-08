@@ -37,6 +37,7 @@ function AutoPlayer_NEAT.init(search_path_length, mutate_chance, mutate_percenta
 	AutoPlayer_NEAT._ann_mode = ann_mode
 	AutoPlayer_NEAT._crossover = crossover
 	AutoPlayer_NEAT._autoplayer_fitness_mode = fitness_mode
+	AutoPlayer_NEAT._speciatable = true
 
 	GridActor.register_type(autoplayer_type_name)
 end

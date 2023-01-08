@@ -24,7 +24,7 @@ fitness_modes.no_pill_updates = function (self)
 end
 
 -------------------------------------------------------------------------------
-function AutoPlayer_NEAT.init(search_path_length, mutate_chance, mutate_percentage, add_neuron_chance, add_link_chance, loopback_chance, ann_layers, ann_mode, crossover, fitness_mode)
+function AutoPlayer_NEAT.init(search_path_length, mutate_chance, mutate_percentage, add_neuron_chance, add_link_chance, loopback_chance, ann_layers, ann_mode, crossover, fitness_mode, autoplayer_neat_speciate)
 	--AutoPlayer.init(search_path_length, mutate_chance, mutate_percentage, ann_layers, ann_mode, crossover, autoplayer_ann_backpropagation, autoplayer_fitness_mode, collision_purge, rotate_purge, initial_bias)
 	AutoPlayer_NEAT._search_path_length = search_path_length
 
@@ -37,7 +37,7 @@ function AutoPlayer_NEAT.init(search_path_length, mutate_chance, mutate_percenta
 	AutoPlayer_NEAT._ann_mode = ann_mode
 	AutoPlayer_NEAT._crossover = crossover
 	AutoPlayer_NEAT._autoplayer_fitness_mode = fitness_mode
-	AutoPlayer_NEAT._speciatable = true
+	AutoPlayer_NEAT._speciatable = autoplayer_neat_speciate or false
 
 	GridActor.register_type(autoplayer_type_name)
 end

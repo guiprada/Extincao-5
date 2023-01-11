@@ -35,8 +35,12 @@ __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 
 autoplayer_neat_enable = true
+autoplayer_neat_speciate = true
+autoplayer_neat_initial_links  = false
+autoplayer_neat_fully_connected = true
+
 autoplayer_ann_mode = b1
-autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {count = 1, activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
+autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
@@ -72,8 +76,12 @@ __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 
 autoplayer_neat_enable = true
+autoplayer_neat_speciate = true
+autoplayer_neat_initial_links  = false
+autoplayer_neat_fully_connected = true
+
 autoplayer_ann_mode = b1_path_grading_hack
-autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {count = 1, activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
+autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
@@ -109,8 +117,12 @@ __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 
 autoplayer_neat_enable = true
+autoplayer_neat_speciate = true
+autoplayer_neat_initial_links  = false
+autoplayer_neat_fully_connected = true
+
 autoplayer_ann_mode = b1_path_grading_simple
-autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {count = 1, activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
+autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
@@ -146,8 +158,12 @@ __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 
 autoplayer_neat_enable = true
+autoplayer_neat_speciate = true
+autoplayer_neat_initial_links  = false
+autoplayer_neat_fully_connected = true
+
 autoplayer_ann_mode = b2
-autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {count = 1, activation_function_name = "relu"}, {count = 2, activation_function_name = "binary_step"}}
+autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 2, activation_function_name = "binary_step"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
@@ -183,8 +199,12 @@ __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 
 autoplayer_neat_enable = true
+autoplayer_neat_speciate = true
+autoplayer_neat_initial_links  = false
+autoplayer_neat_fully_connected = true
+
 autoplayer_ann_mode = b3
-autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {count = 1, activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
+autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
@@ -220,8 +240,12 @@ __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 
 autoplayer_neat_enable = true
+autoplayer_neat_speciate = true
+autoplayer_neat_initial_links  = false
+autoplayer_neat_fully_connected = true
+
 autoplayer_ann_mode = nb4
-autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {count = 1, activation_function_name = "relu"}, {count = 4, activation_function_name = "identity"}}
+autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 4, activation_function_name = "identity"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
@@ -258,8 +282,12 @@ __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 
 autoplayer_neat_enable = true
+autoplayer_neat_speciate = true
+autoplayer_neat_initial_links  = false
+autoplayer_neat_fully_connected = true
+
 autoplayer_ann_mode = nb4_path_grading
-autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {count = 1, activation_function_name = "relu"}, {count = 1, activation_function_name = "identity"}}
+autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 1, activation_function_name = "identity"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1

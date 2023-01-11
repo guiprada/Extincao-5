@@ -18,6 +18,7 @@ function GeneticPopulation:new(class, active_size, population_size, genetic_popu
 		self._specie_niche = {}
 	else
 		self._species = nil
+		self._specie_niche = nil
 	end
 
 	o._active_size = active_size
@@ -37,13 +38,16 @@ function GeneticPopulation:new(class, active_size, population_size, genetic_popu
 		o._population[i]:reset(o:get_reset_table())
 
 		if o._speciatable then
-			o._population[i]:get_ann():speciate(self:get_species())
+			o._population[i]:get_ann():speciate(o:get_species())
 		end
-
 		o._count = o._count + 1
 	end
 
-
+	if o._speciatable then
+		for i = 1, #o._species do
+			o:new_specie(o._species[i])
+		end
+	end
 
 	return o
 end
@@ -128,7 +132,13 @@ function GeneticPopulation:_selection()
 	end
 
 	local mom = self:_roulette(everybody)
-	local dad = self:_roulette(everybody)
+	local dad
+	if self._speciatable then
+		local specie = self._species[mom._specie_id]
+		dad = specie:get_member()
+	else
+		dad = self:_roulette(everybody)
+	end
 
 	if not (mom and dad) then
 		print("[WARN] - GeneticPopulation:_selection() - Did not get an actor from roulette(), choosing randomly!")
@@ -158,17 +168,10 @@ function GeneticPopulation:replace(i)
 	local this_actor = self._population[i]
 	self:add_to_history(this_actor)
 
-	-- speciate
+	-- add to specie history
 	if self._speciatable then
-		local new_specie = this_actor:get_ann():speciate(self:get_species())
-		if new_specie then
-			for _ = 1, self._population_size do
-				self._specie_niche[#self._specie_niche + 1] = new_specie
-			end
-		end
-
 		local this_ann = self._population[i]:get_ann()
-		this_ann._specie:add_to_history(this_actor)
+		this_ann._specie:add_to_history(this_actor, self._population_size)
 	end
 
 	-- replace
@@ -178,29 +181,28 @@ function GeneticPopulation:replace(i)
 	elseif self._speciatable and #self._specie_niche > 0 then
 		local specie = self._specie_niche[#self._specie_niche]
 		local mom = specie:get_leader()
-		local dad = specie:get_member() or mom
+		local dad = specie:get_member()
 		this_actor:crossover(mom, dad, self:get_reset_table())
 		self._specie_niche[#self._specie_niche] = nil
 
 		-- speciate
 		local new_specie = this_actor:get_ann():speciate(self:get_species())
+		self:new_specie(new_specie)
 		if new_specie then
 			print("[WARN] - Speciating in speciation niche!")
-			for i = 1, self._population_size do
-				self._specie_niche[#self._specie_niche + 1] = new_specie
-			end
 		end
 	else
-		-- remove from species
-		-- if self._class._speciatable then
-		-- 	this_actor:get_ann():remove_from_species(self:get_species())
-		-- end
-
 		-- find parents
 		local mom, dad = self:_selection()
 
 		-- cross
 		this_actor:crossover(mom, dad, self:get_reset_table())
+	end
+
+	-- speciate
+	if self._speciatable then
+		local new_specie = this_actor:get_ann():speciate(self:get_species())
+		self:new_specie(new_specie)
 	end
 end
 
@@ -219,6 +221,14 @@ function GeneticPopulation:add_active()
 
 		-- cross
 		this_actor:crossover(mom, dad, self:get_reset_table())
+	end
+end
+
+function GeneticPopulation:new_specie(new_specie)
+	if new_specie then
+		for _ = 1, self._population_size do
+			self._specie_niche[#self._specie_niche + 1] = new_specie
+		end
 	end
 end
 

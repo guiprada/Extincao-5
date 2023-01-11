@@ -232,7 +232,9 @@ function gs.load(map_file_path)
 				gs.game_conf.autoplayer_ann_mode,
 				gs.game_conf.autoplayer_crossover,
 				gs.game_conf.autoplayer_fitness_mode,
-				gs.game_conf.autoplayer_neat_speciate
+				gs.game_conf.autoplayer_neat_speciate,
+				gs.game_conf.autoplayer_initial_links,
+				gs.game_conf.autoplayer_fully_connected
 			)
 			gs.AutoPlayerPopulation = GeneticPopulation:new(
 				AutoPlayer_NEAT,

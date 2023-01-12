@@ -470,14 +470,14 @@ function _Species:get_leader()
 end
 
 function _Species:get_member()
-	return qpd_random.choose_list(self._history)
+	return qpd_random.choose_list(self._history) or self:get_leader()
 end
 
-function _Species:add_to_history(actor)
+function _Species:add_to_history(actor, size_limit)
 	local actor_history = actor:get_history()
 
 	-- if #self._history > math.floor(self._population_size/10) then
-	if #self._history > 50 then
+	if #self._history > size_limit then
 		local lowest, lowest_index = qpd_table.get_lowest(self._history, self._fitness_attribute)
 
 		if actor_history._fitness > lowest._fitness then
@@ -524,6 +524,10 @@ function _Species:adjusted_fitnesses()
 	-- 			m_vecMembers[gen]->SetAdjFitness(AdjustedFitness);
 	-- 		}
 	-- 	}
+end
+
+function _Species:get_id()
+	return self._id
 end
 
 function _Species:type()
@@ -1065,10 +1069,10 @@ function ANN:new_genome(
 		n_outputs,
 		output_layer_activation_function_name,
 		output_layer_activation_function_parameters,
-		n_hidden_layer,
+		initial_links,
+		fully_connected,
 		hidden_layers_activation_function_name,
 		hidden_layers_activation_function_parameters,
-		loopback_chance,
 		o)
 	-- input neurons
 	local neurons = {}
@@ -1101,12 +1105,23 @@ function ANN:new_genome(
 
 	-- links(at least one)
 	while true do
-		local n_links = ((n_hidden_layer) >= 1) and n_hidden_layer or 1
-		for i = 1, n_links do
-			local input_neuron = qpd_random.choose_list(input_neurons)
-			local output_neuron = qpd_random.choose_list(output_neurons)
-			local innovation_id = Innovation_manager:get_link_innovation_id(input_neuron, output_neuron)
-			genome:create_link(input_neuron, output_neuron, innovation_id)
+		if not fully_connected then
+			-- local n_links = ((n_hidden_layer) >= 1) and n_hidden_layer or 1
+			-- local n_links = n_inputs * n_outputs * initial_link_factor
+			local n_links = initial_links and initial_links or n_inputs * n_outputs
+			for i = 1, n_links do
+				local input_neuron = qpd_random.choose_list(input_neurons)
+				local output_neuron = qpd_random.choose_list(output_neurons)
+				local innovation_id = Innovation_manager:get_link_innovation_id(input_neuron, output_neuron)
+				genome:create_link(input_neuron, output_neuron, innovation_id)
+			end
+		else
+			for i = 1, #input_neurons do
+				for j = 1, #output_neurons do
+					local innovation_id = Innovation_manager:get_link_innovation_id(input_neurons[i], output_neurons[j])
+					genome:create_link(input_neurons[i], output_neurons[j], innovation_id)
+				end
+			end
 		end
 
 		if #genome._links < 1 then
@@ -1122,7 +1137,7 @@ function ANN:new(genome, o)
 	setmetatable(o, self)
 
 	o._genome = genome
-	o._specie = nil
+	o._specie = false
 
 	-- fill in layer_to_layer_position_dict and start layers array.
 	o._layers = {}
@@ -1216,25 +1231,11 @@ function ANN:speciate(species, threshold)
 		local new_specie = _Species:new(self)
 		self._specie = new_specie
 		table.insert(species, new_specie)
-		return new_specie
-	end
-end
-
-function ANN:remove_from_species(species)
-	local ann_specie = self._specie
-	if ann_specie then
-		local extinguished = ann_specie:remove_member(self)
-		if extinguished then
-			for i = 1, #species do
-				local this_specie = species[i]
-				if ann_specie == this_specie then
-					species[i] = species[#species]
-					species[#species] = nil
-				end
-			end
+		if new_specie:get_id() ~= #species then
+			print("ERROR - _ANN:speciate() - species indexing is invalid!")
+			qpd_gamestate.switch("menu")
 		end
-	else
-		print("not speciated!")
+		return new_specie
 	end
 end
 
@@ -1281,7 +1282,7 @@ function ANN:get_outputs(inputs, run_type)
 end
 
 function ANN:to_string()
-	return "{neuron count: " .. self._genome:get_neuron_count() .. ", link count: " .. self._genome:get_link_count() .. "}"
+	return "{neuron count: " .. self._genome:get_neuron_count() .. ", link count: " .. self._genome:get_link_count() .. (self._specie and (", species: " .. self._specie:get_id()) or "") .. "}"
 end
 
 function ANN:get_genome()

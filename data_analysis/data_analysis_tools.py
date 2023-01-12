@@ -1,9 +1,36 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import json
+import re
 
 FIG_SIZE = (32, 24)
 # FIG_SIZE = (8, 6)
+
+# def json_parser(data):
+# 	fixed = json_quote_properties(data)
+# 	fixed = json_replace_equals(fixed)
+# 	#print(data, fixed)
+# 	return json.loads(fixed)
+
+# def json_replace_equals(str):
+# 	return str.replace('=', ':')
+
+# def json_quote_properties(str):
+# 	return re.sub(r"([A-z]+)", r'"\1"', str)
+
+def gene_parser(data):
+	return data
+
+def quote_gene(path):
+	with open(path, 'r') as infile:
+		with open(path + "_fixed", 'w') as outfile:
+			for line in infile:
+				line = line.replace("{", "'{")
+				line = line.replace("}", "}'")
+				outfile.write(line)
+
+	print("finished: ", path)
 
 def join_data(path):
 	filenames = []
@@ -88,8 +115,8 @@ def create_and_save_updates_per_second(df, path, run, mode):
 	plt.clf()
 	plt.figure(figsize = FIG_SIZE)
 	plt.title("Update per second for player | run: " + run +  " | ann_mode: " + mode)
-	plt.plot(ratio_list_x, ratio_list_y, label = "Updates/second")
-	plt.plot(short_lived_x, short_lived_y, color = "red", linestyle = "dotted", label = "short lived")
+	plt.scatter(ratio_list_x, ratio_list_y, label = "Updates/second", alpha = 0.5)
+	plt.scatter(short_lived_x, short_lived_y, color = "red", label = "short lived", alpha = 0.3)
 	plt.legend()
 	plt.savefig(f"{path}{run}_update_per_second_player.png", dpi = 100)
 	plt.show()
@@ -151,10 +178,9 @@ def create_and_save_seconds_per_update(df, path, run, mode):
 	plt.clf()
 	plt.figure(figsize = FIG_SIZE)
 	plt.title("Seconds per update for player | run: " + run +  " | ann_mode: " + mode)
-	plt.plot(ratio_list_x, ratio_list_y, label = "Seconds/update ratio")
-	plt.plot(short_lived_x, short_lived_y, color = "red", linestyle = "dotted", label = "short lived")
-	plt.plot(long_freeze_x, long_freeze_y, color = "green", linestyle = "dotted", label = "long freeze")
-	plt.plot()
+	plt.scatter(ratio_list_x, ratio_list_y, label = "Seconds/update ratio", alpha = 0.5)
+	plt.scatter(short_lived_x, short_lived_y, color = "red", label = "short lived", alpha = 0.3)
+	plt.scatter(long_freeze_x, long_freeze_y, color = "purple", label = "long freeze", alpha = 0.3)
 	plt.legend()
 	plt.savefig(f"{path}{run}_update_ratio_player.png", dpi = 100)
 	plt.show()
@@ -211,22 +237,22 @@ def create_and_save_lifetime_plot(df, actor_type, path, run, mode):
 		lifetime_avg_list_10.extend(new_avg.tolist())
 
 	# plots
-	plt.clf()
-	plt.figure(figsize = FIG_SIZE)
-	plt.title("Lifetimes and Mean for " + actor_type + " | run: " + run +  " | ann_mode: " + mode)
-	plt.plot(lifetime_array, label = "lifetime", alpha = 0.1)
-	plt.plot(lifetime_avg_list_100, label = "intervalar mean 100 blocks", alpha = 0.3)
-	plt.plot(lifetime_avg_list_10, label = "intervalar mean 10 blocks")
-	plt.hlines(lifetime_array.mean(), 0, len(lifetime_array), label = "mean", colors = "red", linestyles = "dotted", alpha = 0.5)
-	plt.legend()
-	plt.savefig(f"{path}{run}_lifetime_{actor_type}.png", dpi = 100)
-	plt.show()
-	plt.close()
+	# plt.clf()
+	# plt.figure(figsize = FIG_SIZE)
+	# plt.title("Lifetimes and Mean for " + actor_type + " | run: " + run +  " | ann_mode: " + mode)
+	# plt.scatter(range(len(lifetime_array)), lifetime_array, label = "lifetime", alpha = 0.1)
+	# plt.plot(lifetime_avg_list_100, label = "intervalar mean 100 blocks", alpha = 0.5)
+	# plt.plot(lifetime_avg_list_10, label = "intervalar mean 10 blocks")
+	# plt.hlines(lifetime_array.mean(), 0, len(lifetime_array), label = "mean", colors = "red", linestyles = "dotted", alpha = 0.5)
+	# plt.legend()
+	# plt.savefig(f"{path}{run}_lifetime_{actor_type}.png", dpi = 100)
+	# plt.show()
+	# plt.close()
 
 	plt.clf()
 	plt.figure(figsize = FIG_SIZE)
 	plt.title("Lifetimes for " + actor_type + " | run: " + run +  " | ann_mode: " + mode)
-	plt.plot(lifetime_array, label = "lifetime", alpha = 0.8)
+	plt.scatter(range(len(lifetime_array)), lifetime_array, label = "lifetime", alpha = 0.1)
 	plt.legend()
 	plt.savefig(f"{path}{run}_lifetime_plot_{actor_type}.png", dpi = 100)
 	plt.show()
@@ -235,7 +261,7 @@ def create_and_save_lifetime_plot(df, actor_type, path, run, mode):
 	plt.clf()
 	plt.figure(figsize = FIG_SIZE)
 	plt.title("Mean for " + actor_type + " | run: " + run +  " | ann_mode: " + mode)
-	plt.plot(lifetime_avg_list_100, label = "intervalar mean 100 blocks", alpha = 0.3)
+	plt.plot(lifetime_avg_list_100, label = "intervalar mean 100 blocks", alpha = 0.5)
 	plt.plot(lifetime_avg_list_10, label = "intervalar mean 10 blocks")
 	plt.hlines(lifetime_array.mean(), 0, len(lifetime_array), label = "mean", colors = "red", linestyles = "dotted", alpha = 0.5)
 	plt.legend()
@@ -245,20 +271,89 @@ def create_and_save_lifetime_plot(df, actor_type, path, run, mode):
 
 	plt.clf()
 	plt.figure(figsize = FIG_SIZE)
-	plt.title("Intervalar Boxplot for " + actor_type + " | run: " + run +  " | ann_mode: " + mode)
+	plt.title("Intervalar Lifetimes Boxplot for " + actor_type + " | run: " + run +  " | ann_mode: " + mode)
 	plt.boxplot(lifetime_arrays_list_10)
 	plt.savefig(f"{path}{run}_lifetime_boxplot10_{actor_type}.png", dpi = 100)
 	plt.show()
 	plt.close()
 
-	plt.clf()
-	plt.figure(figsize = FIG_SIZE)
-	plt.title("Intervalar Boxplot for " + actor_type + " | run: " + run +  " | ann_mode: " + mode)
-	plt.boxplot(lifetime_arrays_list_100)
-	plt.savefig(f"{path}{run}_lifetime_boxplot100_{actor_type}.png", dpi = 100)
-	plt.show()
-	plt.close()
-
-	df_actor_destruction = df_destruction[df_destruction["actor_type"] == actor_type]
+	# plt.clf()
+	# plt.figure(figsize = FIG_SIZE)
+	# plt.title("Intervalar Lifetimes Boxplot for " + actor_type + " | run: " + run +  " | ann_mode: " + mode)
+	# plt.boxplot(lifetime_arrays_list_100)
+	# plt.savefig(f"{path}{run}_lifetime_boxplot100_{actor_type}.png", dpi = 100)
+	# plt.show()
+	# plt.close()
 
 	return lifetime_array
+
+def create_and_save_run_summary(df, actor_type, path, run, mode):
+	df_destruction = df[df["event_type"] == "destroyed"]
+	df_creation = df[df["event_type"] == "created"]
+
+	df_actor_destruction = df_destruction[df_destruction["actor_type"] == actor_type]
+	df_actor_creation = df_creation[df_creation["actor_type"] == actor_type]
+
+	# lifetime dict
+	lifetime_dict = {}
+	for _, row in df_actor_destruction.iterrows():
+		id = row["actor_id"]
+
+		if not id in lifetime_dict:
+			lifetime_dict[id] = {"creation":None, "destruction":None}
+
+		this_entry = lifetime_dict[id]
+		this_entry["destruction"] = row["timestamp"]
+
+	for _, row in df_actor_creation.iterrows():
+		id = row["actor_id"]
+
+		if not id in lifetime_dict:
+			lifetime_dict[id] = {"creation":None, "destruction":None}
+
+		this_entry = lifetime_dict[id]
+		this_entry["creation"] = row["timestamp"]
+
+	# lifetime lists and arrays
+	lifetime_list = []
+	for _, value in lifetime_dict.items():
+		if (not value["destruction"] is None) and (not value["creation"] is None):
+			# lifetime_dict[key]["lifetime"] = value["destruction"] - value["creation"]
+			lifetime_list.append(value["destruction"] - value["creation"])
+			# print(key, lifetime_dict[key]["lifetime"])
+	lifetime_array = np.array(lifetime_list)
+
+	lifetime_arrays_list_100 = np.array_split(lifetime_array, 100)
+	lifetime_avg_list_100 = []
+	for subarray in lifetime_arrays_list_100:
+		avg = subarray.mean()
+		new_avg = np.full(len(subarray), avg)
+		lifetime_avg_list_100.extend(new_avg.tolist())
+
+	lifetime_arrays_list_10 = np.array_split(lifetime_array, 10)
+	lifetime_avg_list_10 = []
+	for subarray in lifetime_arrays_list_10:
+		avg = subarray.mean()
+		new_avg = np.full(len(subarray), avg)
+		lifetime_avg_list_10.extend(new_avg.tolist())
+
+	# subplots
+	plt.clf()
+	plt.figure(figsize = FIG_SIZE)
+	fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize = FIG_SIZE)
+	ax1.set_title("Lifetimes for " + actor_type + " | run: " + run +  " | ann_mode: " + mode)
+	ax1.scatter(range(len(lifetime_array)), lifetime_array, label = "lifetime", alpha = 0.1)
+	ax1.legend()
+
+	ax2.set_title("Mean for " + actor_type + " | run: " + run +  " | ann_mode: " + mode)
+	ax2.plot(lifetime_avg_list_100, label = "intervalar mean 100 blocks", alpha = 0.5)
+	ax2.plot(lifetime_avg_list_10, label = "intervalar mean 10 blocks")
+	ax2.hlines(lifetime_array.mean(), 0, len(lifetime_array), label = "mean", colors = "red", linestyles = "dotted", alpha = 0.5)
+	ax2.legend()
+
+	ax3.set_title("Intervalar Lifetimes Boxplot for " + actor_type + " | run: " + run +  " | ann_mode: " + mode)
+	ax3.boxplot(lifetime_arrays_list_10)
+
+	plt.savefig(f"{path}{run}_all_{actor_type}.png", dpi = 100)
+	plt.show()
+	plt.close()

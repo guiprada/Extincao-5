@@ -258,8 +258,8 @@ function AutoPlayer_NEAT:get_history()
 	end
 end
 
-function AutoPlayer_NEAT:type()
-	return "AutoPlayer_NEAT"
-end
+-- function AutoPlayer_NEAT:type()
+-- 	return "AutoPlayer_NEAT"
+-- end
 
 return AutoPlayer_NEAT

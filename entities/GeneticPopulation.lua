@@ -16,6 +16,9 @@ function GeneticPopulation:new(class, active_size, population_size, genetic_popu
 	if o._speciatable then
 		self._species = {}
 		self._specie_niche = {}
+		self._specie_niche_count = {}
+		self._species_history_count = {}
+		self._species_size = math.max(population_size/10, 30)
 	else
 		self._species = nil
 		self._specie_niche = nil
@@ -38,15 +41,12 @@ function GeneticPopulation:new(class, active_size, population_size, genetic_popu
 		o._population[i]:reset(o:get_reset_table())
 
 		if o._speciatable then
-			o._population[i]:get_ann():speciate(o:get_species())
+			local new_specie = o._population[i]:get_ann():speciate(o:get_species())
+			if new_specie then
+				o:new_specie(new_specie)
+			end
 		end
 		o._count = o._count + 1
-	end
-
-	if o._speciatable then
-		for i = 1, #o._species do
-			o:new_specie(o._species[i])
-		end
 	end
 
 	return o
@@ -72,11 +72,27 @@ end
 function GeneticPopulation:add_to_history(actor)
 	local actor_history = actor:get_history()
 
-	-- if #self._history > math.floor(self._population_size/10) then
+	-- history count
+	if self._speciatable then
+		local added_species_id = actor_history._specie_id -- we add first to not extinguish if species are the same
+		self._species_history_count[added_species_id] = self._species_history_count[added_species_id] + 1
+
+		local this_ann = actor:get_ann()
+		this_ann._specie:add_to_history(actor, self._species_size)
+	end
+
 	if #self._history > self._genetic_population_size then
 		local lowest, lowest_index = qpd.table.get_lowest(self._history, self._fitness_attribute)
 
 		if actor_history._fitness > lowest._fitness then
+			-- history count
+			if self._speciatable then
+				local removed_species_id = lowest._specie_id
+				self._species_history_count[removed_species_id] = self._species_history_count[removed_species_id] - 1
+				self:check_extinct(removed_species_id)
+			end
+
+			-- history
 			self._history_fitness_sum = self._history_fitness_sum - lowest._fitness
 
 			self._history[lowest_index] = actor_history
@@ -135,7 +151,7 @@ function GeneticPopulation:_selection()
 	local dad
 	if self._speciatable then
 		local specie = self._species[mom._specie_id]
-		dad = specie:get_member()
+		dad = specie:roulette()
 	else
 		dad = self:_roulette(everybody)
 	end
@@ -168,22 +184,19 @@ function GeneticPopulation:replace(i)
 	local this_actor = self._population[i]
 	self:add_to_history(this_actor)
 
-	-- add to specie history
-	if self._speciatable then
-		local this_ann = self._population[i]:get_ann()
-		this_ann._specie:add_to_history(this_actor, self._population_size)
-	end
-
 	-- replace
 	if self._random_init > 0 then
 		self._random_init = self._random_init - 1
 		this_actor:reset(self:get_reset_table())
 	elseif self._speciatable and #self._specie_niche > 0 then
 		local specie = self._specie_niche[#self._specie_niche]
+		local specie_id = specie:get_id()
 		local mom = specie:get_leader()
-		local dad = specie:get_member()
+		local dad = specie:roulette()
 		this_actor:crossover(mom, dad, self:get_reset_table())
 		self._specie_niche[#self._specie_niche] = nil
+		self._specie_niche_count[specie_id] = self._specie_niche_count[specie_id] - 1
+		self:check_extinct(specie_id)
 
 		-- speciate
 		local new_specie = this_actor:get_ann():speciate(self:get_species())
@@ -226,8 +239,21 @@ end
 
 function GeneticPopulation:new_specie(new_specie)
 	if new_specie then
-		for _ = 1, self._population_size do
+		local new_specie_id = new_specie:get_id()
+		self._species_history_count[new_specie_id] = 0
+		self._specie_niche_count[new_specie_id] = 0
+		for _ = 1, self._species_size do
 			self._specie_niche[#self._specie_niche + 1] = new_specie
+			self._specie_niche_count[new_specie_id] = self._specie_niche_count[new_specie:get_id()] + 1
+		end
+	end
+end
+
+function GeneticPopulation:check_extinct(specie_id)
+	if self._specie_niche_count[specie_id] == 0 then
+		if self._species_history_count[specie_id] <= 0 then
+			self._species[specie_id]:purge()
+			self._species[specie_id] = false
 		end
 	end
 end

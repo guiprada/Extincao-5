@@ -22,6 +22,12 @@
 - split population_size and _history size
 - Very simple, look at front and rotate_left(or rotate_right)
 
+----------------- CORRUPTED
+1671132502 B2
+1670698681 B3
+1667082412 NB4
+
+
 ----------------- TESTS
 1-----------------------------------------
 ghost_chase_time = 5
@@ -38,6 +44,10 @@ autoplayer_neat_enable = true
 autoplayer_neat_speciate = true
 autoplayer_neat_initial_links  = false
 autoplayer_neat_fully_connected = true
+autoplayer_neat_mule_chance = 0
+autoplayer_add_neuron_chance = 0.05
+autoplayer_add_link_chance = 0.05
+autoplayer_loopback_chance = 0.05
 
 autoplayer_ann_mode = b1
 autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
@@ -47,7 +57,7 @@ __autoplayer_ann_random_spread = 1
 autoplayer_fitness_mode = updates
 __autoplayer_collision_purge = false
 __autoplayer_rotate_purge = false
-autoplayer_population = 300
+autoplayer_population = 5000
 autoplayer_active_population = 1
 autoplayer_genetic_population = 100
 __autoplayer_ann_backpropagation = false
@@ -55,9 +65,6 @@ __autoplayer_ann_learning_rate = 0.1
 autoplayer_crossover = true
 autoplayer_mutate_chance = 0.05
 autoplayer_mutate_percentage = 0.05
-autoplayer_add_neuron_chance = 0.05
-autoplayer_add_link_chance = 0.05
-autoplayer_loopback_chance = 0.05
 autoplayer_speed_factor = 10
 autoplayer_search_path_length = 5
 
@@ -79,6 +86,10 @@ autoplayer_neat_enable = true
 autoplayer_neat_speciate = true
 autoplayer_neat_initial_links  = false
 autoplayer_neat_fully_connected = true
+autoplayer_neat_mule_chance = 0
+autoplayer_add_neuron_chance = 0.05
+autoplayer_add_link_chance = 0.05
+autoplayer_loopback_chance = 0.05
 
 autoplayer_ann_mode = b1_path_grading_hack
 autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
@@ -88,7 +99,7 @@ __autoplayer_ann_random_spread = 1
 autoplayer_fitness_mode = updates
 __autoplayer_collision_purge = false
 __autoplayer_rotate_purge = false
-autoplayer_population = 300
+autoplayer_population = 5000
 autoplayer_active_population = 1
 autoplayer_genetic_population = 100
 __autoplayer_ann_backpropagation = false
@@ -96,9 +107,6 @@ __autoplayer_ann_learning_rate = 0.1
 autoplayer_crossover = true
 autoplayer_mutate_chance = 0.05
 autoplayer_mutate_percentage = 0.05
-autoplayer_add_neuron_chance = 0.05
-autoplayer_add_link_chance = 0.05
-autoplayer_loopback_chance = 0.05
 autoplayer_speed_factor = 10
 autoplayer_search_path_length = 5
 
@@ -120,6 +128,10 @@ autoplayer_neat_enable = true
 autoplayer_neat_speciate = true
 autoplayer_neat_initial_links  = false
 autoplayer_neat_fully_connected = true
+autoplayer_neat_mule_chance = 0
+autoplayer_add_neuron_chance = 0.05
+autoplayer_add_link_chance = 0.05
+autoplayer_loopback_chance = 0.05
 
 autoplayer_ann_mode = b1_path_grading_simple
 autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
@@ -129,7 +141,7 @@ __autoplayer_ann_random_spread = 1
 autoplayer_fitness_mode = updates
 __autoplayer_collision_purge = false
 __autoplayer_rotate_purge = false
-autoplayer_population = 300
+autoplayer_population = 5000
 autoplayer_active_population = 1
 autoplayer_genetic_population = 100
 __autoplayer_ann_backpropagation = false
@@ -137,9 +149,6 @@ __autoplayer_ann_learning_rate = 0.1
 autoplayer_crossover = true
 autoplayer_mutate_chance = 0.05
 autoplayer_mutate_percentage = 0.05
-autoplayer_add_neuron_chance = 0.05
-autoplayer_add_link_chance = 0.05
-autoplayer_loopback_chance = 0.05
 autoplayer_speed_factor = 10
 autoplayer_search_path_length = 5
 
@@ -161,6 +170,10 @@ autoplayer_neat_enable = true
 autoplayer_neat_speciate = true
 autoplayer_neat_initial_links  = false
 autoplayer_neat_fully_connected = true
+autoplayer_neat_mule_chance = 0
+autoplayer_add_neuron_chance = 0.05
+autoplayer_add_link_chance = 0.05
+autoplayer_loopback_chance = 0.05
 
 autoplayer_ann_mode = b2
 autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 2, activation_function_name = "binary_step"}}
@@ -170,7 +183,7 @@ __autoplayer_ann_random_spread = 1
 autoplayer_fitness_mode = updates
 __autoplayer_collision_purge = false
 __autoplayer_rotate_purge = false
-autoplayer_population = 300
+autoplayer_population = 5000
 autoplayer_active_population = 1
 autoplayer_genetic_population = 100
 __autoplayer_ann_backpropagation = false
@@ -178,9 +191,6 @@ __autoplayer_ann_learning_rate = 0.1
 autoplayer_crossover = true
 autoplayer_mutate_chance = 0.05
 autoplayer_mutate_percentage = 0.05
-autoplayer_add_neuron_chance = 0.05
-autoplayer_add_link_chance = 0.05
-autoplayer_loopback_chance = 0.05
 autoplayer_speed_factor = 10
 autoplayer_search_path_length = 5
 
@@ -202,6 +212,10 @@ autoplayer_neat_enable = true
 autoplayer_neat_speciate = true
 autoplayer_neat_initial_links  = false
 autoplayer_neat_fully_connected = true
+autoplayer_neat_mule_chance = 0
+autoplayer_add_neuron_chance = 0.05
+autoplayer_add_link_chance = 0.05
+autoplayer_loopback_chance = 0.05
 
 autoplayer_ann_mode = b3
 autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
@@ -211,7 +225,7 @@ __autoplayer_ann_random_spread = 1
 autoplayer_fitness_mode = updates
 __autoplayer_collision_purge = false
 __autoplayer_rotate_purge = false
-autoplayer_population = 300
+autoplayer_population = 5000
 autoplayer_active_population = 1
 autoplayer_genetic_population = 100
 __autoplayer_ann_backpropagation = false
@@ -219,9 +233,6 @@ __autoplayer_ann_learning_rate = 0.1
 autoplayer_crossover = true
 autoplayer_mutate_chance = 0.05
 autoplayer_mutate_percentage = 0.05
-autoplayer_add_neuron_chance = 0.05
-autoplayer_add_link_chance = 0.05
-autoplayer_loopback_chance = 0.05
 autoplayer_speed_factor = 10
 autoplayer_search_path_length = 5
 
@@ -243,6 +254,10 @@ autoplayer_neat_enable = true
 autoplayer_neat_speciate = true
 autoplayer_neat_initial_links  = false
 autoplayer_neat_fully_connected = true
+autoplayer_neat_mule_chance = 0
+autoplayer_add_neuron_chance = 0.05
+autoplayer_add_link_chance = 0.05
+autoplayer_loopback_chance = 0.05
 
 autoplayer_ann_mode = nb4
 autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 4, activation_function_name = "identity"}}
@@ -252,7 +267,7 @@ __autoplayer_ann_random_spread = 1
 autoplayer_fitness_mode = updates
 __autoplayer_collision_purge = false
 __autoplayer_rotate_purge = false
-autoplayer_population = 300
+autoplayer_population = 5000
 autoplayer_active_population = 1
 autoplayer_genetic_population = 100
 __autoplayer_ann_backpropagation = false
@@ -260,9 +275,6 @@ __autoplayer_ann_learning_rate = 0.1
 autoplayer_crossover = true
 autoplayer_mutate_chance = 0.05
 autoplayer_mutate_percentage = 0.05
-autoplayer_add_neuron_chance = 0.05
-autoplayer_add_link_chance = 0.05
-autoplayer_loopback_chance = 0.05
 autoplayer_speed_factor = 10
 autoplayer_search_path_length = 5
 
@@ -285,6 +297,10 @@ autoplayer_neat_enable = true
 autoplayer_neat_speciate = true
 autoplayer_neat_initial_links  = false
 autoplayer_neat_fully_connected = true
+autoplayer_neat_mule_chance = 0
+autoplayer_add_neuron_chance = 0.05
+autoplayer_add_link_chance = 0.05
+autoplayer_loopback_chance = 0.05
 
 autoplayer_ann_mode = nb4_path_grading
 autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 1, activation_function_name = "identity"}}
@@ -294,7 +310,7 @@ __autoplayer_ann_random_spread = 1
 autoplayer_fitness_mode = updates
 __autoplayer_collision_purge = false
 __autoplayer_rotate_purge = false
-autoplayer_population = 300
+autoplayer_population = 5000
 autoplayer_active_population = 1
 autoplayer_genetic_population = 100
 __autoplayer_ann_backpropagation = false
@@ -302,9 +318,6 @@ __autoplayer_ann_learning_rate = 0.1
 autoplayer_crossover = true
 autoplayer_mutate_chance = 0.05
 autoplayer_mutate_percentage = 0.05
-autoplayer_add_neuron_chance = 0.05
-autoplayer_add_link_chance = 0.05
-autoplayer_loopback_chance = 0.05
 autoplayer_speed_factor = 10
 autoplayer_search_path_length = 5
 

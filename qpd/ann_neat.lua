@@ -450,6 +450,7 @@ function _Species:new(leader, o)
 	local o = o or {}
 	setmetatable(o, self)
 
+	o._extinct = false
 	o._leader = leader
 	o._fitness_attribute = "_fitness"
 	o._history_fitness_sum = 0
@@ -466,10 +467,31 @@ function _Species:new(leader, o)
 end
 
 function _Species:get_leader()
+	if self._extinct then
+		print("Tried to :get_leader() on extinct species!")
+	end
 	return self._leader
 end
 
-function _Species:get_member()
+function _Species:roulette()
+	if self._extinct then
+		print("Tried to :roulette() on extinct species!")
+		return nil
+	end
+
+	local total_fitness = self._history_fitness_sum
+
+	local slice = total_fitness * qpd_random.random()
+	local sum = 0
+
+	for _, actor in ipairs(self._history) do
+		sum = sum + actor._fitness
+		if (sum >= slice) then
+			return actor
+		end
+	end
+
+	print("[WARN] - GeneticPopulation:_roulette() - Returning last actor!")
 	return qpd_random.choose_list(self._history) or self:get_leader()
 end
 
@@ -494,6 +516,16 @@ end
 
 function _Species:get_compatibility_score(ann)
 	return ann:get_genome():get_compatibility_score(self:get_leader():get_genome())
+end
+
+function _Species:purge()
+	self._extinct = true
+	self._leader = nil
+	self._fitness_attribute = nil
+	self._history_fitness_sum = nil
+	self._history = nil
+	print("Species extinguished: ", self._id)
+	self._id = nil
 end
 
 function _Species:adjusted_fitnesses()
@@ -1202,22 +1234,23 @@ end
 
 function ANN:speciate(species, threshold)
 	local ann_specie
-	if #species >= 1 then
-		local first_specie = species[1]
-		local closest_specie = first_specie
-		local closest_compatibility = first_specie:get_compatibility_score(self)
+	local closest_compatibility
+	local closest_specie
 
-		for i = 2, #species do
-			local this_specie = species[i]
+	for i = 1, #species do
+		local this_specie = species[i]
+		if this_specie then
 			local this_compatibility = this_specie:get_compatibility_score(self)
-			if this_compatibility < closest_compatibility then
+			if this_compatibility <= (closest_compatibility or this_compatibility)  then
 				closest_specie = this_specie
 				closest_compatibility = this_compatibility
 			end
 		end
+	end
 
+	if closest_compatibility then
 		threshold = threshold or 3
-		print("closest_compatibility: ", closest_compatibility, threshold)
+		print("closest_compatibility: ", closest_compatibility, closest_specie:get_id())
 		if closest_compatibility < threshold then
 			ann_specie = closest_specie
 		end

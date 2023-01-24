@@ -16,6 +16,12 @@
 - Add map and population loading
 - add the pheromone thingy :)
 
+-- Melhorias
+	- Fantasmas capturados tem um delay para voltarem(pressao para captura)
+	- Player spawnan em um linha onde nao ha spawn de pilulas nem fantasmas
+	- Melhorar robustez do sistema de log
+	- Object pools
+
 ----------------- DONE
 - implementar NEAT
 	- verificar se o link ja existe
@@ -45,21 +51,21 @@ autoplayer_neat_speciate = true
 autoplayer_neat_initial_links  = false
 autoplayer_neat_fully_connected = true
 autoplayer_neat_mule_chance = 0
-autoplayer_add_neuron_chance = 0.05
-autoplayer_add_link_chance = 0.05
+autoplayer_add_neuron_chance = 0.01
+autoplayer_add_link_chance = 0.02
 autoplayer_loopback_chance = 0.05
 
 autoplayer_ann_mode = b1
-autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
+autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {activation_function_name = "tanh"}, {count = 1, activation_function_name = "binary_step"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
 autoplayer_fitness_mode = updates
 __autoplayer_collision_purge = false
 __autoplayer_rotate_purge = false
-autoplayer_population = 5000
+autoplayer_population = 1000
 autoplayer_active_population = 1
-autoplayer_genetic_population = 100
+autoplayer_genetic_population = 300
 __autoplayer_ann_backpropagation = false
 __autoplayer_ann_learning_rate = 0.1
 autoplayer_crossover = true
@@ -87,21 +93,21 @@ autoplayer_neat_speciate = true
 autoplayer_neat_initial_links  = false
 autoplayer_neat_fully_connected = true
 autoplayer_neat_mule_chance = 0
-autoplayer_add_neuron_chance = 0.05
-autoplayer_add_link_chance = 0.05
+autoplayer_add_neuron_chance = 0.01
+autoplayer_add_link_chance = 0.02
 autoplayer_loopback_chance = 0.05
 
 autoplayer_ann_mode = b1_path_grading_hack
-autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
+autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {activation_function_name = "tanh"}, {count = 1, activation_function_name = "binary_step"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
 autoplayer_fitness_mode = updates
 __autoplayer_collision_purge = false
 __autoplayer_rotate_purge = false
-autoplayer_population = 5000
+autoplayer_population = 1000
 autoplayer_active_population = 1
-autoplayer_genetic_population = 100
+autoplayer_genetic_population = 300
 __autoplayer_ann_backpropagation = false
 __autoplayer_ann_learning_rate = 0.1
 autoplayer_crossover = true
@@ -129,21 +135,21 @@ autoplayer_neat_speciate = true
 autoplayer_neat_initial_links  = false
 autoplayer_neat_fully_connected = true
 autoplayer_neat_mule_chance = 0
-autoplayer_add_neuron_chance = 0.05
-autoplayer_add_link_chance = 0.05
+autoplayer_add_neuron_chance = 0.01
+autoplayer_add_link_chance = 0.02
 autoplayer_loopback_chance = 0.05
 
 autoplayer_ann_mode = b1_path_grading_simple
-autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
+autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {activation_function_name = "tanh"}, {count = 1, activation_function_name = "binary_step"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
 autoplayer_fitness_mode = updates
 __autoplayer_collision_purge = false
 __autoplayer_rotate_purge = false
-autoplayer_population = 5000
+autoplayer_population = 1000
 autoplayer_active_population = 1
-autoplayer_genetic_population = 100
+autoplayer_genetic_population = 300
 __autoplayer_ann_backpropagation = false
 __autoplayer_ann_learning_rate = 0.1
 autoplayer_crossover = true
@@ -171,21 +177,21 @@ autoplayer_neat_speciate = true
 autoplayer_neat_initial_links  = false
 autoplayer_neat_fully_connected = true
 autoplayer_neat_mule_chance = 0
-autoplayer_add_neuron_chance = 0.05
-autoplayer_add_link_chance = 0.05
+autoplayer_add_neuron_chance = 0.01
+autoplayer_add_link_chance = 0.02
 autoplayer_loopback_chance = 0.05
 
 autoplayer_ann_mode = b2
-autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 2, activation_function_name = "binary_step"}}
+autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {activation_function_name = "tanh"}, {count = 2, activation_function_name = "binary_step"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
 autoplayer_fitness_mode = updates
 __autoplayer_collision_purge = false
 __autoplayer_rotate_purge = false
-autoplayer_population = 5000
+autoplayer_population = 1000
 autoplayer_active_population = 1
-autoplayer_genetic_population = 100
+autoplayer_genetic_population = 300
 __autoplayer_ann_backpropagation = false
 __autoplayer_ann_learning_rate = 0.1
 autoplayer_crossover = true
@@ -213,21 +219,21 @@ autoplayer_neat_speciate = true
 autoplayer_neat_initial_links  = false
 autoplayer_neat_fully_connected = true
 autoplayer_neat_mule_chance = 0
-autoplayer_add_neuron_chance = 0.05
-autoplayer_add_link_chance = 0.05
+autoplayer_add_neuron_chance = 0.01
+autoplayer_add_link_chance = 0.02
 autoplayer_loopback_chance = 0.05
 
 autoplayer_ann_mode = b3
-autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
+autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {activation_function_name = "tanh"}, {count = 1, activation_function_name = "binary_step"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
 autoplayer_fitness_mode = updates
 __autoplayer_collision_purge = false
 __autoplayer_rotate_purge = false
-autoplayer_population = 5000
+autoplayer_population = 1000
 autoplayer_active_population = 1
-autoplayer_genetic_population = 100
+autoplayer_genetic_population = 300
 __autoplayer_ann_backpropagation = false
 __autoplayer_ann_learning_rate = 0.1
 autoplayer_crossover = true
@@ -255,21 +261,21 @@ autoplayer_neat_speciate = true
 autoplayer_neat_initial_links  = false
 autoplayer_neat_fully_connected = true
 autoplayer_neat_mule_chance = 0
-autoplayer_add_neuron_chance = 0.05
-autoplayer_add_link_chance = 0.05
+autoplayer_add_neuron_chance = 0.01
+autoplayer_add_link_chance = 0.02
 autoplayer_loopback_chance = 0.05
 
 autoplayer_ann_mode = nb4
-autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 4, activation_function_name = "identity"}}
+autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {activation_function_name = "tanh"}, {count = 4, activation_function_name = "identity"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
 autoplayer_fitness_mode = updates
 __autoplayer_collision_purge = false
 __autoplayer_rotate_purge = false
-autoplayer_population = 5000
+autoplayer_population = 1000
 autoplayer_active_population = 1
-autoplayer_genetic_population = 100
+autoplayer_genetic_population = 300
 __autoplayer_ann_backpropagation = false
 __autoplayer_ann_learning_rate = 0.1
 autoplayer_crossover = true
@@ -298,21 +304,21 @@ autoplayer_neat_speciate = true
 autoplayer_neat_initial_links  = false
 autoplayer_neat_fully_connected = true
 autoplayer_neat_mule_chance = 0
-autoplayer_add_neuron_chance = 0.05
-autoplayer_add_link_chance = 0.05
+autoplayer_add_neuron_chance = 0.01
+autoplayer_add_link_chance = 0.02
 autoplayer_loopback_chance = 0.05
 
 autoplayer_ann_mode = nb4_path_grading
-autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 1, activation_function_name = "identity"}}
+autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {activation_function_name = "tanh"}, {count = 1, activation_function_name = "identity"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
 autoplayer_fitness_mode = updates
 __autoplayer_collision_purge = false
 __autoplayer_rotate_purge = false
-autoplayer_population = 5000
+autoplayer_population = 1000
 autoplayer_active_population = 1
-autoplayer_genetic_population = 100
+autoplayer_genetic_population = 300
 __autoplayer_ann_backpropagation = false
 __autoplayer_ann_learning_rate = 0.1
 autoplayer_crossover = true

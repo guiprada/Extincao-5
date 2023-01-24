@@ -5,9 +5,12 @@ import os
 import json
 import re
 
+#timestamp, actor_id, actor_type, event_type, other, cell_x, cell_y, updates, no_pill_updates, visited_count, grid_cell_changes, collision_count, genes
 ########################################################################## Config
-FIG_SIZE = (32, 48)
+FIG_SIZE = (16, 24)
 # FIG_SIZE = (8, 6)
+
+SMALL_LEGEND_FONTSIZE = 7
 
 BASELINE_STRING = "autoplayer_ann_mode = "
 ANN_LAYERS_STRING = "autoplayer_ann_layers = "
@@ -80,6 +83,8 @@ def create_lifetimes_dict(actor_type, df):
 
 		this_entry = lifetimes_dict[id]
 		this_entry["updates"] = row["updates"]
+		this_entry["grid_cell_changes"] = row["grid_cell_changes"]
+		this_entry["collision_count"] = row["collision_count"]
 		this_entry["destruction"] = row["timestamp"]
 
 	for _, row in df_actor_creation.iterrows():
@@ -97,7 +102,7 @@ def create_lifetimes_array(lifetimes_dict):
 	# lifetime lists and arrays
 	lifetime_list = []
 	for _, value in lifetimes_dict.items():
-		if (not value["destruction"] is None) and (not value["creation"] is None):
+		if (value["destruction"] is not None) and (value["creation"] is not None):
 			# lifetimes_dict[key]["lifetime"] = value["destruction"] - value["creation"]
 			lifetime_list.append(value["destruction"] - value["creation"])
 			# print(key, lifetimes_dict[key]["lifetime"])
@@ -196,7 +201,7 @@ def create_and_save_lifetime_plot(lifetimes_array, actor_type, path, run, mode):
 	plt.clf()
 	plt.figure(figsize = FIG_SIZE)
 	plt.title("Lifetimes for " + actor_type + " | run: " + run +  " | ann_mode: " + mode)
-	plt.scatter(range(len(lifetimes_array)), lifetimes_array, label = "lifetime", alpha = 0.1)
+	plt.scatter(range(1, len(lifetimes_array) + 1), lifetimes_array, label = "lifetime", alpha = 0.1)
 	plt.legend()
 	plt.savefig(f"{path}{run}_lifetime_plot_{actor_type}.png", dpi = 100)
 	# plt.show()
@@ -222,11 +227,13 @@ def create_and_save_lifetime_plot(lifetimes_array, actor_type, path, run, mode):
 	plt.close()
 
 def create_analysis_plot(df, actor_lifetimes_dict, player_lifetimes_dict, path, run, mode):
+	errors = list()
 	# subplots
 	plt.clf()
 	plt.figure(figsize = FIG_SIZE)
 
-	fig, subplots = plt.subplots(5, 3, figsize = FIG_SIZE)
+	fig, subplots = plt.subplots(7, 3, figsize = FIG_SIZE)
+	fig.suptitle("run: " + run +  " | ann_mode: " + mode, size = 20, y = 0)
 
 	subplot_row = subplots[0]
 	# updates/second
@@ -247,10 +254,12 @@ def create_analysis_plot(df, actor_lifetimes_dict, player_lifetimes_dict, path, 
 				ratio_list_x.append(index)
 				ratio_list_y.append(updates/lifetime)
 
-	subplot_row[0].set_title("Update per second for player | run: " + run +  " | ann_mode: " + mode)
+	subplot_row[0].set_title("Update per second for player")
 	subplot_row[0].scatter(ratio_list_x, ratio_list_y, label = "Updates/second", alpha = 0.5)
 	subplot_row[0].scatter(short_lived_x, short_lived_y, color = "red", label = "short lived", alpha = 0.3)
-	subplot_row[0].legend()
+	plt.setp(subplot_row[0].get_xticklabels(), rotation=30, horizontalalignment='right')
+	subplot_row[0].legend(fontsize = SMALL_LEGEND_FONTSIZE)
+
 	# seconds/update
 	ratio_list_x = []
 	ratio_list_y = []
@@ -275,11 +284,12 @@ def create_analysis_plot(df, actor_lifetimes_dict, player_lifetimes_dict, path, 
 				ratio_list_x.append(index)
 				ratio_list_y.append(lifetime / updates)
 
-	subplot_row[1].set_title("Seconds per update for player | run: " + run +  " | ann_mode: " + mode)
+	subplot_row[1].set_title("Seconds per update for player")
 	subplot_row[1].scatter(ratio_list_x, ratio_list_y, label = "Seconds/update ratio", alpha = 0.5)
 	subplot_row[1].scatter(short_lived_x, short_lived_y, color = "red", label = "short lived", alpha = 0.3)
 	subplot_row[1].scatter(long_freeze_x, long_freeze_y, color = "purple", label = "long freeze", alpha = 0.3)
-	subplot_row[1].legend()
+	plt.setp(subplot_row[1].get_xticklabels(), rotation=30, horizontalalignment='right')
+	subplot_row[1].legend(fontsize = SMALL_LEGEND_FONTSIZE)
 	# updates
 	updates_x = []
 	updates_y = []
@@ -290,9 +300,10 @@ def create_analysis_plot(df, actor_lifetimes_dict, player_lifetimes_dict, path, 
 			updates_x.append(counter)
 			updates_y.append(value["updates"])
 
-	subplot_row[2].set_title("Seconds per update for player | run: " + run +  " | ann_mode: " + mode)
-	subplot_row[2].scatter(updates_x, updates_y, label = "Seconds/update ratio", alpha = 0.5)
-	subplot_row[2].legend()
+	subplot_row[2].set_title("Updates per player")
+	subplot_row[2].scatter(updates_x, updates_y, label = "updates per player", alpha = 0.5)
+	plt.setp(subplot_row[2].get_xticklabels(), rotation=30, horizontalalignment='right')
+	subplot_row[2].legend(fontsize = SMALL_LEGEND_FONTSIZE)
 
 	# destruction heatmaps
 	subplot_row = subplots[1]
@@ -310,7 +321,8 @@ def create_analysis_plot(df, actor_lifetimes_dict, player_lifetimes_dict, path, 
 		#print(xedges[0] - 1, xedges[-1] + 1, yedges[0] - 1, yedges[-1] + 1)
 
 		img = ax.imshow(heatmap_hist.T, extent = extent)
-		ax.set_title("Destruction Heatmap for " + actor_type + " | run: " + run + " | ann_mode: " + mode)
+		ax.set_title("Destruction Heatmap for " + actor_type)
+		plt.setp(ax.get_xticklabels(), rotation=30, horizontalalignment='right')
 		plt.colorbar(img, ax = ax, location = "bottom")
 
 	# lifetimes
@@ -323,24 +335,136 @@ def create_analysis_plot(df, actor_lifetimes_dict, player_lifetimes_dict, path, 
 		lifetime_avg_array_10 = create_array_of_interval_mean(lifetimes_array, 10)
 
 		ax1 = subplot_row[0]
-		ax1.set_title("Lifetimes for " + actor_type + " | run: " + run +  " | ann_mode: " + mode)
-		ax1.scatter(range(len(lifetimes_array)), lifetimes_array, label = "lifetime", alpha = 0.1)
-		ax1.legend()
+		ax1.set_title("Lifetime for " + actor_type)
+		ax1.scatter(range(1, len(lifetimes_array) + 1), lifetimes_array, label = "lifetime", alpha = 0.1)
+		plt.setp(ax1.get_xticklabels(), rotation=30, horizontalalignment='right')
+		ax1.legend(fontsize = SMALL_LEGEND_FONTSIZE)
 
 		ax2 = subplot_row[1]
-		ax2.set_title("Mean Lifetime for " + actor_type + " | run: " + run +  " | ann_mode: " + mode)
+		ax2.set_title("Mean Lifetime for " + actor_type)
 		ax2.plot(lifetime_avg_array_100, label = "intervalar mean 100 blocks", alpha = 0.5)
 		ax2.plot(lifetime_avg_array_10, label = "intervalar mean 10 blocks")
 		ax2.hlines(lifetimes_array.mean(), 0, len(lifetimes_array), label = "mean", colors = "red", linestyles = "dotted", alpha = 0.5)
-		ax2.legend()
+		plt.setp(ax2.get_xticklabels(), rotation=30, horizontalalignment='right')
+		ax2.legend(fontsize = SMALL_LEGEND_FONTSIZE)
 
 		ax3 = subplot_row[2]
-		ax3.set_title("Intervalar Lifetimes Boxplot for " + actor_type + " | run: " + run +  " | ann_mode: " + mode)
-		ax3.boxplot(np.array_split(lifetimes_array.tolist(), 10))
+		ax3.set_title("Lifetime Boxplot for " + actor_type)
+		plt.setp(ax3.get_xticklabels(), rotation=30, horizontalalignment='right')
+		ax3.boxplot(np.array_split(lifetimes_array.tolist(), 10), widths = 0.8)
+
+	subplot_row = subplots[5]
+	ax1 = subplot_row[0]
+	ax2 = subplot_row[1]
+	ax3 = subplot_row[2]
+
+	destroyed_actors = df[df["event_type"] == "destroyed"]
+	destroyed_players = destroyed_actors[destroyed_actors["actor_type"] == "player"]
+	destroyed_ghosts = destroyed_actors[destroyed_actors["actor_type"] == "ghost"]
+	destroyed_pills = destroyed_actors[destroyed_actors["actor_type"] == "pill"]
+
+	#ghosts caught per autoplayer
+	ghosts_caught_by_player = []
+	for _, player_id in destroyed_players["actor_id"].items():
+		ghosts_destroyed_by_player = destroyed_ghosts[destroyed_ghosts["other"] == player_id]
+		ghosts_caught_by_player.append(ghosts_destroyed_by_player.shape[0])
+
+	ax1.set_title("Ghosts caught per player")
+	ax1.scatter(range(1, len(ghosts_caught_by_player) + 1), ghosts_caught_by_player, label = "ghosts caught", alpha = 0.1)
+	plt.setp(ax1.get_xticklabels(), rotation=30, horizontalalignment='right')
+
+	#pills caught per autoplayer
+	pills_caught_by_player = []
+	for _, player_id in destroyed_players["actor_id"].items():
+		pills_destroyed_by_player = destroyed_pills[destroyed_pills["other"] == player_id]
+		pills_caught_by_player.append(pills_destroyed_by_player.shape[0])
+
+	ax2.set_title("Pill caught per player")
+	ax2.scatter(range(1, len(pills_caught_by_player) + 1), pills_caught_by_player, label = "pills caught", alpha = 0.1)
+	plt.setp(ax2.get_xticklabels(), rotation=30, horizontalalignment='right')
+
+	#ghosts caught per pill
+	ax3.set_title("Ghosts/pill per player")
+	pill_creation_destruction_string = "pills created: " + str(len(df.query("actor_type == 'pill' & event_type == 'created'"))) + " pills destroyed: " + str(len(destroyed_pills))
+	for index, item in enumerate(pills_caught_by_player):
+		if item == 0:
+			old_value = pills_caught_by_player[index]
+			pills_caught_by_player[index] = 1
+			if ghosts_caught_by_player[index] != 0:
+				error_string = "Error in fixing ghosts/pill lists for index: " + str(index) + " | " + str(pill_creation_destruction_string)
+				print(error_string)
+				errors.append(error_string)
+
+	ghosts_per_pill_by_player = np.asarray(ghosts_caught_by_player)/np.asarray(pills_caught_by_player)
+	ax3.scatter(range(1, len(ghosts_per_pill_by_player) + 1), ghosts_per_pill_by_player, label = "ghosts caught per pill", alpha = 0.1)
+	plt.setp(ax3.get_xticklabels(), rotation=30, horizontalalignment='right')
+
+	#lifetime count distribution
+	#df.value_counts.plot(kind = "bar")
+	subplot_row = subplots[6]
+	ax1 = subplot_row[0]
+	unique = np.unique(actor_lifetimes_dict["player"])
+	min, max = unique.min(), unique.max()
+	n_bins = unique.shape[0]
+	ax1.set_title("Player Lifetime histogram")
+	ax1.hist(actor_lifetimes_dict["player"], bins = n_bins, range = (min, max))
+
+	#visited_count
+	ax2 = subplot_row[1]
+	visited_cells_by_player = []
+	for _, visited_count in destroyed_players["visited_count"].items():
+		visited_cells_by_player.append(visited_count)
+
+	ax2.set_title("Unique Cells Visited per player")
+	ax2.scatter(range(1, len(ghosts_caught_by_player) + 1), ghosts_caught_by_player, label = "unique cells visited per player", alpha = 0.1)
+	plt.setp(ax2.get_xticklabels(), rotation=30, horizontalalignment='right')
+
+	#grid_cell_changes/lifetime
+	ax3 = subplot_row[2]
+	grid_cell_changes_by_player = []
+	for player in player_lifetimes_dict.values():
+		if (player["creation"] is not None) and (player["destruction"] is not None):
+			lifetime = player["creation"] - player["destruction"]
+			if lifetime != 0:
+				grid_cell_changes_by_player.append(player["grid_cell_changes"]/lifetime)
+			else:
+				if player["grid_cell_changes"] > 0:
+					error_string = "Short lived player got pill"
+					print(error_string)
+					errors.append(error_string)
+
+	ax3.set_title("Cell changes per lifetime per player")
+	ax3.scatter(range(1, len(ghosts_caught_by_player) + 1), ghosts_caught_by_player, label = "cell changes per lifetime per player", alpha = 0.1)
+	plt.setp(ax3.get_xticklabels(), rotation=30, horizontalalignment='right')
+
+	#collision_count
+
+
+
+	#######################################################################################################################
+	#######################################################################################################################
+
+
+	#genes
+
+	#######################################################################################################################
+	#######################################################################################################################
+
+	# set the spacing between subplots
+	# fig.tight_layout()
+	plt.subplots_adjust(
+		left=0.1,
+		bottom=0.1,
+		right=0.9,
+		top=0.9,
+		wspace=0.2,
+		hspace=0.4)
 
 	plt.savefig(f"{path}{run}_all.png", dpi = 100)
 	plt.show()
 	plt.close()
+
+	return errors
 
 def create_plots(path, run):
 	this_baseline_mode = None
@@ -356,6 +480,7 @@ def create_plots(path, run):
 				print(this_ann_layers)
 
 	data = pd.read_csv(f"{path}{run}.data_fixed", skipinitialspace = True, converters = {"genes":gene_parser}, quotechar="'")
+	data = data.drop(["genes"], axis = 1)
 	print("loaded data!")
 	# print(data.info())
 
@@ -383,4 +508,4 @@ def create_plots(path, run):
 		"ghost": ghost_lifetimes_array,
 		"pill": pill_lifetimes_array,
 	}
-	create_analysis_plot(data, actor_lifetimes_dict, player_lifetimes_dict, path, run, this_baseline_mode)
+	return create_analysis_plot(data, actor_lifetimes_dict, player_lifetimes_dict, path, run, this_baseline_mode)

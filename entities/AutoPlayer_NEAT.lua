@@ -24,7 +24,7 @@ fitness_modes.no_pill_updates = function (self)
 end
 
 -------------------------------------------------------------------------------
-function AutoPlayer_NEAT.init(search_path_length, mutate_chance, mutate_percentage, add_neuron_chance, add_link_chance, loopback_chance, ann_layers, ann_mode, crossover, fitness_mode, autoplayer_neat_speciate, initial_links, fully_connected)
+function AutoPlayer_NEAT.init(search_path_length, mutate_chance, mutate_percentage, add_neuron_chance, add_link_chance, loopback_chance, ann_layers, ann_mode, crossover, fitness_mode, autoplayer_neat_speciate, neat_initial_links, neat_fully_connected)
 	--AutoPlayer.init(search_path_length, mutate_chance, mutate_percentage, ann_layers, ann_mode, crossover, autoplayer_ann_backpropagation, autoplayer_fitness_mode, collision_purge, rotate_purge, initial_bias)
 	AutoPlayer_NEAT._search_path_length = search_path_length
 
@@ -38,8 +38,8 @@ function AutoPlayer_NEAT.init(search_path_length, mutate_chance, mutate_percenta
 	AutoPlayer_NEAT._crossover = crossover
 	AutoPlayer_NEAT._autoplayer_fitness_mode = fitness_mode
 	AutoPlayer_NEAT._speciatable = autoplayer_neat_speciate or false
-	AutoPlayer_NEAT._initial_links = initial_links or false
-	AutoPlayer_NEAT._fully_connected = fully_connected or false
+	AutoPlayer_NEAT._neat_initial_links = neat_initial_links or false
+	AutoPlayer_NEAT._neat_fully_connected = neat_fully_connected or false
 
 	GridActor.register_type(autoplayer_type_name)
 end
@@ -74,8 +74,8 @@ function AutoPlayer_NEAT:reset(reset_table)
 			AutoPlayer_NEAT._ann_layers[3].count,
 			AutoPlayer_NEAT._ann_layers[3].activation_function_name,
 			AutoPlayer_NEAT._ann_layers[3].activation_function_parameters,
-			AutoPlayer_NEAT._initial_links,
-			AutoPlayer_NEAT._fully_connected,
+			AutoPlayer_NEAT._neat_initial_links,
+			AutoPlayer_NEAT._neat_fully_connected,
 			AutoPlayer_NEAT._ann_layers[2].activation_function_name,
 			AutoPlayer_NEAT._ann_layers[2].activation_function_parameters
 		)

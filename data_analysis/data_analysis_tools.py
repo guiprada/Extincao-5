@@ -334,12 +334,39 @@ def create_analysis_plot(df, actor_lifetimes_dict, player_lifetimes_dict, path, 
 
 	return errors
 
-def add_scatter_plot_to_axis(axis, plot_dicts_list, title):
+def add_scatter_plot_to_axis(axis, scatter_x, scatter_y, title, label):
+	axis.set_title(title)
+	axis.scatter(scatter_x, scatter_y, label = label, alpha = 0.1)
+	plt.setp(axis.get_xticklabels(), rotation=30, horizontalalignment='right')
+	axis.legend(fontsize = SMALL_LEGEND_FONTSIZE)
+
+def add_scatter_plot_to_axis_from_dicts(axis, plot_dicts_list, title):
 	axis.set_title(title)
 	for plot_dict in plot_dicts_list:
 		axis.scatter(plot_dict["x"], plot_dict["y"], label = plot_dict["label"], alpha = plot_dict["alpha"], color = plot_dict["color"])
 	plt.setp(axis.get_xticklabels(), rotation=30, horizontalalignment='right')
 	axis.legend(fontsize = SMALL_LEGEND_FONTSIZE)
+
+def add_heatmap_to_axis(axis, x, y, bins, title):
+	heatmap_hist, xedges, yedges = np.histogram2d(x, y, bins)
+	extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
+	#print(xedges[0] - 1, xedges[-1] + 1, yedges[0] - 1, yedges[-1] + 1)
+
+	img = axis.imshow(heatmap_hist.T, extent = extent)
+	axis.set_title(title)
+	plt.setp(axis.get_xticklabels(), rotation=30, horizontalalignment='right')
+	plt.colorbar(img, ax = axis, location = "bottom")
+
+def add_intervalar_means_plot_to_axis(axis, scatter_x, scatter_y, title):
+		scatter_y_100 = create_array_of_interval_mean(scatter_y, 100)
+		scatter_y_10 = create_array_of_interval_mean(scatter_y, 10)
+
+		axis.set_title(title)
+		axis.plot(scatter_x, scatter_y_100, label = "intervalar mean 100 blocks", color = "blue", alpha = 0.8)
+		axis.plot(scatter_x, scatter_y_10, label = "intervalar mean 10 blocks", color = "green", alpha = 0.8)
+		axis.hlines(scatter_y.mean(), 0, scatter_x.max(), label = "mean", colors = "red", linestyles = "dotted", alpha = 0.8)
+		plt.setp(axis.get_xticklabels(), rotation=30, horizontalalignment='right')
+		axis.legend(fontsize = SMALL_LEGEND_FONTSIZE)
 
 def generate_run_report_from_dict(run_dict):
 	player_df = run_dict["df"][run_dict["df"]["actor_type"] == "player"]
@@ -364,7 +391,7 @@ def generate_run_report_from_dict(run_dict):
 
 	player_df_filtered = player_df.query("updates > 0 and lifetime > 0")
 	player_df_filtered_count = player_df_filtered.shape[0]
-	print(player_df_filtered_count, player_df_count)
+	# print(player_df_filtered_count, player_df_count)
 	updates_second_filtered_plot_dict = {
 		"x": range(player_df_filtered_count),
 		"y": player_df_filtered["updates_per_second"],
@@ -376,7 +403,7 @@ def generate_run_report_from_dict(run_dict):
 
 	player_df_filtered = player_df.query("updates == 0 or lifetime == 0")
 	player_df_filtered_count = player_df_filtered.shape[0]
-	print(player_df_filtered_count, player_df_count)
+	# print(player_df_filtered_count, player_df_count)
 	updates_second_plot_dict = {
 		"x": range(player_df_filtered_count),
 		"y": player_df_filtered["updates_per_second"],
@@ -386,7 +413,7 @@ def generate_run_report_from_dict(run_dict):
 	}
 	updates_second_plot_dicts_list.append(updates_second_plot_dict)
 
-	add_scatter_plot_to_axis(subplots[0][0], updates_second_plot_dicts_list, "Updates per second for player")
+	add_scatter_plot_to_axis_from_dicts(subplots[0][0], updates_second_plot_dicts_list, "Updates per second for player")
 
 	##Fails
 	fails_plot_dicts_list = list()
@@ -409,8 +436,15 @@ def generate_run_report_from_dict(run_dict):
 		"color": "red",
 	}
 	fails_plot_dicts_list.append(fails_frozen_plot_dict)
-	add_scatter_plot_to_axis(subplots[0][1], fails_plot_dicts_list, "Frozen and Short lived")
+	add_scatter_plot_to_axis_from_dicts(subplots[0][1], fails_plot_dicts_list, "Frozen and Short lived")
 
+	#Updates per player
+	add_scatter_plot_to_axis(subplots[0][2], player_df["actor_id"], player_df["updates"], "Updates per player", "updates per player")
+
+	##Player
+	add_heatmap_to_axis(subplots[1][0], player_df["cell_x"], player_df["cell_y"], bins = (28, 14), title = "Destruction Heatmap for Player")
+	add_scatter_plot_to_axis(subplots[1][1], player_df["actor_id"], player_df["lifetime"], "Player Lifetime", "lifetime")
+	add_intervalar_means_plot_to_axis(subplots[1][2], player_df["actor_id"], player_df["lifetime"], "Player Intervalar Lifetime")
 
 	#Plot and save
 	plt.subplots_adjust(

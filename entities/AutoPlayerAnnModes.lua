@@ -631,7 +631,7 @@ AutoplayerAnnModes.update.b1 = function (self, grid, search_path_length, ghost_s
 -- autoplayer_crossover = false
 -- autoplayer_mutate_chance = 0.05
 -- autoplayer_mutate_percentage = 0.05
--- autoplayer_population = 6000
+-- autoplayer_initial_random_population_size = 6000
 -- autoplayer_fitness_mode = no_pill_updates
 	local inputs = {
 		is_left_valid(self, grid),
@@ -670,7 +670,7 @@ AutoplayerAnnModes.update.b2 = function (self, grid, search_path_length, ghost_s
 -- autoplayer_crossover = false
 -- autoplayer_mutate_chance = 0.05
 -- autoplayer_mutate_percentage = 0.05
--- autoplayer_population = 6000
+-- autoplayer_initial_random_population_size = 6000
 -- autoplayer_fitness_mode = no_pill_updates
 	local inputs = {
 		is_left_valid(self, grid),
@@ -712,7 +712,7 @@ AutoplayerAnnModes.update.b3 = function (self, grid, search_path_length, ghost_s
 -- autoplayer_crossover = false
 -- autoplayer_mutate_chance = 0.05
 -- autoplayer_mutate_percentage = 0.05
--- autoplayer_population = 6000
+-- autoplayer_initial_random_population_size = 6000
 -- autoplayer_fitness_mode = no_pill_updates
 	local inputs = {
 		is_left_valid(self, grid),
@@ -757,7 +757,7 @@ AutoplayerAnnModes.update.nb4 = function (self, grid, search_path_length, ghost_
 -- autoplayer_crossover = false
 -- autoplayer_mutate_chance = 0.05
 -- autoplayer_mutate_percentage = 0.05
--- autoplayer_population = 6000
+-- autoplayer_initial_random_population_size = 6000
 -- autoplayer_fitness_mode = no_pill_updates
 	local old_orientation = self._orientation
 	local inputs = {
@@ -836,7 +836,7 @@ AutoplayerAnnModes.update.b1_path_grading = function (self, grid, search_path_le
 -- autoplayer_crossover = false
 -- autoplayer_mutate_chance = 0.05
 -- autoplayer_mutate_percentage = 0.05
--- autoplayer_population = 6000
+-- autoplayer_initial_random_population_size = 6000
 -- autoplayer_fitness_mode = no_pill_updates
 
 	local old_direction = self._direction
@@ -879,7 +879,7 @@ AutoplayerAnnModes.update.b1_path_grading_simple = function (self, grid, search_
 -- autoplayer_crossover = false
 -- autoplayer_mutate_chance = 0.05
 -- autoplayer_mutate_percentage = 0.05
--- autoplayer_population = 6000
+-- autoplayer_initial_random_population_size = 6000
 -- autoplayer_fitness_mode = no_pill_updates
 	for _ = 1, 4 do
 		local callback, dxy = get_grade_callback_and_dxy_from_direction(self._orientation)
@@ -927,7 +927,7 @@ AutoplayerAnnModes.update.nb4_path_grading = function (self, grid, search_path_l
 -- autoplayer_crossover = false
 -- autoplayer_mutate_chance = 0.05
 -- autoplayer_mutate_percentage = 0.05
--- autoplayer_population = 6000
+-- autoplayer_initial_random_population_size = 6000
 -- autoplayer_fitness_mode = no_pill_updates
 	self._orientation = self._direction  -- not needed, just to keep it synced for graphics
 
@@ -1004,28 +1004,28 @@ end
 -------------------------------------------------------------------------------
 AutoplayerAnnModes.update.baseline = function (self, grid, search_path_length, ghost_state)
 -- autoplayer_ann_mode = baseline
--- autoplayer_population = 1
+-- autoplayer_initial_random_population_size = 1
 -- autoplayer_fitness_mode = movement
 	self._next_direction = get_baseline_next_direction(self, grid, search_path_length, ghost_state)
 end
 
 AutoplayerAnnModes.update.baseline_pill = function (self, grid, search_path_length, ghost_state)
 -- autoplayer_ann_mode = baseline_pill
--- autoplayer_population = 1
+-- autoplayer_initial_random_population_size = 1
 -- autoplayer_fitness_mode = movement
 	self._next_direction = get_baseline_pill_next_direction(self, grid, search_path_length, ghost_state)
 end
 
 AutoplayerAnnModes.update.baseline_pill_ghost = function (self, grid, search_path_length, ghost_state)
 -- autoplayer_ann_mode = baseline_pill
--- autoplayer_population = 1
+-- autoplayer_initial_random_population_size = 1
 -- autoplayer_fitness_mode = movement
 	self._next_direction = get_baseline_pill_ghost_next_direction(self, grid, search_path_length, ghost_state)
 end
 
 AutoplayerAnnModes.update.baseline_random = function (self, grid, search_path_length, ghost_state)
 -- autoplayer_ann_mode = baseline_random
--- autoplayer_population = 1
+-- autoplayer_initial_random_population_size = 1
 -- autoplayer_fitness_mode = movement
 	if is_direction_good(self, self._direction, ghost_state, grid, search_path_length) then
 		return
@@ -1036,14 +1036,14 @@ end
 
 AutoplayerAnnModes.update.baseline_full_random = function (self, grid, search_path_length, ghost_state)
 -- autoplayer_ann_mode = baseline_full_random
--- autoplayer_population = 1
+-- autoplayer_initial_random_population_size = 1
 -- autoplayer_fitness_mode = movement
 	self._next_direction = get_random_direction()
 end
 
 AutoplayerAnnModes.update.baseline_collide_random = function (self, grid, search_path_length, ghost_state)
 -- autoplayer_ann_mode = baseline_full_random
--- autoplayer_population = 1
+-- autoplayer_initial_random_population_size = 1
 -- autoplayer_fitness_mode = movement
 	if self._direction == "idle" then
 		self._next_direction = get_different_random_direction(self._direction)
@@ -1052,7 +1052,7 @@ end
 
 AutoplayerAnnModes.update.baseline_valid_random = function (self, grid, search_path_length, ghost_state)
 -- autoplayer_ann_mode = baseline_valid_random
--- autoplayer_population = 1
+-- autoplayer_initial_random_population_size = 1
 -- autoplayer_fitness_mode = movement
 	if is_direction_good(self, self._direction, ghost_state, grid, search_path_length) then
 		return
@@ -1063,7 +1063,7 @@ end
 
 AutoplayerAnnModes.update.baseline_valid_full_random = function (self, grid, search_path_length, ghost_state)
 -- autoplayer_ann_mode = baseline_valid_full_random
--- autoplayer_population = 1
+-- autoplayer_initial_random_population_size = 1
 -- autoplayer_fitness_mode = movement
 	self:set_random_valid_direction()
 end

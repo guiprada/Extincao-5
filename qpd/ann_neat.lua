@@ -43,12 +43,12 @@ local _ann_run_types = {
 -- internal functions
 local function _get_random_link_weight(scale)
 	scale = scale or 1
-	return qpd_random.random() * scale
+	return qpd_random.choose(1, -1) * qpd_random.random() * scale
 end
 
 local function _get_random_activation_response(input_count)
 	input_count = input_count or 1
-	return qpd_random.random() * input_count
+	return qpd_random.choose(1, -1) * qpd_random.random() * input_count
 end
 
 local function _innovation_sorter(a, b)
@@ -61,13 +61,13 @@ end
 local _Link_Gene = {}
 _Link_Gene.__index = _Link_Gene
 
-function _Link_Gene:new(input_neuron_gene, output_neuron_gene, weight, innovation_id, o)
+function _Link_Gene:new(input_neuron_gene, output_neuron_gene, innovation_id, weight, o)
 	local o = o or {}
 	setmetatable(o, self)
 
 	o._input_neuron = input_neuron_gene
 	o._output_neuron = output_neuron_gene
-	o._weight = weight
+	o._weight = weight or _get_random_link_weight()
 	o._enabled = true
 	o._innovation_id = innovation_id
 
@@ -80,13 +80,17 @@ function _Link_Gene:new(input_neuron_gene, output_neuron_gene, weight, innovatio
 end
 
 function _Link_Gene:mutate(mutate_chance, mutate_percentage)
-	self._weight = self._weight * (qpd_random.toss(mutate_chance) and (qpd_random.choose(-mutate_percentage, mutate_percentage) + 1) or 1)
+	self:set_weight(self._weight * (qpd_random.toss(mutate_chance) and (qpd_random.choose(-mutate_percentage, mutate_percentage) + 1) or 1))
 end
 
 function _Link_Gene:inherit(mutate_chance, mutate_percentage)
 	local clone = qpd_table.clone(self)
 	clone:mutate(mutate_chance, mutate_percentage)
 	return clone
+end
+
+function _Link_Gene:set_weight(value)
+	self._weight = value
 end
 
 function _Link_Gene:get_weight()
@@ -146,6 +150,7 @@ function _Link:new(input_neuron, output_neuron, weight, recurrent, o)
 	setmetatable(o, self)
 
 	o._input_neuron = input_neuron
+	-- input_neuron:add_output_link()
 	o._output_neuron = output_neuron
 	o._weight = weight
 	o._recurrent = recurrent
@@ -184,13 +189,13 @@ end
 local _Neuron_Gene = {}
 _Neuron_Gene.__index = _Neuron_Gene
 
-function _Neuron_Gene:new(type, recurrent, activation_response, activation_function_name, activation_function_parameters, innovation_id, x, y, o)
+function _Neuron_Gene:new(type, recurrent, activation_function_name, activation_function_parameters, innovation_id, x, y, activation_response, o)
 	local o = o or {}
 	setmetatable(o, self)
 
 	o._type = type
 	o._recurrent = recurrent
-	o._activation_response = activation_response
+	o._activation_response = activation_response or _get_random_activation_response()
 	o._activation_function_name = activation_function_name
 	o._activation_function_parameters = activation_function_parameters
 	o._innovation_id = innovation_id
@@ -821,7 +826,6 @@ function _Genome:create_link(input_neuron, output_neuron, innovation_id)
 		local new_link = _Link_Gene:new(
 			input_neuron,
 			output_neuron,
-			_get_random_link_weight(),
 			innovation_id
 		)
 		if not self:_has_link(new_link:get_id()) then
@@ -938,11 +942,9 @@ function _Genome:add_neuron()
 		local y = (chosen_link:get_input_y() + chosen_link:get_output_y())/2
 
 		local new_neuron_innovation_id = Innovation_manager:get_neuron_innovation_id(x, y)
-		local activation_response = _get_random_activation_response()
 		local new_neuron = _Neuron_Gene:new(
 			"hidden",
 			false,
-			_get_random_activation_response(1),
 			self._hidden_layers_activation_function_name,
 			self._hidden_layers_activation_function_parameters,
 			new_neuron_innovation_id,
@@ -956,7 +958,6 @@ function _Genome:add_neuron()
 		local new_link_input = _Link_Gene:new(
 			chosen_link:get_input_neuron(),
 			new_neuron,
-			_get_random_link_weight(),
 			new_link_input_innovation_id
 		)
 		table.insert(self._links, new_link_input)
@@ -965,7 +966,6 @@ function _Genome:add_neuron()
 		local new_link_output = _Link_Gene:new(
 			new_neuron,
 			chosen_link:get_output_neuron(),
-			_get_random_link_weight(),
 			new_link_output_innovation_id
 		)
 		table.insert(self._links, new_link_output)
@@ -1113,7 +1113,7 @@ function ANN:new_genome(
 	local increment = 1/(n_inputs - 1)
 	for i = 1, n_inputs do
 		local innovation_id = Innovation_manager:get_neuron_innovation_id(x, y)
-		local new_neuron = _Neuron_Gene:new("input", false, 1, input_layer_activation_function_name, input_layer_activation_function_parameters, innovation_id, x, y)
+		local new_neuron = _Neuron_Gene:new("input", false, input_layer_activation_function_name, input_layer_activation_function_parameters, innovation_id, x, y)
 		table.insert(neurons, new_neuron)
 		table.insert(input_neurons, new_neuron)
 		y = y + increment
@@ -1125,8 +1125,7 @@ function ANN:new_genome(
 	increment = 1/(n_outputs - 1)
 	for i = 1, n_outputs do
 		local innovation_id = Innovation_manager:get_neuron_innovation_id(x, y)
-
-		local new_neuron = _Neuron_Gene:new("output", false, 1, output_layer_activation_function_name, output_layer_activation_function_parameters, innovation_id, x, y)
+		local new_neuron = _Neuron_Gene:new("output", false, output_layer_activation_function_name, output_layer_activation_function_parameters, innovation_id, x, y)
 		table.insert(neurons, new_neuron)
 		table.insert(output_neurons, new_neuron)
 		y = y + increment

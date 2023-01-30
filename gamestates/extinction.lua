@@ -212,8 +212,8 @@ function gs.load(map_file_path)
 			gs.GhostPopulation = GeneticPopulation:new(
 				Ghost,
 				gs.game_conf.ghost_active_population,
-				gs.game_conf.ghost_population,
-				gs.game_conf.ghost_genetic_population or 0
+				gs.game_conf.ghost_initial_random_population_size or 0,
+				gs.game_conf.ghost_population_history_size or 0
 			)
 		end
 
@@ -225,22 +225,26 @@ function gs.load(map_file_path)
 				gs.game_conf.autoplayer_search_path_length,
 				gs.game_conf.autoplayer_mutate_chance,
 				gs.game_conf.autoplayer_mutate_percentage,
-				gs.game_conf.autoplayer_add_neuron_chance,
-				gs.game_conf.autoplayer_add_link_chance,
-				gs.game_conf.autoplayer_loopback_chance,
+				gs.game_conf.autoplayer_neat_add_neuron_chance,
+				gs.game_conf.autoplayer_neat_add_link_chance,
+				gs.game_conf.autoplayer_neat_loopback_chance,
 				gs.game_conf.autoplayer_ann_layers,
 				gs.game_conf.autoplayer_ann_mode,
 				gs.game_conf.autoplayer_crossover,
 				gs.game_conf.autoplayer_fitness_mode,
 				gs.game_conf.autoplayer_neat_speciate,
-				gs.game_conf.autoplayer_initial_links,
-				gs.game_conf.autoplayer_fully_connected
+				gs.game_conf.autoplayer_neat_initial_links,
+				gs.game_conf.autoplayer_neat_fully_connected
 			)
 			gs.AutoPlayerPopulation = GeneticPopulation:new(
 				AutoPlayer_NEAT,
 				gs.game_conf.autoplayer_active_population,
-				gs.game_conf.autoplayer_population,
-				gs.game_conf.autoplayer_genetic_population
+				gs.game_conf.autoplayer_initial_random_population_size,
+				gs.game_conf.autoplayer_population_history_size,
+				gs.game_conf.autoplayer_neat_specie_niche_initial_population_size,
+				gs.game_conf.autoplayer_neat_specie_niche_population_history_size,
+				gs.game_conf.autoplayer_neat_specie_mule_start,
+				gs.game_conf.autoplayer_neat_specie_mule_percentage
 			)
 			gs.AutoPlayerPopulation:set_neat_selection(true)
 		else
@@ -260,8 +264,8 @@ function gs.load(map_file_path)
 			gs.AutoPlayerPopulation = GeneticPopulation:new(
 				AutoPlayer,
 				gs.game_conf.autoplayer_active_population,
-				gs.game_conf.autoplayer_population,
-				gs.game_conf.autoplayer_genetic_population
+				gs.game_conf.autoplayer_initial_random_population_size,
+				gs.game_conf.autoplayer_population_history_size
 			)
 		end
 

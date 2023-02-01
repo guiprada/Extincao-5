@@ -244,7 +244,7 @@ function gs.load(map_file_path)
 				gs.game_conf.autoplayer_neat_specie_niche_initial_population_size,
 				gs.game_conf.autoplayer_neat_specie_niche_population_history_size,
 				gs.game_conf.autoplayer_neat_specie_mule_start,
-				gs.game_conf.autoplayer_neat_specie_mule_percentage
+				gs.game_conf.autoplayer_neat_specie_mule_chance
 			)
 			gs.AutoPlayerPopulation:set_neat_selection(true)
 		else

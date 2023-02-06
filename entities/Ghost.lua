@@ -39,11 +39,13 @@ function Ghost:new(o)
 end
 
 function Ghost:reset(reset_table)
-	local home_cell, target_offset, try_order
+	local home_cell, target_offset, try_order, pos, direction
 	if reset_table then
 		home_cell = reset_table.home_cell
 		target_offset = reset_table.target_offset
 		try_order = reset_table.try_order
+		pos = reset_table.pos
+		direction = reset_table.direction
 	end
 	home_cell = home_cell or Ghost._grid:get_invalid_cell()
 
@@ -66,7 +68,7 @@ function Ghost:reset(reset_table)
 	self._home.x = home_cell.x
 	self._home.y = home_cell.y
 
-	GridActor.reset(self, Ghost._grid:get_valid_cell())
+	GridActor.reset(self, pos or Ghost._grid:get_valid_cell())
 
 	self._n_catches = 0
 	self._fitness = 0
@@ -74,9 +76,17 @@ function Ghost:reset(reset_table)
 	self._target_offset = target_offset
 
 	-- set a valid direction
-	self:set_random_valid_direction()
+	self:set_direction(direction or self:get_random_valid_direction())
+end
+
+function Ghost:set_direction(direction)
+	self._next_direction = direction
 	self._debounce_get_next_direction = true
 	self:update_dynamic_front()
+end
+
+function Ghost:get_target_offset()
+	return self._target_offset
 end
 
 function Ghost:set_target_offset(value)
@@ -314,7 +324,7 @@ function Ghost:find_next_direction(target)
 				elseif (Ghost._state == "frightened") then
 					self:wander(possible_next_moves)
 				else
-					print("error, invalid ghost_state")
+					print("error, invalid ghost_state: ", Ghost._state)
 				end
 			else
 				self:go_home(possible_next_moves)

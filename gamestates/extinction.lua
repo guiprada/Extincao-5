@@ -31,7 +31,45 @@ color_array[15] = qpd.color.orange
 color_array[16] = qpd.color.lime
 
 --------------------------------------------------------------------------------
-local function change_ghost_state()
+local function set_ghost_state(state)
+	local time = (state == "chasing") and gs.ghost_chase_time
+	time = time or ((state == "scattering") and gs.ghost_scatter_time)
+	time = time or ((state == "frightened") and gs.pill_effect_time)
+
+	if not time then
+		print("[ERROR] - Tried to set invalid ghost state", state)
+	else
+		gs.ghost_state = state
+		gs.ghost_state_timer:reset(time)
+		if state == "frightened" then
+			gs.got_pill = false
+			gs.pill_is_in_effect = false
+		end
+	end
+end
+
+local function reset_ghost_state()
+	set_ghost_state("scattering")
+end
+
+local function player_caught_callback()
+	set_ghost_state("chasing")
+	reset_ghost_state()
+	local ghost_population = gs.GhostPopulation:get_population()
+	for i, ghost in ipairs(ghost_population) do
+		local target_offset = ghost:get_target_offset()
+		local direction = "right"
+		local pos = {x = 2, y = 6}
+		if i%2 == 0 then
+			pos.x = 26
+			direction = "left"
+		end
+		ghost:reset({pos = pos, target_offset = target_offset})
+		ghost:set_direction(direction)
+	end
+end
+
+local function change_ghost_state_callback()
 	local ghosts = gs.GhostPopulation:get_population()
 
 	if (gs.ghost_state == "scattering") then
@@ -93,7 +131,7 @@ function gs.load(map_file_path)
 		print("Failed to read games.conf or extinction.conf")
 	else
 		gs.headless = gs.game_conf.headless or false
-		gs.game_speed = 100
+		gs.game_speed = gs.game_conf.game_speed or 100
 		gs.default_zoom = gs.game_conf.default_zoom
 		-- local difficulty_factor = gs.game_conf.difficulty/3
 
@@ -186,9 +224,9 @@ function gs.load(map_file_path)
 		gs.ghost_scatter_time = gs.game_conf.ghost_scatter_time
 		gs.ghost_speed_factor = gs.game_conf.ghost_speed_factor
 
-		gs.ghost_state_timer = qpd.timer.new(gs.ghost_scatter_time, change_ghost_state)
-		gs.ghost_state_timer:reset()
-		gs.ghost_state = "scattering"
+		gs.ghost_state_timer = qpd.timer.new(gs.ghost_scatter_time, change_ghost_state_callback)
+		reset_ghost_state()
+		-- print(gs.ghost_state)
 		-- gs.ghost_states = {"scattering", "chasing", "frightened"}
 		Ghost.init(
 			gs.grid,
@@ -217,6 +255,20 @@ function gs.load(map_file_path)
 			)
 		end
 
+		if gs.game_conf.ghost_state_reset_on_autoplayer_capture then
+			for i, ghost in ipairs(gs.GhostPopulation) do
+				local target_offset = ghost:get_target_offset()
+				local direction = "right"
+				local pos = {x = 2, y = 6}
+				if i%2 == 0 then
+					pos.x = 26
+					direction = "left"
+				end
+				ghost:reset({pos = pos, target_offset = target_offset})
+				ghost:set_direction(direction)
+			end
+		end
+
 		-- Initalize Autoplayer
 		gs.autoplayer_speed_factor = gs.game_conf.autoplayer_speed_factor
 
@@ -234,7 +286,11 @@ function gs.load(map_file_path)
 				gs.game_conf.autoplayer_fitness_mode,
 				gs.game_conf.autoplayer_neat_speciate,
 				gs.game_conf.autoplayer_neat_initial_links,
-				gs.game_conf.autoplayer_neat_fully_connected
+				gs.game_conf.autoplayer_neat_fully_connected,
+				gs.game_conf.autoplayer_neat_negative_weight_and_activation_initialization,
+				gs.game_conf.autoplayer_neat_input_proportional_activation,
+				gs.game_conf.autoplayer_start_idle,
+				gs.game_conf.autoplayer_start_on_center
 			)
 			gs.AutoPlayerPopulation = GeneticPopulation:new(
 				AutoPlayer_NEAT,
@@ -244,7 +300,8 @@ function gs.load(map_file_path)
 				gs.game_conf.autoplayer_neat_specie_niche_initial_population_size,
 				gs.game_conf.autoplayer_neat_specie_niche_population_history_size,
 				gs.game_conf.autoplayer_neat_specie_mule_start,
-				gs.game_conf.autoplayer_neat_specie_mule_chance
+				gs.game_conf.autoplayer_neat_specie_threshold,
+				gs.game_conf.ghost_state_reset_on_autoplayer_capture and player_caught_callback or nil
 			)
 			gs.AutoPlayerPopulation:set_neat_selection(true)
 		else
@@ -259,13 +316,20 @@ function gs.load(map_file_path)
 				gs.game_conf.autoplayer_fitness_mode,
 				gs.game_conf.autoplayer_collision_purge or false,
 				gs.game_conf.autoplayer_rotate_purge or false,
-				gs.game_conf.autoplayer_ann_initial_bias
+				gs.game_conf.autoplayer_ann_initial_bias,
+				gs.game_conf.autoplayer_start_idle,
+				gs.game_conf.autoplayer_start_on_center
 			)
 			gs.AutoPlayerPopulation = GeneticPopulation:new(
 				AutoPlayer,
 				gs.game_conf.autoplayer_active_population,
 				gs.game_conf.autoplayer_initial_random_population_size,
-				gs.game_conf.autoplayer_population_history_size
+				gs.game_conf.autoplayer_population_history_size,
+				nil,
+				nil,
+				nil,
+				nil,
+				gs.game_conf.ghost_state_reset_on_autoplayer_capture and player_caught_callback or nil
 			)
 		end
 

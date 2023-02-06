@@ -10,6 +10,8 @@ local ann_activation_functions = require "qpd.ann_activation_functions"
 local MAX_LOOPBACK_LINK_TRIES = 5
 local MAX_LINK_TRIES = 10
 local MAX_NEURON_TRIES = 5
+local NEGATIVE_WEIGHT_AND_ACTIVATION = false
+local INPUT_PROPORTIONAL_ACTIVATION = false
 
 local Innovation_manager -- create singleton instance, will be initialized after _Innovation_manager implementation
 
@@ -43,12 +45,14 @@ local _ann_run_types = {
 -- internal functions
 local function _get_random_link_weight(scale)
 	scale = scale or 1
-	return qpd_random.choose(1, -1) * qpd_random.random() * scale
+	scale = NEGATIVE_WEIGHT_AND_ACTIVATION and (qpd_random.choose(1, -1) * scale) or scale
+	return  qpd_random.random() * scale
 end
 
-local function _get_random_activation_response(input_count)
-	input_count = input_count or 1
-	return qpd_random.choose(1, -1) * qpd_random.random() * input_count
+local function _get_random_activation_response(scale)
+	scale = scale or 1
+	scale = NEGATIVE_WEIGHT_AND_ACTIVATION and (qpd_random.choose(1, -1) * scale) or scale
+	return  qpd_random.random() * scale
 end
 
 local function _innovation_sorter(a, b)
@@ -150,8 +154,10 @@ function _Link:new(input_neuron, output_neuron, weight, recurrent, o)
 	setmetatable(o, self)
 
 	o._input_neuron = input_neuron
-	-- input_neuron:add_output_link()
+	o._input_neuron:add_output_link(o)
 	o._output_neuron = output_neuron
+	o._output_neuron:add_input_link(o)
+
 	o._weight = weight
 	o._recurrent = recurrent
 
@@ -276,7 +282,7 @@ end
 local _Neuron = {}
 _Neuron.__index = _Neuron
 
-function _Neuron:new(type, innovation_id, input_links, output_links, activation_response, activation_function, activation_function_parameters, x, y, o)
+function _Neuron:new(type, input_links, output_links, activation_response, activation_function, activation_function_parameters, innovation_id, x, y, o)
 	local o = o or {}
 	setmetatable(o, self)
 
@@ -307,12 +313,12 @@ end
 function _Neuron:new_from_gene(neuron_gene)
 	return _Neuron:new(
 		neuron_gene:get_neuron_type(),
-		neuron_gene:get_id(),
 		nil,
 		nil,
 		neuron_gene:get_activation_response(),
 		neuron_gene:get_activation_function(),
 		neuron_gene:get_activation_function_parameters(),
+		neuron_gene:get_id(),
 		neuron_gene:get_x(),
 		neuron_gene:get_y())
 end
@@ -329,15 +335,20 @@ end
 function _Neuron:update(input)
 	if input then
 		self._activation_sum = input
-		self._activation_output = self:get_activation_function()(self:get_activation_sum(), self:get_activation_response(), self:get_activation_function_parameters())
+		self._activation_output = self:get_activation_function()(self:get_activation_sum(), self:get_activation_response_value(), self:get_activation_function_parameters())
 	else
 		self._activation_sum = 0
 		for i = 1, #self._input_links do
 			local this_link = self._input_links[i]
 			self._activation_sum = self._activation_sum + this_link:get_output()
 		end
-		self._activation_output = self:get_activation_function()(self:get_activation_sum(), self:get_activation_response(), self:get_activation_function_parameters())
+		self._activation_output = self:get_activation_function()(self:get_activation_sum(), self:get_activation_response_value(), self:get_activation_function_parameters())
 	end
+end
+
+function _Neuron:get_activation_response_value()
+	local factor = INPUT_PROPORTIONAL_ACTIVATION and #(self._input_links) or 1
+	return self:get_activation_response() * factor
 end
 
 function _Neuron:get_activation_response()
@@ -1213,8 +1224,6 @@ function ANN:new(genome, o)
 				neuron_id_to_position[this_link_gene:get_output_neuron():get_id()] then
 
 				local this_link = _Link:new_from_gene(this_link_gene, o._layers, neuron_id_to_position)
-				this_link:get_input_neuron():add_output_link(this_link)
-				this_link:get_output_neuron():add_input_link(this_link)
 			else
 				print("ERROR - _ANN:new() - Invalid Link - Neuron not registered in neuron_id_to_position!")
 				qpd_gamestate.switch("menu")
@@ -1248,7 +1257,6 @@ function ANN:speciate(species, threshold)
 	end
 
 	if closest_compatibility then
-		threshold = threshold or 3
 		print("closest_compatibility: ", closest_compatibility, closest_specie:get_id())
 		if closest_compatibility < threshold then
 			ann_specie = closest_specie
@@ -1277,7 +1285,7 @@ end
 
 function ANN:get_outputs(inputs, run_type)
 	-- update input layer
-	-- print(#self._layers[1])
+	-- -- print(#self._layers[1])
 	-- for i = 1, #(self._layers[1]) do
 	-- 	local this_neuron = self._layers[1][i]
 	-- 	-- if not this_neuron then
@@ -1292,6 +1300,7 @@ function ANN:get_outputs(inputs, run_type)
 	-- 	this_neuron:update(inputs[i])
 	-- end
 
+	-- update input layer
 	for index, value in ipairs(self._layers[1]) do
 		value:update(inputs[index])
 	end
@@ -1311,6 +1320,14 @@ function ANN:get_outputs(inputs, run_type)
 	end
 
 	return outputs
+end
+
+function ANN:set_negative_weight_and_activation_initialization(value)
+	NEGATIVE_WEIGHT_AND_ACTIVATION = value
+end
+
+function ANN:set_input_proportional_activation(value)
+	INPUT_PROPORTIONAL_ACTIVATION = value
 end
 
 function ANN:to_string()

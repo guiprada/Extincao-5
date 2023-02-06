@@ -23,8 +23,21 @@ fitness_modes.no_pill_updates = function (self)
 	self._fitness = self:get_no_pill_update_count()
 end
 
+fitness_modes.cells_visited = function (self)
+	self._fitness = self._visited_count
+end
+
+fitness_modes.movement2 = function (self)
+	local updates = self:get_update_count()
+	if updates > 0 then
+		self._fitness = (self:get_grid_cell_changes()/self:get_update_count()) + self:get_visited_count()
+	else
+		self._fitness = self:get_visited_count()
+	end
+end
+
 -------------------------------------------------------------------------------
-function AutoPlayer.init(search_path_length, mutate_chance, mutate_percentage, ann_layers, ann_mode, crossover, autoplayer_ann_backpropagation, autoplayer_fitness_mode, collision_purge, rotate_purge, initial_bias)
+function AutoPlayer.init(search_path_length, mutate_chance, mutate_percentage, ann_layers, ann_mode, crossover, autoplayer_ann_backpropagation, autoplayer_fitness_mode, collision_purge, rotate_purge, initial_bias, start_idle, start_on_center)
 	AutoPlayer._search_path_length = search_path_length
 
 	AutoPlayer._mutate_chance = mutate_chance
@@ -42,6 +55,8 @@ function AutoPlayer.init(search_path_length, mutate_chance, mutate_percentage, a
 	AutoPlayer._collision_purge = collision_purge or false
 	AutoPlayer._rotate_purge = rotate_purge or false
 	AutoPlayer._initial_bias = initial_bias
+	AutoPlayer._start_idle = start_idle or false
+	AutoPlayer._start_on_center = start_on_center or false
 
 	GridActor.register_type(autoplayer_type_name)
 end
@@ -78,17 +93,33 @@ function AutoPlayer:reset(reset_table)
 	self._pill_update_count = 0
 	self._collision_count = 0
 
-	GridActor.reset(self, cell)
+	cell = AutoPlayer._start_on_center and {x = 14, y = 6} or cell
+	if self._start_idle then
+		cell = cell or AutoPlayer._grid:get_valid_cell()
+		GridActor.reset(self, cell)
 
-	local target_grid = AutoPlayer._grid:get_valid_cell()
-	self._home_grid.x = target_grid.x
-	self._home_grid.y = target_grid.y
+		self._direction = "idle"
+		self._orientation = "up"
 
-	self._target_grid.x = target_grid.x
-	self._target_grid.y = target_grid.y
+		-- self._home_grid.x = cell.x
+		-- self._home_grid.y = cell.y
 
-	self._direction = self:get_random_valid_direction()
-	self._orientation = self._direction
+		-- self._target_grid.x = cell.x
+		-- self._target_grid.y = cell.y
+	else
+		cell = cell or AutoPlayer._grid:get_valid_cell()
+		GridActor.reset(self, cell)
+
+		-- local target_grid = AutoPlayer_NEAT._grid:get_valid_cell()
+		-- self._home_grid.x = target_grid.x
+		-- self._home_grid.y = target_grid.y
+
+		-- self._target_grid.x = target_grid.x
+		-- self._target_grid.y = target_grid.y
+
+		self._direction = self:get_random_valid_direction()
+		self._orientation = self._direction
+	end
 
 	if not self._max_cell then
 		self._max_cell = {}

@@ -23,8 +23,21 @@ fitness_modes.no_pill_updates = function (self)
 	self._fitness = self:get_no_pill_update_count()
 end
 
+fitness_modes.cells_visited = function (self)
+	self._fitness = self:get_visited_count()
+end
+
+fitness_modes.movement2 = function (self)
+	local updates = self:get_update_count()
+	if updates > 0 then
+		self._fitness = (self:get_grid_cell_changes()/self:get_update_count()) + self:get_visited_count()
+	else
+		self._fitness = self:get_visited_count()
+	end
+end
+
 -------------------------------------------------------------------------------
-function AutoPlayer_NEAT.init(search_path_length, mutate_chance, mutate_percentage, add_neuron_chance, add_link_chance, loopback_chance, ann_layers, ann_mode, crossover, fitness_mode, autoplayer_neat_speciate, neat_initial_links, neat_fully_connected)
+function AutoPlayer_NEAT.init(search_path_length, mutate_chance, mutate_percentage, add_neuron_chance, add_link_chance, loopback_chance, ann_layers, ann_mode, crossover, fitness_mode, autoplayer_neat_speciate, neat_initial_links, neat_fully_connected, negative_weight_and_activation_initialization, input_proportional_activation, start_idle, start_on_center)
 	--AutoPlayer.init(search_path_length, mutate_chance, mutate_percentage, ann_layers, ann_mode, crossover, autoplayer_ann_backpropagation, autoplayer_fitness_mode, collision_purge, rotate_purge, initial_bias)
 	AutoPlayer_NEAT._search_path_length = search_path_length
 
@@ -40,6 +53,11 @@ function AutoPlayer_NEAT.init(search_path_length, mutate_chance, mutate_percenta
 	AutoPlayer_NEAT._speciatable = autoplayer_neat_speciate or false
 	AutoPlayer_NEAT._neat_initial_links = neat_initial_links or false
 	AutoPlayer_NEAT._neat_fully_connected = neat_fully_connected or false
+	AutoPlayer_NEAT._start_idle = start_idle or false
+	AutoPlayer_NEAT._start_on_center = start_on_center or false
+
+	qpd.ann_neat:set_negative_weight_and_activation_initialization(negative_weight_and_activation_initialization)
+	qpd.ann_neat:set_input_proportional_activation(input_proportional_activation)
 
 	GridActor.register_type(autoplayer_type_name)
 end
@@ -49,8 +67,8 @@ function AutoPlayer_NEAT:new(o)
 	setmetatable(o, self)
 
 	o._type = GridActor.get_type_by_name(autoplayer_type_name)
-	self._target_grid = {}
-	self._home_grid = {}
+	-- self._target_grid = {}
+	-- self._home_grid = {}
 
 	return o
 end
@@ -61,8 +79,6 @@ function AutoPlayer_NEAT:reset(reset_table)
 		cell = reset_table.cell
 		ann = reset_table.ann
 	end
-
-	cell = cell or AutoPlayer_NEAT._grid:get_valid_cell()
 
 	if ann then
 		self._ann = ann
@@ -89,17 +105,33 @@ function AutoPlayer_NEAT:reset(reset_table)
 	self._pill_update_count = 0
 	self._collision_count = 0
 
-	GridActor.reset(self, cell)
+	cell = AutoPlayer_NEAT._start_on_center and {x = 14, y = 6} or cell
+	if self._start_idle then
+		cell = cell or AutoPlayer_NEAT._grid:get_valid_cell()
+		GridActor.reset(self, cell)
 
-	local target_grid = AutoPlayer_NEAT._grid:get_valid_cell()
-	self._home_grid.x = target_grid.x
-	self._home_grid.y = target_grid.y
+		self._direction = "idle"
+		self._orientation = "up"
 
-	self._target_grid.x = target_grid.x
-	self._target_grid.y = target_grid.y
+		-- self._home_grid.x = cell.x
+		-- self._home_grid.y = cell.y
 
-	self._direction = self:get_random_valid_direction()
-	self._orientation = self._direction
+		-- self._target_grid.x = cell.x
+		-- self._target_grid.y = cell.y
+	else
+		cell = cell or AutoPlayer_NEAT._grid:get_valid_cell()
+		GridActor.reset(self, cell)
+
+		-- local target_grid = AutoPlayer_NEAT._grid:get_valid_cell()
+		-- self._home_grid.x = target_grid.x
+		-- self._home_grid.y = target_grid.y
+
+		-- self._target_grid.x = target_grid.x
+		-- self._target_grid.y = target_grid.y
+
+		self._direction = self:get_random_valid_direction()
+		self._orientation = self._direction
+	end
 
 	if not self._max_cell then
 		self._max_cell = {}

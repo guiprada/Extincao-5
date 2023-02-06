@@ -5,10 +5,12 @@ local qpd = require "qpd.qpd"
 local GridActor = require "entities.GridActor"
 local GeneticPopulation = require "entities.GeneticPopulation"
 local AutoPlayer = require "entities.AutoPlayer"
+local AutoPlayer_NEAT = require "entities.AutoPlayer_NEAT"
 local Population = require "entities.Population"
 local Ghost = require "entities.Ghost"
 local Pill = require "entities.Pill"
 local ANN = require "qpd.ann"
+
 --------------------------------------------------------------------------------
 local color_array = {}
 color_array[1] = qpd.color.gray
@@ -210,32 +212,62 @@ function gs.load(map_file_path)
 			gs.GhostPopulation = GeneticPopulation:new(
 				Ghost,
 				gs.game_conf.ghost_active_population,
-				gs.game_conf.ghost_population,
-				gs.game_conf.ghost_genetic_population or 0
+				gs.game_conf.ghost_initial_random_population_size or 0,
+				gs.game_conf.ghost_population_history_size or 0
 			)
 		end
 
 		-- Initalize Autoplayer
 		gs.autoplayer_speed_factor = gs.game_conf.autoplayer_speed_factor
-		AutoPlayer.init(
-			gs.game_conf.autoplayer_search_path_length,
-			gs.game_conf.autoplayer_mutate_chance,
-			gs.game_conf.autoplayer_mutate_percentage,
-			gs.game_conf.autoplayer_ann_layers or false,
-			gs.game_conf.autoplayer_ann_mode,
-			gs.game_conf.autoplayer_crossover,
-			gs.game_conf.autoplayer_ann_backpropagation,
-			gs.game_conf.autoplayer_fitness_mode,
-			gs.game_conf.autoplayer_collision_purge or false,
-			gs.game_conf.autoplayer_rotate_purge or false,
-			gs.game_conf.autoplayer_ann_initial_bias
-		)
-		gs.AutoPlayerPopulation = GeneticPopulation:new(
-			AutoPlayer,
-			gs.game_conf.autoplayer_active_population,
-			gs.game_conf.autoplayer_population,
-			gs.game_conf.autoplayer_genetic_population
-		)
+
+		if gs.game_conf.autoplayer_neat_enable then
+			AutoPlayer_NEAT.init(
+				gs.game_conf.autoplayer_search_path_length,
+				gs.game_conf.autoplayer_mutate_chance,
+				gs.game_conf.autoplayer_mutate_percentage,
+				gs.game_conf.autoplayer_neat_add_neuron_chance,
+				gs.game_conf.autoplayer_neat_add_link_chance,
+				gs.game_conf.autoplayer_neat_loopback_chance,
+				gs.game_conf.autoplayer_ann_layers,
+				gs.game_conf.autoplayer_ann_mode,
+				gs.game_conf.autoplayer_crossover,
+				gs.game_conf.autoplayer_fitness_mode,
+				gs.game_conf.autoplayer_neat_speciate,
+				gs.game_conf.autoplayer_neat_initial_links,
+				gs.game_conf.autoplayer_neat_fully_connected
+			)
+			gs.AutoPlayerPopulation = GeneticPopulation:new(
+				AutoPlayer_NEAT,
+				gs.game_conf.autoplayer_active_population,
+				gs.game_conf.autoplayer_initial_random_population_size,
+				gs.game_conf.autoplayer_population_history_size,
+				gs.game_conf.autoplayer_neat_specie_niche_initial_population_size,
+				gs.game_conf.autoplayer_neat_specie_niche_population_history_size,
+				gs.game_conf.autoplayer_neat_specie_mule_start,
+				gs.game_conf.autoplayer_neat_specie_mule_chance
+			)
+			gs.AutoPlayerPopulation:set_neat_selection(true)
+		else
+			AutoPlayer.init(
+				gs.game_conf.autoplayer_search_path_length,
+				gs.game_conf.autoplayer_mutate_chance,
+				gs.game_conf.autoplayer_mutate_percentage,
+				gs.game_conf.autoplayer_ann_layers or false,
+				gs.game_conf.autoplayer_ann_mode,
+				gs.game_conf.autoplayer_crossover,
+				gs.game_conf.autoplayer_ann_backpropagation,
+				gs.game_conf.autoplayer_fitness_mode,
+				gs.game_conf.autoplayer_collision_purge or false,
+				gs.game_conf.autoplayer_rotate_purge or false,
+				gs.game_conf.autoplayer_ann_initial_bias
+			)
+			gs.AutoPlayerPopulation = GeneticPopulation:new(
+				AutoPlayer,
+				gs.game_conf.autoplayer_active_population,
+				gs.game_conf.autoplayer_initial_random_population_size,
+				gs.game_conf.autoplayer_population_history_size
+			)
+		end
 
 		-- max dt
 		gs.max_dt = (gs.tilemap_view.tilesize / 4) / qpd.value.max(gs.autoplayer_speed_factor * gs.game_speed, gs.ghost_speed_factor * gs.game_speed)

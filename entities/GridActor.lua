@@ -329,11 +329,15 @@ function GridActor:get_collision_count()
 	return nil
 end
 
+function GridActor:type()
+	return registered_types_list[self._type]
+end
+
 function GridActor:log(event_type, other)
 	local event_table = {}
 	event_table["timestamp"] = os.time()
 	event_table["actor_id"] = self:get_id()
-	event_table["actor_type"] = registered_types_list[self._type]
+	event_table["actor_type"] = self:type()
 	event_table["event_type"] = event_type
 	event_table["other"] = other
 	event_table["cell_x"] = self._cell.x

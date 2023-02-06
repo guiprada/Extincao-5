@@ -103,12 +103,12 @@ function AutoPlayer:reset(reset_table)
 end
 
 function AutoPlayer:crossover(mom, dad)
-	local newAnn
+	local new_ann
 	if AutoPlayer._ann_layers then
-		newAnn = qpd.ann:crossover(mom._ann, dad._ann, self._mutate_chance, self._mutate_percentage, self._crossover)
+		new_ann = qpd.ann:crossover(mom._ann, dad._ann, self._mutate_chance, self._mutate_percentage, self._crossover)
 		-- reset
 	end
-	self:reset({ann = newAnn})
+	self:reset({ann = new_ann})
 end
 
 function AutoPlayer:draw()

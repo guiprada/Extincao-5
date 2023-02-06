@@ -92,7 +92,7 @@ function _Neuron:update(inputs)
 		print("[ERROR] - _Neuron:update() - Received a bogus input:", inputs)
 		return
 	end
-	self._activation_output = self.activation_function(self._activation_sum, self.activation_function_parameters or self.bias)
+	self._activation_output = self.activation_function(self._activation_sum, self.bias, self.activation_function_parameters)
 end
 
 function _Neuron:adjust_weights_output(inputs, output, target)
@@ -256,12 +256,12 @@ function ANN:crossover(mom, dad, mutate_chance, mutate_percentage, crossover)
 
 		local crossover_layer
 		local crossover_neuron
-		if crossover then
-			crossover_layer = qpd_random.random(1, #layer)
-			crossover_neuron = qpd_random.random(1, #layer[1])
-		else
+		if crossover == false then
 			crossover_layer = 0
 			crossover_neuron = 0
+		else
+			crossover_layer = qpd_random.random(1, #layer)
+			crossover_neuron = qpd_random.random(1, #layer[1])
 		end
 
 		for j = 1, #layer do

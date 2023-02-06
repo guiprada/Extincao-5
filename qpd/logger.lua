@@ -1,7 +1,7 @@
 local logger = {}
 logger.__index = logger
 
-local MAX_LINE_IN_SINGLE_FILE = 150000
+local MAX_LINE_IN_SINGLE_FILE = 15000
 
 local function create_file(file_path)
 	local file, err = io.open(file_path, "w")

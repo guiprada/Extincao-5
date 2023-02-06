@@ -6,9 +6,18 @@ function array.shuffle(array)
 	-- shuffles an array
 	-- utils seeds the rng on load
 
-	for i=1,#array, 1 do
+	for i = 1, #array, 1 do
 		local j = qpd_random.random(1, #array)
 		array[i], array[j] = array[j], array[i]
+	end
+end
+
+function array.extend(a1, a2)
+	-- appends the values of array 1 to array 2
+	local insert_position = #a1
+	for i = 1, #a2, 1 do
+		a1[insert_position] = a2[i]
+		insert_position = insert_position + 1
 	end
 end
 

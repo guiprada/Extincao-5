@@ -97,7 +97,7 @@ end
 function logger:flush()
 	local file, err = io.open(self._file_path, "a+")
 	if not file then
-		print("[ERROR] - logger:flush() error opening file:", o._file_path,". io.open() returned:", err)
+		print("[ERROR] - logger:flush() error opening file:", self._file_path,". io.open() returned:", err)
 		return
 	end
 

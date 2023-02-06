@@ -929,7 +929,7 @@ AutoplayerAnnModes.update.nb4_path_grading = function (self, grid, search_path_l
 -- autoplayer_mutate_percentage = 0.05
 -- autoplayer_initial_random_population_size = 6000
 -- autoplayer_fitness_mode = no_pill_updates
-	self._orientation = self._direction  -- not needed, just to keep it synced for graphics
+	self._orientation = self._direction  -- not needed, just to keep it synced for effect :)
 
 	local enabled_directions = self:get_enabled_directions()
 	local available_paths = {}

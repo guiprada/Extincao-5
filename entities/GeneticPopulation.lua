@@ -5,7 +5,7 @@ local GeneticPopulation = {}
 GeneticPopulation.__index = GeneticPopulation
 qpd.table.assign_methods(GeneticPopulation, Population)
 
-function GeneticPopulation:new(class, active_size, initial_random_population_size, population_history_size, specie_niche_initial_population_size, specie_niche_population_history_size, specie_mule_start, specie_mule_percentage, reset_table, o)
+function GeneticPopulation:new(class, active_size, initial_random_population_size, population_history_size, specie_niche_initial_population_size, specie_niche_population_history_size, specie_mule_start, specie_threshold, player_caugh_callback, reset_table, o)
 	local o = o or {}
 	setmetatable(o, self)
 
@@ -13,18 +13,19 @@ function GeneticPopulation:new(class, active_size, initial_random_population_siz
 
 	o._class = class
 	o._speciatable = o._class._speciatable
+	o._player_caught_callback = player_caugh_callback
 	if o._speciatable then
-		self._species = {}
-		self._specie_niche = {}
-		self._specie_niche_count = {}
-		self._specie_history_count = {}
-		self._specie_initial_population_size = specie_niche_initial_population_size or math.max(initial_random_population_size/10, 30)
-		self._specie_population_history_size = specie_niche_population_history_size or math.max(initial_random_population_size/10, 30)
-		self._specie_mule_start = specie_mule_start
-		self._specie_mule_percentage = specie_mule_percentage
+		o._species = {}
+		o._specie_niche = {}
+		o._specie_niche_count = {}
+		o._specie_history_count = {}
+		o._specie_initial_population_size = specie_niche_initial_population_size or math.max(initial_random_population_size/10, 30)
+		o._specie_population_history_size = specie_niche_population_history_size or math.max(initial_random_population_size/10, 30)
+		o._specie_mule_start = specie_mule_start
+		o._specie_threshold = specie_threshold
 	else
-		self._species = nil
-		self._specie_niche = nil
+		o._species = nil
+		o._specie_niche = nil
 	end
 
 	o._active_size = active_size
@@ -44,7 +45,7 @@ function GeneticPopulation:new(class, active_size, initial_random_population_siz
 		o._population[i]:reset(o:get_reset_table())
 
 		if o._speciatable then
-			local new_specie = o._population[i]:get_ann():speciate(o:get_species())
+			local new_specie = o._population[i]:get_ann():speciate(o:get_species(), o._specie_threshold)
 			if new_specie then
 				o:new_specie(new_specie)
 			end
@@ -65,11 +66,6 @@ end
 
 function GeneticPopulation:set_neat_selection(value)
 	self._neat_selection = value or true
-end
-
-function GeneticPopulation:set_neat_mode(value)
-	self:set_fitness_attribute("_own_fitness")
-	self:set_neat_selection(true)
 end
 
 function GeneticPopulation:add_to_history(actor)
@@ -182,6 +178,10 @@ function GeneticPopulation:_selection()
 end
 
 function GeneticPopulation:replace(i)
+	if self._player_caught_callback then
+		self:_player_caught_callback()
+	end
+
 	self._count = self._count + 1
 
 	local this_actor = self._population[i]
@@ -209,11 +209,13 @@ function GeneticPopulation:replace(i)
 		self:check_extinct(specie_id)
 
 		-- speciate
-		local new_specie = this_actor:get_ann():speciate(self:get_species())
+		local new_specie = this_actor:get_ann():speciate(self:get_species(), self._specie_threshold)
 		self:new_specie(new_specie)
 		if new_specie then
 			print("[WARN] - Speciating in speciation niche!")
 		end
+
+		return
 	else
 		-- find parents
 		local mom, dad = self:_selection()
@@ -224,7 +226,7 @@ function GeneticPopulation:replace(i)
 
 	-- speciate
 	if self._speciatable then
-		local new_specie = this_actor:get_ann():speciate(self:get_species())
+		local new_specie = this_actor:get_ann():speciate(self:get_species(), self._specie_threshold)
 		self:new_specie(new_specie)
 	end
 end
@@ -252,10 +254,13 @@ function GeneticPopulation:new_specie(new_specie)
 		local new_specie_id = new_specie:get_id()
 		self._specie_history_count[new_specie_id] = 0
 		self._specie_niche_count[new_specie_id] = 0
+		local new_specie_niche = {}
 		for _ = 1, self._specie_initial_population_size do
-			self._specie_niche[#self._specie_niche + 1] = new_specie
+			new_specie_niche[#new_specie_niche + 1] = new_specie
 			self._specie_niche_count[new_specie_id] = self._specie_niche_count[new_specie:get_id()] + 1
 		end
+
+		qpd.array.extend(new_specie_niche, self._specie_niche)
 	end
 end
 

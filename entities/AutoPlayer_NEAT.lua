@@ -36,6 +36,10 @@ fitness_modes.movement2 = function (self)
 	end
 end
 
+fitness_modes.movement_captures = function (self)
+	self._fitness = self:get_visited_count() + 2 * self._pills_caught + self._ghosts_caught
+end
+
 -------------------------------------------------------------------------------
 function AutoPlayer_NEAT.init(search_path_length, mutate_chance, mutate_percentage, add_neuron_chance, add_link_chance, loopback_chance, ann_layers, ann_mode, crossover, fitness_mode, autoplayer_neat_speciate, neat_initial_links, neat_fully_connected, negative_weight_and_activation_initialization, input_proportional_activation, start_idle, start_on_center)
 	--AutoPlayer.init(search_path_length, mutate_chance, mutate_percentage, ann_layers, ann_mode, crossover, autoplayer_ann_backpropagation, autoplayer_fitness_mode, collision_purge, rotate_purge, initial_bias)
@@ -104,6 +108,8 @@ function AutoPlayer_NEAT:reset(reset_table)
 	self._grid_cell_changes = 0
 	self._pill_update_count = 0
 	self._collision_count = 0
+	self._ghosts_caught = 0
+	self._pills_caught = 0
 
 	cell = AutoPlayer_NEAT._start_on_center and {x = 14, y = 6} or cell
 	if self._start_idle then
@@ -236,9 +242,11 @@ function AutoPlayer_NEAT:update_pill_update_count(ghost_state)
 end
 
 function AutoPlayer_NEAT:got_ghost()
+	self._ghosts_caught = self._ghosts_caught + 1
 end
 
 function AutoPlayer_NEAT:got_pill()
+	self._pills_caught = self._pills_caught + 1
 end
 
 function AutoPlayer_NEAT:get_ann()

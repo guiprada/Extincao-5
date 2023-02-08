@@ -17,6 +17,8 @@
 - add the pheromone thingy :)
 
 -- Melhorias
+	- Testar pre-treinamento para NE
+	- Testar treinar usando similaridade de resposta a um conjunto como fitness para NEAT
 	- monitorar a variedade genetica
 	- adicionar alguma forma de scaling para neat_ann activation_response
 	- unificar anns

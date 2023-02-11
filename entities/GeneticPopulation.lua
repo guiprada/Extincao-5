@@ -264,6 +264,7 @@ function GeneticPopulation:new_specie(new_specie)
 		end
 
 		qpd.array.extend(new_specie_niche, self._specie_niche)
+		self._specie_niche = new_specie_niche
 	end
 end
 

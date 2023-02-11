@@ -199,6 +199,9 @@ function GeneticPopulation:replace(i)
 		if self._specie_mule_start then
 			mom = specie:roulette()
 			dad = self:_roulette(self._history)
+		elseif self._specie_all_roulette_start then
+			mom = specie:roulette()
+			dad = specie:roulette()
 		else
 			mom = specie:get_leader()
 			dad = specie:roulette()

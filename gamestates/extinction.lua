@@ -377,6 +377,10 @@ function gs.load(map_file_path)
 				add_ghost()
 				print("active ghost added!")
 			end
+		gs.actions_keyup['h'] =
+			function ()
+				gs.headless = not gs.headless
+			end
 	end
 end
 

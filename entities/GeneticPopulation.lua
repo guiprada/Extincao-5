@@ -5,7 +5,7 @@ local GeneticPopulation = {}
 GeneticPopulation.__index = GeneticPopulation
 qpd.table.assign_methods(GeneticPopulation, Population)
 
-function GeneticPopulation:new(class, active_size, initial_random_population_size, population_history_size, specie_niche_initial_population_size, specie_niche_population_history_size, specie_mule_start, specie_threshold, player_caugh_callback, reset_table, o)
+function GeneticPopulation:new(class, active_size, initial_random_population_size, population_history_size, specie_niche_initial_population_size, specie_niche_population_history_size, specie_mule_start, specie_all_roulette_start, specie_threshold, player_caugh_callback, reset_table, o)
 	local o = o or {}
 	setmetatable(o, self)
 
@@ -22,6 +22,7 @@ function GeneticPopulation:new(class, active_size, initial_random_population_siz
 		o._specie_initial_population_size = specie_niche_initial_population_size or math.max(initial_random_population_size/10, 30)
 		o._specie_population_history_size = specie_niche_population_history_size or math.max(initial_random_population_size/10, 30)
 		o._specie_mule_start = specie_mule_start
+		o._specie_all_roulette_start = specie_all_roulette_start
 		o._specie_threshold = specie_threshold
 	else
 		o._species = nil

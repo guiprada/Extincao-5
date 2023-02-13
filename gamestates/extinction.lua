@@ -300,6 +300,7 @@ function gs.load(map_file_path)
 				gs.game_conf.autoplayer_neat_specie_niche_initial_population_size,
 				gs.game_conf.autoplayer_neat_specie_niche_population_history_size,
 				gs.game_conf.autoplayer_neat_specie_mule_start,
+				gs.game_conf.autoplayer_specie_all_roulette_start,
 				gs.game_conf.autoplayer_neat_specie_threshold,
 				gs.game_conf.ghost_state_reset_on_autoplayer_capture and player_caught_callback or nil
 			)
@@ -325,6 +326,7 @@ function gs.load(map_file_path)
 				gs.game_conf.autoplayer_active_population,
 				gs.game_conf.autoplayer_initial_random_population_size,
 				gs.game_conf.autoplayer_population_history_size,
+				nil,
 				nil,
 				nil,
 				nil,

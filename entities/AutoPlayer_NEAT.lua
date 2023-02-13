@@ -37,7 +37,7 @@ fitness_modes.movement2 = function (self)
 end
 
 fitness_modes.movement_captures = function (self)
-	self._fitness = self:get_visited_count() + 2 * self._pills_caught + self._ghosts_caught
+	self._fitness = self:get_visited_count() + self._pills_caught + self._ghosts_caught
 end
 
 -------------------------------------------------------------------------------

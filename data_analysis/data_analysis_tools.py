@@ -7,10 +7,10 @@ import re
 
 #timestamp, actor_id, actor_type, event_type, other, cell_x, cell_y, updates, no_pill_updates, visited_count, grid_cell_changes, collision_count, genes
 ########################################################################## Config
-FIG_SIZE = (16, 24)
-# FIG_SIZE = (8, 6)
+# FIG_SIZE = (16, 24)
+FIG_SIZE = (12, 18)
 
-SMALL_LEGEND_FONTSIZE = 7
+SMALL_LEGEND_FONTSIZE = 10
 
 ANN_MODE_STRING = "autoplayer_ann_mode = "
 ANN_LAYERS_STRING = "autoplayer_ann_layers = "
@@ -479,13 +479,15 @@ def generate_run_report_from_dict(run_dict):
 	add_scatter_plot_to_axis(subplots[5][2], range(player_df.shape[0]), player_df["collision_count"]/player_df["updates"], "Collision count/updates x player generation", "collision count/updates")
 
 	#Plot and save
-	plt.subplots_adjust(
-		left=0.1,
-		bottom=0.1,
-		right=0.9,
-		top=0.9,
-		wspace=0.2,
-		hspace=0.4)
+	# plt.subplots_adjust(
+	# 	# left=0.1,
+	# 	# bottom=0.1,
+	# 	# right=0.9,
+	# 	# top=0.9,
+	# 	# wspace=0.2,
+	# 	hspace=0.4
+	# )
+	plt.tight_layout()
 
 	plt.savefig(f"{run_dict['path']}{run_dict['run_id']}_all2.png", dpi = 100)
 	plt.show()

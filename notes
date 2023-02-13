@@ -19,7 +19,7 @@
 -- Melhorias
 	- Testar pre-treinamento para NE
 	- Testar treinar usando similaridade de resposta a um conjunto como fitness para NEAT
-	- monitorar a variedade genetica
+	- monitorar a variedade genetica e informacao dos genes
 	- adicionar alguma forma de scaling para neat_ann activation_response
 	- unificar anns
 	- possibilitar link_weight negativos(para tanh...)

@@ -65,11 +65,21 @@
 ** to adapt this to ghosts we could get a next position only when out of corridors **
 ** should mutation be only  for greater amplitude?(since crossover always diminishes it) **
 
-- BASELINE, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, mas não sai da rota para procurar pilulas ou fantasmas.
-- BASELINE_PILL, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, desvia da rota para procurar pilulas mas não para fantasmas.
-- BASELINE_PILL_GHOST, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, desvia da rota para procurar pilulas e capturar fantasmas.
-- BASELINE_RANDOM, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, caso a rota atual seja ruim, assume uma outra rota aleatoriamente.
-- BASELINE_COLLIDE_RANDOM, um algoritmo especialista caso tenha ocorrido uma colisão, assume uma outra rota aleatoriamente.
-- BASELINE_FULL_RANDOM, um algoritmo especialista que, assume uma outra rota aleatoriamente.
-- BASELINE_VALID_RANDOM, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, caso a rota atual seja ruim, assume uma outra rota válida aleatoriamente.
-- BASELINE_VALID_FULL_RANDOM, um algoritmo especialista que, assume uma outra rota válida aleatoriamente.
+*- BASELINE, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, mas não sai da rota para procurar pilulas ou fantasmas.
+*- BASELINE_PILL, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, desvia da rota para procurar pilulas mas não para fantasmas.
+*- BASELINE_PILL_GHOST, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, desvia da rota para procurar pilulas e capturar fantasmas.
+*- BASELINE_RANDOM, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, caso a rota atual seja ruim, assume uma outra rota aleatoriamente.
+*- BASELINE_COLLIDE_RANDOM, um algoritmo especialista caso tenha ocorrido uma colisão, assume uma outra rota aleatoriamente.
+*- BASELINE_FULL_RANDOM, um algoritmo especialista que, assume uma outra rota aleatoriamente.
+*- BASELINE_VALID_RANDOM, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, caso a rota atual seja ruim, assume uma outra rota válida aleatoriamente.
+*- BASELINE_VALID_FULL_RANDOM, um algoritmo especialista que, assume uma outra rota válida aleatoriamente.
+
+- em ordem de capacidades
+*9- BASELINE_FULL_RANDOM. (nenhuma capacidade)
+*10- BASELINE_VALID_FULL_RANDOM. (capacidade de escolher uma rota valida)
+*11- BASELINE_COLLIDE_RANDOM. (detecta colisão)
+*12- BASELINE_RANDOM. (capacidade de fugir e atacar)
+*13- BASELINE_VALID_RANDOM. (capacidade de fugir e ataque oportuno e escolher rotas validas)
+*14- BASELINE. (capacidade de fugir e ataque oportuno, nao desvia rota para capturar)
+*15- BASELINE_PILL. (capacidade de fugir e ataque oportuno, desvia rota para capturar pilulas)
+*16- BASELINE_PILL_GHOST. (capacidade de fugir e ataque oportuno, desvia rota para capturar)

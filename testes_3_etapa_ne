@@ -35,7 +35,7 @@ pill_effect_time = 3
 pill_active_population = 2
 
 ---------------------------- b1_path_grading_hack
-
+seed = 1676293934
 game_speed = 150
 headless = false
 

@@ -1,4 +1,4 @@
-1-----------------------------------------
+1----------------------------------------- *
 game_speed = 150
 headless = false
 
@@ -53,7 +53,7 @@ autoplayer_search_path_length = 5
 pill_effect_time = 3
 pill_active_population = 2
 
-2-----------------------------------------
+2----------------------------------------- *
 game_speed = 150
 headless = false
 
@@ -659,7 +659,7 @@ autoplayer_search_path_length = 5
 pill_effect_time = 3
 pill_active_population = 2
 
-13----------------------------------------
+13---------------------------------------- *
 game_speed = 150
 headless = false
 
@@ -715,7 +715,7 @@ pill_effect_time = 3
 pill_active_population = 2
 
 
-14----------------------------------------
+14---------------------------------------- *
 game_speed = 150
 headless = false
 

@@ -409,9 +409,9 @@ def generate_run_report_from_dict(run_dict):
 		"x": valid_player_df_filtered["index"],
 		"y": valid_player_df_filtered["updates_per_second"],
 		"label": "updates > 0 and lifetime > 0",
-		"alpha": 0.8, #min(1000/valid_player_df_filtered_count, 0.05),
+		"alpha": 0.5, #min(1000/valid_player_df_filtered_count, 0.05),
 		"color": "red",
-		"scale": 3,
+		"scale": 5,
 	}
 	updates_second_plot_dicts_list.append(updates_second_filtered_plot_dict)
 
@@ -438,7 +438,7 @@ def generate_run_report_from_dict(run_dict):
 		"label": "frozen", # lifetime > 0 and update = 0",
 		"alpha": 0.8,
 		"color": "red",
-		"scale": 5,
+		"scale": 20,
 	}
 	fails_plot_dicts_list.append(frozen_fails_plot_dict)
 
@@ -447,9 +447,9 @@ def generate_run_report_from_dict(run_dict):
 		"x": short_lived["index"],
 		"y": np.full(short_lived.shape[0], 0.5), #short_lived["lifetime"],
 		"label": "short life", # lifetime = 0 and updates > 0",
-		"alpha": 0.8,
-		"color": "orange",
-		"scale": 5,
+		"alpha": 0.5,
+		"color": "green",
+		"scale": 20,
 	}
 	fails_plot_dicts_list.append(short_lived_fails_plot_dict)
 
@@ -458,9 +458,9 @@ def generate_run_report_from_dict(run_dict):
 		"x": no_chance["index"],
 		"y": np.full(no_chance.shape[0],0), #no_chance["lifetime"],
 		"label": "no chance", # lifetime = 0 and updates == 0",
-		"alpha": 0.8,
-		"color": "green",
-		"scale": 5,
+		"alpha": 0.5,
+		"color": "orange",
+		"scale": 20,
 	}
 	fails_plot_dicts_list.append(no_chance_fails_plot_dict)
 
@@ -472,37 +472,37 @@ def generate_run_report_from_dict(run_dict):
 	add_scatter_plot_to_axis(subplots[0][2], range(player_df.shape[0]), player_df["updates"], "Updates x player iteration", "updates x player iteration", scale = 2, alpha = 0.8)
 
 	## Player
-	add_heatmap_to_axis(subplots[1][0], player_df["cell_x"], player_df["cell_y"], bins = (28, 14), title = "Destruction Heatmap for Player")
+	add_heatmap_to_axis(subplots[1][0], player_df["cell_x"], player_df["cell_y"], bins = (28, 14), title = "Capture heatmap for player")
 	add_scatter_plot_to_axis(subplots[1][1], range(player_df.shape[0]), player_df["lifetime"], "lifetime x player iteration", "lifetime", scale = 2, alpha = 0.8)
-	add_intervalar_means_plot_to_axis(subplots[1][2], range(player_df.shape[0]), player_df["lifetime"], "lifetime x player iteration Interval")
+	add_intervalar_means_plot_to_axis(subplots[1][2], range(player_df.shape[0]), player_df["lifetime"], "lifetime x player iteration intervals")
 
 	## Ghost
-	add_heatmap_to_axis(subplots[2][0], ghost_df["cell_x"], ghost_df["cell_y"], bins = (28, 14), title = "Destruction Heatmap for Ghost")
+	add_heatmap_to_axis(subplots[2][0], ghost_df["cell_x"], ghost_df["cell_y"], bins = (28, 14), title = "Capture heatmap for ghost")
 	add_scatter_plot_to_axis(subplots[2][1], range(ghost_df.shape[0]), ghost_df["lifetime"], "lifetime x ghost iteration", "lifetime", scale = 2, alpha = 0.8)
-	add_intervalar_means_plot_to_axis(subplots[2][2], range(ghost_df.shape[0]), ghost_df["lifetime"], "lifetime x ghost iteration Interval")
+	add_intervalar_means_plot_to_axis(subplots[2][2], range(ghost_df.shape[0]), ghost_df["lifetime"], "lifetime x ghost iteration intervals")
 
 	## Pills
-	add_heatmap_to_axis(subplots[3][0], pill_df["cell_x"], pill_df["cell_y"], bins = (28, 14), title = "Destruction Heatmap for Pill")
+	add_heatmap_to_axis(subplots[3][0], pill_df["cell_x"], pill_df["cell_y"], bins = (28, 14), title = "Capture heatmap for pill")
 	add_scatter_plot_to_axis(subplots[3][1], range(pill_df.shape[0]), pill_df["lifetime"], "lifetime x pill iteration", "lifetime", scale = 2, alpha = 0.8)
-	add_intervalar_means_plot_to_axis(subplots[3][2], range(pill_df.shape[0]), pill_df["lifetime"], "lifetime x pill iteration Interval")
+	add_intervalar_means_plot_to_axis(subplots[3][2], range(pill_df.shape[0]), pill_df["lifetime"], "lifetime x pill iteration intervals")
 
 	## Pills captured x autoplayer generation
-	add_scatter_plot_to_axis(subplots[4][0], range(player_df.shape[0]), player_df["pills_captured"], "Pills captured x player iteration", "pills captured", scale = 2, alpha = 0.8)
+	add_scatter_plot_to_axis(subplots[4][0], range(player_df.shape[0]), player_df["pills_captured"], "pills captured x player iteration", "pills captured", scale = 2, alpha = 0.8)
 
 	## Ghosts captured x autoplayer generation
-	add_scatter_plot_to_axis(subplots[4][1], range(player_df.shape[0]), player_df["ghosts_captured"], "Ghosts captured x player iteration", "ghosts captured", scale = 2, alpha = 0.8)
+	add_scatter_plot_to_axis(subplots[4][1], range(player_df.shape[0]), player_df["ghosts_captured"], "ghosts captured x player iteration", "ghosts captured", scale = 2, alpha = 0.8)
 
 	## Ghosts/pill x autoplayer generation
-	add_scatter_plot_to_axis(subplots[4][2], range(player_df.shape[0]), player_df["ghosts_captured"]/player_df["pills_captured"], "Ghost captured/Pill captured x player iteration", "Ghost/Pill", scale = 2, alpha = 0.8)
+	add_scatter_plot_to_axis(subplots[4][2], range(player_df.shape[0]), player_df["ghosts_captured"]/player_df["pills_captured"], "ghosts captured/pills captured x player iteration", "Ghost/Pill", scale = 2, alpha = 0.8)
 
 	## Visited_count x autoplayer generation
-	add_scatter_plot_to_axis(subplots[5][0], range(player_df.shape[0]), player_df["visited_count"], "Grid cells visited x player iteration", "grid cells visited", scale = 2, alpha = 0.8)
+	add_scatter_plot_to_axis(subplots[5][0], range(player_df.shape[0]), player_df["visited_count"], "grid cells visited x player iteration", "grid cells visited", scale = 2, alpha = 0.8)
 
 	## grid_cell_changes/updates x autoplayer generation
-	add_scatter_plot_to_axis(subplots[5][1], range(player_df.shape[0]), player_df["grid_cell_changes"]/player_df["updates"], "Grid cells changes/updates  x player iteration", "grid cells changes/updates", scale = 2, alpha = 0.8)
+	add_scatter_plot_to_axis(subplots[5][1], range(player_df.shape[0]), player_df["grid_cell_changes"]/player_df["updates"], "grid cell changes/updates  x player iteration", "grid cell changes/updates", scale = 2, alpha = 0.8)
 
 	## collision_count/updates x autoplayer generation
-	add_scatter_plot_to_axis(subplots[5][2], range(player_df.shape[0]), player_df["collision_count"]/player_df["updates"], "Collision count/updates x player iteration", "collision count/updates", scale = 2, alpha = 0.8)
+	add_scatter_plot_to_axis(subplots[5][2], range(player_df.shape[0]), player_df["collision_count"]/player_df["updates"], "collision count/updates x player iteration", "collision count/updates", scale = 2, alpha = 0.8)
 
 	#Plot and save
 	# plt.subplots_adjust(

@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import scipy.stats as stats
 import os
 import json
 import re
@@ -120,7 +121,7 @@ def add_heatmap_to_axis(axis, x, y, bins, title):
 
 	img = axis.imshow(heatmap_hist.T, extent = extent)
 	axis.set_title(title)
-	plt.setp(axis.get_xticklabels(), rotation=30, horizontalalignment='right')
+	# plt.setp(axis.get_xticklabels(), rotation=30, horizontalalignment='right')
 	plt.colorbar(img, ax = axis, location = "bottom")
 
 def add_intervalar_means_plot_to_axis(axis, scatter_x, scatter_y, title, alpha = 1):
@@ -128,35 +129,59 @@ def add_intervalar_means_plot_to_axis(axis, scatter_x, scatter_y, title, alpha =
 		scatter_y_10 = create_array_of_interval_mean(scatter_y, 10)
 
 		axis.set_title(title)
-		axis.plot(scatter_x, scatter_y_100, label = "intervalar mean 100 blocks", color = "green", alpha = alpha)
-		axis.plot(scatter_x, scatter_y_10, label = "intervalar mean 10 blocks", color = "blue", alpha = alpha)
-		axis.hlines(scatter_y.mean(), 0, len(scatter_x), label = "mean", colors = "red", linestyles = "dotted", alpha = 1)
+		axis.plot(scatter_x, scatter_y_100, label = "intervalar mean 100 blocks", color = "blue", alpha = alpha)
+		axis.plot(scatter_x, scatter_y_10, label = "intervalar mean 10 blocks", color = "green", alpha = alpha)
+		axis.hlines(scatter_y.mean(), 0, len(scatter_x), label = "mean", colors = "red", linestyles = "dotted", alpha = alpha)
 		plt.setp(axis.get_xticklabels(), rotation=30, horizontalalignment='right')
 		axis.legend(fontsize = SMALL_LEGEND_FONTSIZE)
 
 def add_scatter_and_intervalar_means_plot_to_axis(axis, scatter_x, scatter_y, title, label, scale = 1, alpha = 1):
-	# scatter_y_100 = create_array_of_interval_mean(scatter_y, 100)
+	scatter_y_100 = create_array_of_interval_mean(scatter_y, 100)
 	scatter_y_10 = create_array_of_interval_mean(scatter_y, 10)
 
 	axis.set_title(title)
-	axis.scatter(scatter_x, scatter_y, label = label, alpha = alpha, edgecolors='none', s = scale)
-	# axis.plot(scatter_x, scatter_y_100, label = "intervalar mean 100 blocks", color = "blue", alpha = alpha)
-	axis.plot(scatter_x, scatter_y_10, label = "intervalar mean 10 blocks", color = "magenta", alpha = alpha)
-	axis.hlines(scatter_y.mean(), 0, scatter_x.max(), label = "mean", colors = "cyan", linestyles = "dotted", alpha = alpha)
+	# clip_max = scatter_y_100.max()
+	# clip_min = scatter_y_100.min()
+	# scatter_zip = zip(scatter_x, scatter_y)
+	# scatter_zip_clipped = [p for p in scatter_zip if p[1] <= clip_max and p[1]>= clip_min]
+	# if len(scatter_zip_clipped) > 0:
+	# 	scatter_x_clipped, scatter_y_clipped = zip(*scatter_zip_clipped)
+	# 	axis.scatter(scatter_x_clipped, scatter_y_clipped, label = label, alpha = alpha, color = "orange", edgecolors='none', s = scale)
+	axis.plot(scatter_x, scatter_y_100, label = "intervalar mean 100 blocks", color = "green", alpha = alpha)
+	axis.plot(scatter_x, scatter_y_10, label = "intervalar mean 10 blocks", color = "purple", alpha = alpha)
+	axis.hlines(scatter_y.mean(), 0, scatter_x.max(), label = "mean", colors = "red", linestyles = "dotted", alpha = alpha)
 	plt.setp(axis.get_xticklabels(), rotation=30, horizontalalignment='right')
-	axis.legend(fontsize = SMALL_LEGEND_FONTSIZE)
+	# axis.legend(fontsize = SMALL_LEGEND_FONTSIZE)
+
+def add_distribution_plot_to_axis(axis, data, title):
+	axis.set_title(title)
+	axis.hist(data, bins = 50)
 
 
 def generate_run_report_from_dict(run_dict):
 	player_df = run_dict["df"].loc[run_dict["df"]["actor_type"] == "player"]
+	non_zero_lifetime_player_df = player_df.query("lifetime > 0")
+	non_zero_updates_player_df = player_df.query("updates > 0")
+	non_zero_pills_captured_player_df = player_df.query("pills_captured > 0")
+
 	# player_df.index += 1
 	player_df.reset_index(drop = True, inplace=True)
 	player_df.reset_index(inplace=True)
 
+	non_zero_lifetime_player_df.reset_index(drop = True, inplace=True)
+	non_zero_lifetime_player_df.reset_index(inplace=True)
+	non_zero_updates_player_df.reset_index(drop = True, inplace=True)
+	non_zero_updates_player_df.reset_index(inplace=True)
+	non_zero_pills_captured_player_df.reset_index(drop = True, inplace=True)
+	non_zero_pills_captured_player_df.reset_index(inplace=True)
+
 	ghost_df = run_dict["df"].loc[run_dict["df"]["actor_type"] == "ghost"]
-	# ghost_df.reset_index(drop = True, inplace=True)
+	ghost_df.reset_index(drop = True, inplace=True)
+	ghost_df.reset_index(inplace = True)
+
 	pill_df = run_dict["df"].loc[run_dict["df"]["actor_type"] == "pill"]
-	# pill_df.reset_index(drop = True, inplace=True)
+	pill_df.reset_index(drop = True, inplace=True)
+	pill_df.reset_index(inplace = True)
 
 	errors = list()
 
@@ -173,113 +198,50 @@ def generate_run_report_from_dict(run_dict):
 
 	fig.suptitle(config_string, size = 20, y = 0)
 
-	## Updates/second
-	valid_player_df_filtered = player_df.query("updates > 0 and lifetime > 0")
-
-	# updates_second_plot_dicts_list = list()
-	# valid_player_df_filtered_count = valid_player_df_filtered.shape[0]
-	# updates_second_filtered_plot_dict = {
-	# 	"x": valid_player_df_filtered["index"],
-	# 	"y": valid_player_df_filtered["updates_per_second"],
-	# 	"label": "updates > 0 and lifetime > 0",
-	# 	"alpha": 0.5, #min(1000/valid_player_df_filtered_count, 0.05),
-	# 	"color": "red",
-	# 	"scale": 5,
-	# }
-	# updates_second_plot_dicts_list.append(updates_second_filtered_plot_dict)
-
-	# invalid_player_df_filtered = player_df.query("updates == 0 or lifetime == 0")
-	# # invalid_player_df_filtered_count = invalid_player_df_filtered.shape[0]
-	# updates_second_plot_dict = {
-	# 	"x": invalid_player_df_filtered["index"],
-	# 	"y": invalid_player_df_filtered["updates_per_second"],
-	# 	"label": "updates == 0 or lifetime == 0",
-	# 	"alpha": 1,
-	# 	"color": "blue",
-	# 	"scale": 15,
-	# }
-	# updates_second_plot_dicts_list.append(updates_second_plot_dict)
-
-	# add_scatter_plot_to_axis_from_dicts(subplots[0][0], updates_second_plot_dicts_list, "updates/lifetime x player iteration")
-	add_scatter_and_intervalar_means_plot_to_axis(subplots[0][0], valid_player_df_filtered["index"], valid_player_df_filtered["updates_per_second"], "updates/lifetime x player iteration", "updates/lifetime")
-
-	# ## Fails
-	# fails_plot_dicts_list = list()
-	# frozen = player_df.query("updates == 0 and lifetime > 0")
-	# frozen_fails_plot_dict = {
-	# 	"x": frozen["index"],
-	# 	"y": np.full(frozen.shape[0], 1), #frozen["lifetime"],
-	# 	"label": "frozen", # lifetime > 0 and update = 0",
-	# 	"alpha": 0.8,
-	# 	"color": "red",
-	# 	"scale": 20,
-	# }
-	# fails_plot_dicts_list.append(frozen_fails_plot_dict)
-
-	# short_lived = player_df.query("lifetime == 0 and updates > 0")
-	# short_lived_fails_plot_dict = {
-	# 	"x": short_lived["index"],
-	# 	"y": np.full(short_lived.shape[0], 0.5), #short_lived["lifetime"],
-	# 	"label": "short life", # lifetime = 0 and updates > 0",
-	# 	"alpha": 0.5,
-	# 	"color": "green",
-	# 	"scale": 20,
-	# }
-	# fails_plot_dicts_list.append(short_lived_fails_plot_dict)
-
-	# no_chance = player_df.query("lifetime == 0 and updates == 0")
-	# no_chance_fails_plot_dict = {
-	# 	"x": no_chance["index"],
-	# 	"y": np.full(no_chance.shape[0],0), #no_chance["lifetime"],
-	# 	"label": "no chance", # lifetime = 0 and updates == 0",
-	# 	"alpha": 0.5,
-	# 	"color": "orange",
-	# 	"scale": 20,
-	# }
-	# fails_plot_dicts_list.append(no_chance_fails_plot_dict)
-
-	# plt.tick_params(left = False, labelleft = False)
-	# add_scatter_plot_to_axis_from_dicts(subplots[0][1], fails_plot_dicts_list, "Failures x player iteration", yticks = [], legend_loc = "lower left")
-	# plt.tick_params(left = True, labelleft = True)
-
 	## Updates per player
-	add_scatter_plot_to_axis(subplots[0][1], range(player_df.shape[0]), player_df["updates"], "updates x player iteration", "updates x player iteration", scale = 2, alpha = 0.8)
+	add_scatter_and_intervalar_means_plot_to_axis(subplots[0][0], player_df["index"], player_df["updates"], "updates x player iteration", "updates")
 
-	## Updates per player interval
-	add_intervalar_means_plot_to_axis(subplots[0][2], range(player_df.shape[0]), player_df["updates"], "updates x player iteration")
+	## Updates/second
+	add_scatter_and_intervalar_means_plot_to_axis(subplots[0][1], non_zero_lifetime_player_df["index"], non_zero_lifetime_player_df["updates_per_second"], "updates/lifetime x player iteration", "updates/lifetime")
 
 	## Player
 	add_heatmap_to_axis(subplots[1][0], player_df["cell_x"], player_df["cell_y"], bins = (28, 14), title = "Capture heatmap for player")
-	add_scatter_plot_to_axis(subplots[1][1], range(player_df.shape[0]), player_df["lifetime"], "lifetime x player iteration", "lifetime", scale = 2, alpha = 0.8)
-	add_intervalar_means_plot_to_axis(subplots[1][2], range(player_df.shape[0]), player_df["lifetime"], "lifetime x player iteration intervals")
+	add_scatter_and_intervalar_means_plot_to_axis(subplots[1][1], player_df["index"], player_df["lifetime"], "lifetime x player iteration", "lifetime")
 
 	## Ghost
 	add_heatmap_to_axis(subplots[2][0], ghost_df["cell_x"], ghost_df["cell_y"], bins = (28, 14), title = "Capture heatmap for ghost")
-	add_scatter_plot_to_axis(subplots[2][1], range(ghost_df.shape[0]), ghost_df["lifetime"], "lifetime x ghost iteration", "lifetime", scale = 2, alpha = 0.8)
-	add_intervalar_means_plot_to_axis(subplots[2][2], range(ghost_df.shape[0]), ghost_df["lifetime"], "lifetime x ghost iteration intervals")
+	add_scatter_and_intervalar_means_plot_to_axis(subplots[2][1], ghost_df["index"], ghost_df["lifetime"], "lifetime x ghost iteration", "lifetime")
 
 	## Pills
 	add_heatmap_to_axis(subplots[3][0], pill_df["cell_x"], pill_df["cell_y"], bins = (28, 14), title = "Capture heatmap for pill")
-	add_scatter_plot_to_axis(subplots[3][1], range(pill_df.shape[0]), pill_df["lifetime"], "lifetime x pill iteration", "lifetime", scale = 2, alpha = 0.8)
-	add_intervalar_means_plot_to_axis(subplots[3][2], range(pill_df.shape[0]), pill_df["lifetime"], "lifetime x pill iteration intervals")
+	add_scatter_and_intervalar_means_plot_to_axis(subplots[3][1], pill_df["index"], pill_df["lifetime"], "lifetime x pill iteration", "lifetime")
 
-	## Pills captured x autoplayer generation
-	add_scatter_plot_to_axis(subplots[4][0], range(player_df.shape[0]), player_df["pills_captured"], "pills captured x player iteration", "pills captured", scale = 2, alpha = 0.8)
+	## pills captured/lifetime x autoplayer generation
+	add_scatter_and_intervalar_means_plot_to_axis(subplots[4][0], non_zero_lifetime_player_df["index"], non_zero_lifetime_player_df["pills_captured"]/non_zero_lifetime_player_df["lifetime"], "pills captured/lifetime x player iteration", "pills captured/lifetime")
 
-	## Ghosts captured x autoplayer generation
-	add_scatter_plot_to_axis(subplots[4][1], range(player_df.shape[0]), player_df["ghosts_captured"], "ghosts captured x player iteration", "ghosts captured", scale = 2, alpha = 0.8)
+	## Ghosts captured/lifetime x autoplayer generation
+	add_scatter_and_intervalar_means_plot_to_axis(subplots[4][1], non_zero_lifetime_player_df["index"], non_zero_lifetime_player_df["ghosts_captured"]/non_zero_lifetime_player_df["lifetime"], "ghosts captured/lifetime x player iteration", "ghosts captured/lifetime")
 
 	## Ghosts/pill x autoplayer generation
-	add_scatter_plot_to_axis(subplots[4][2], range(player_df.shape[0]), player_df["ghosts_captured"]/player_df["pills_captured"], "ghosts captured/pills captured x player iteration", "Ghost/Pill", scale = 2, alpha = 0.8)
+	add_scatter_and_intervalar_means_plot_to_axis(subplots[4][2], non_zero_pills_captured_player_df["index"], non_zero_pills_captured_player_df["ghosts_captured"]/non_zero_pills_captured_player_df["pills_captured"], "ghosts captured/pills captured x player iteration", "ghost captured/pill captured")
 
 	## Visited_count x autoplayer generation
-	add_scatter_plot_to_axis(subplots[5][0], range(player_df.shape[0]), player_df["visited_count"], "grid cells visited x player iteration", "grid cells visited", scale = 2, alpha = 0.8)
+	add_scatter_and_intervalar_means_plot_to_axis(subplots[5][0], player_df["index"], player_df["visited_count"], "grid cells visited x player iteration", "grid cells visited")
 
 	## grid_cell_changes/updates x autoplayer generation
-	add_scatter_plot_to_axis(subplots[5][1], range(player_df.shape[0]), player_df["grid_cell_changes"]/player_df["updates"], "grid cell changes/updates  x player iteration", "grid cell changes/updates", scale = 2, alpha = 0.8)
+	add_scatter_and_intervalar_means_plot_to_axis(subplots[5][1], non_zero_updates_player_df["index"], non_zero_updates_player_df["grid_cell_changes"]/non_zero_updates_player_df["updates"], "grid cell changes/updates  x player iteration", "grid cell changes/updates")
 
 	## collision_count/updates x autoplayer generation
-	add_scatter_plot_to_axis(subplots[5][2], range(player_df.shape[0]), player_df["collision_count"]/player_df["updates"], "collision count/updates x player iteration", "collision count/updates", scale = 2, alpha = 0.8)
+	add_scatter_and_intervalar_means_plot_to_axis(subplots[5][2], non_zero_updates_player_df["index"], non_zero_updates_player_df["collision_count"]/non_zero_updates_player_df["updates"], "collision count/updates x player iteration", "collision count/updates")
+
+	# distributions
+	# add_distribution_plot_to_axis(subplots[0][2], player_df["updates"], "updates distribution for players")
+	# add_distribution_plot_to_axis(subplots[1][2], player_df["lifetime"], "lifetime distribution for players")
+	# add_distribution_plot_to_axis(subplots[2][2], non_zero_lifetime_player_df["lifetime"], "non_zero lifetime distribution for players")
+	# add_distribution_plot_to_axis(subplots[3][2], player_df["updates_per_second"].replace([np.inf, -np.inf], np.nan).dropna(), "updates/lifetime distribution for players")
+	# add_distribution_plot_to_axis(subplots[4][2], player_df["visited_count"], "cells visited distribution for players")
+	# add_distribution_plot_to_axis(subplots[5][2], player_df["grid_cell_changes"], "cell changes distribution for players")
+
 
 	#Plot and save
 	# plt.subplots_adjust(
@@ -296,7 +258,36 @@ def generate_run_report_from_dict(run_dict):
 	plt.show()
 	plt.close()
 
+	desired_correlations = {
+		"updates lifetime": (player_df["updates"], player_df["lifetime"]),
+		"updates/lifetime updates": (non_zero_lifetime_player_df["updates_per_second"], non_zero_lifetime_player_df["lifetime"]),
+		"updates/lifetime updates": (non_zero_lifetime_player_df["updates_per_second"], non_zero_lifetime_player_df["updates"]),
+		"updates/lifetime cell_visited": (non_zero_lifetime_player_df["updates_per_second"], non_zero_lifetime_player_df["visited_count"]),
+		"updates/lifetime cell changes": (non_zero_lifetime_player_df["updates_per_second"], non_zero_lifetime_player_df["grid_cell_changes"]),
+		"updates cells_visited": (player_df["updates"], player_df["visited_count"]),
+		"lifetime cells_visited": (player_df["lifetime"], player_df["visited_count"]),
+		"cells_visited cell changes": (player_df["visited_count"], player_df["grid_cell_changes"]),
+		"updates cell changes": (player_df["updates"], player_df["grid_cell_changes"]),
+		"lifetime cell changes": (player_df["lifetime"], player_df["grid_cell_changes"])
+	}
+
+	for label, series in desired_correlations.items():
+		print_correlations(series[0], series[1], label)
+
+	# Conduct the Kruskal-Wallis Test
+	# result = stats.kruskal(data_group1, data_group2, data_group3)
+
 	return errors
+
+def calculate_correlations(s1, s2):
+	pearson = s1.corr(s2, method = "pearson")
+	spearman = s1.corr(s2, method = "spearman")
+	kendall = s1.corr(s2, method = "kendall")
+	return (pearson, spearman, kendall)
+
+def print_correlations(s1, s2, label):
+	correlations = calculate_correlations(s1, s2)
+	print(label, "r: " + str(correlations[0]), "rs:"  + str(correlations[1]), "T: " + str(correlations[2]))
 
 
 def count_captured(row, df):

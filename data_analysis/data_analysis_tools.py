@@ -294,8 +294,10 @@ def generate_run_report_from_dict(run_dict):
 
 	text_analysis += '\n' + 30*'-' + "Describes :)" + '\n'
 	text_analysis += '\n' + "updates/lifetime: " + '\n' + str(non_zero_lifetime_player_df["updates_per_second"].describe()) + '\n'
-	text_analysis += '\n' + "lifetime: " + '\n' + str(player_df["lifetime"].describe()) + '\n'
 	text_analysis += '\n' + "updates: " + '\n' + str(player_df["updates"].describe()) + '\n'
+	text_analysis += '\n' + "lifetime for player: " + '\n' + str(player_df["lifetime"].describe()) + '\n'
+	text_analysis += '\n' + "lifetime for ghosts: " + '\n' + str(ghost_df["lifetime"].describe()) + '\n'
+	text_analysis += '\n' + "lifetime for pills: " + '\n' + str(pill_df["lifetime"].describe()) + '\n'
 	text_analysis += '\n' + "visited_count: " + '\n' + str(player_df["visited_count"].describe()) + '\n'
 	text_analysis += '\n' + "grid_cell_changes: " + '\n' + str(player_df["grid_cell_changes"].describe()) + '\n'
 	text_analysis += '\n' + "grid_cell_changes/updates: " + '\n' + str((non_zero_updates_player_df["grid_cell_changes"]/non_zero_updates_player_df["updates"]).describe()) + '\n'
@@ -303,6 +305,7 @@ def generate_run_report_from_dict(run_dict):
 	text_analysis += '\n' + "collision_count/updates: " + '\n' + str((non_zero_updates_player_df["collision_count"]/non_zero_updates_player_df["updates"]).describe()) + '\n'
 	text_analysis += '\n' + "ghosts_captured: " + '\n' + str(player_df["ghosts_captured"].describe()) + '\n'
 	text_analysis += '\n' + "pills_captured: " + '\n' + str(player_df["pills_captured"].describe()) + '\n'
+	text_analysis += '\n' + "ghosts_captured/pills_captured: " + '\n' + str((non_zero_pills_captured_player_df["ghosts_captured"]/non_zero_pills_captured_player_df["pills_captured"]).describe()) + '\n'
 	text_analysis += '\n' + "ghosts lifetime: " + '\n' + str(ghost_df["lifetime"].describe()) + '\n'
 	text_analysis += '\n' + "pills lifetime: " + '\n' + str(pill_df["lifetime"].describe()) + '\n'
 

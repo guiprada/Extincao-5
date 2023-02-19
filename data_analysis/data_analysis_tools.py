@@ -19,6 +19,18 @@ ANN_LAYERS_STRING = "autoplayer_ann_layers = "
 OVERRIDE_OLD_DATAFRAME = False
 
 ########################################################################## Data Processing
+# def json_parser(data):
+# 	fixed = json_quote_properties(data)
+# 	fixed = json_replace_equals(fixed)
+# 	#print(data, fixed)
+# 	return json.loads(fixed)
+
+# def json_replace_equals(str):
+# 	return str.replace('=', ':')
+
+# def json_quote_properties(str):
+# 	return re.sub(r"([A-z]+)", r'"\1"', str)
+
 def gene_parser(data):
 	return data
 
@@ -100,7 +112,7 @@ def add_scatter_plot_to_axis(axis, scatter_x, scatter_y, title, label, alpha = 1
 	axis.scatter(scatter_x, scatter_y, label = label, alpha = alpha, edgecolors='none', s = scale)
 	axis.hlines(scatter_y.mean(), 0, len(scatter_x), label = "mean", colors = "red", linestyles = "dotted", alpha = 1)
 	plt.setp(axis.get_xticklabels(), rotation=30, horizontalalignment='right')
-	axis.legend(fontsize = SMALL_LEGEND_FONTSIZE)
+	# axis.legend(fontsize = SMALL_LEGEND_FONTSIZE)
 
 def add_scatter_plot_to_axis_from_dicts(axis, plot_dicts_list, title, yticks = None, legend_loc = "best"):
 	axis.set_title(title)
@@ -122,7 +134,7 @@ def add_heatmap_to_axis(axis, x, y, bins, title):
 	img = axis.imshow(heatmap_hist.T, extent = extent)
 	axis.set_title(title)
 	# plt.setp(axis.get_xticklabels(), rotation=30, horizontalalignment='right')
-	plt.colorbar(img, ax = axis, location = "bottom")
+	plt.colorbar(img, ax = axis, location = "left")
 
 def add_intervalar_means_plot_to_axis(axis, scatter_x, scatter_y, title, alpha = 1):
 		scatter_y_100 = create_array_of_interval_mean(scatter_y, 100)
@@ -150,6 +162,7 @@ def add_scatter_and_intervalar_means_plot_to_axis(axis, scatter_x, scatter_y, ti
 	axis.plot(scatter_x, scatter_y_100, label = "intervalar mean 100 blocks", color = "green", alpha = alpha)
 	axis.plot(scatter_x, scatter_y_10, label = "intervalar mean 10 blocks", color = "purple", alpha = alpha)
 	axis.hlines(scatter_y.mean(), 0, scatter_x.max(), label = "mean", colors = "red", linestyles = "dotted", alpha = alpha)
+	axis.ticklabel_format(style = "plain")
 	plt.setp(axis.get_xticklabels(), rotation=30, horizontalalignment='right')
 	# axis.legend(fontsize = SMALL_LEGEND_FONTSIZE)
 
@@ -189,7 +202,15 @@ def generate_run_report_from_dict(run_dict):
 	plt.clf()
 	plt.figure(figsize = FIG_SIZE)
 
-	fig, subplots = plt.subplots(6, 3, figsize = FIG_SIZE)
+	fig, subplots = plt.subplot_mosaic(
+	"""
+	AAABBB
+	CCCDDD
+	EEEFFF
+	GGGHHH
+	IIJJKK
+	LLMMNN
+	""",figsize = FIG_SIZE)
 
 	## Config string
 	config_string = "run: " + run_dict["run_id"] +  " | ann_mode: " + run_dict["mode"]
@@ -198,41 +219,41 @@ def generate_run_report_from_dict(run_dict):
 
 	fig.suptitle(config_string, size = 20, y = 0)
 
-	## Updates per player
-	add_scatter_and_intervalar_means_plot_to_axis(subplots[0][0], player_df["index"], player_df["updates"], "updates x player iteration", "updates")
-
 	## Updates/second
-	add_scatter_and_intervalar_means_plot_to_axis(subplots[0][1], non_zero_lifetime_player_df["index"], non_zero_lifetime_player_df["updates_per_second"], "updates/lifetime x player iteration", "updates/lifetime")
+	add_scatter_plot_to_axis(subplots["A"], non_zero_lifetime_player_df["index"], non_zero_lifetime_player_df["updates_per_second"], "updates/lifetime x player iteration(lifetime>0)", "updates/lifetime", alpha = 1, scale = 1)
+
+	## Updates per player
+	add_scatter_plot_to_axis(subplots["B"], player_df["index"], player_df["updates"], "updates x player iteration", "updates", alpha = 1, scale = 1)
 
 	## Player
-	add_heatmap_to_axis(subplots[1][0], player_df["cell_x"], player_df["cell_y"], bins = (28, 14), title = "Capture heatmap for player")
-	add_scatter_and_intervalar_means_plot_to_axis(subplots[1][1], player_df["index"], player_df["lifetime"], "lifetime x player iteration", "lifetime")
+	add_heatmap_to_axis(subplots["C"], player_df["cell_x"], player_df["cell_y"], bins = (28, 14), title = "Capture heatmap for player")
+	add_scatter_plot_to_axis(subplots["D"], player_df["index"], player_df["lifetime"], "lifetime x player iteration", "lifetime", alpha = 1, scale = 1)
 
 	## Ghost
-	add_heatmap_to_axis(subplots[2][0], ghost_df["cell_x"], ghost_df["cell_y"], bins = (28, 14), title = "Capture heatmap for ghost")
-	add_scatter_and_intervalar_means_plot_to_axis(subplots[2][1], ghost_df["index"], ghost_df["lifetime"], "lifetime x ghost iteration", "lifetime")
+	add_heatmap_to_axis(subplots["E"], ghost_df["cell_x"], ghost_df["cell_y"], bins = (28, 14), title = "Capture heatmap for ghost")
+	add_scatter_plot_to_axis(subplots["F"], ghost_df["index"], ghost_df["lifetime"], "lifetime x ghost iteration", "lifetime", alpha = 1, scale = 1)
 
 	## Pills
-	add_heatmap_to_axis(subplots[3][0], pill_df["cell_x"], pill_df["cell_y"], bins = (28, 14), title = "Capture heatmap for pill")
-	add_scatter_and_intervalar_means_plot_to_axis(subplots[3][1], pill_df["index"], pill_df["lifetime"], "lifetime x pill iteration", "lifetime")
+	add_heatmap_to_axis(subplots["G"], pill_df["cell_x"], pill_df["cell_y"], bins = (28, 14), title = "Capture heatmap for pill")
+	add_scatter_plot_to_axis(subplots["H"], pill_df["index"], pill_df["lifetime"], "lifetime x pill iteration", "lifetime", alpha = 1, scale = 1)
 
-	## pills captured/lifetime x autoplayer generation
-	add_scatter_and_intervalar_means_plot_to_axis(subplots[4][0], non_zero_lifetime_player_df["index"], non_zero_lifetime_player_df["pills_captured"]/non_zero_lifetime_player_df["lifetime"], "pills captured/lifetime x player iteration", "pills captured/lifetime")
+	## pills captured x autoplayer generation
+	add_scatter_plot_to_axis(subplots["I"], player_df["index"], player_df["pills_captured"], "pills_captured x player iteration", "pills_captured")
 
-	## Ghosts captured/lifetime x autoplayer generation
-	add_scatter_and_intervalar_means_plot_to_axis(subplots[4][1], non_zero_lifetime_player_df["index"], non_zero_lifetime_player_df["ghosts_captured"]/non_zero_lifetime_player_df["lifetime"], "ghosts captured/lifetime x player iteration", "ghosts captured/lifetime")
+	## Ghosts captured x autoplayer generation
+	add_scatter_plot_to_axis(subplots["J"], player_df["index"], player_df["ghosts_captured"], "ghosts_captured x player iteration", "ghosts_captured")
 
 	## Ghosts/pill x autoplayer generation
-	add_scatter_and_intervalar_means_plot_to_axis(subplots[4][2], non_zero_pills_captured_player_df["index"], non_zero_pills_captured_player_df["ghosts_captured"]/non_zero_pills_captured_player_df["pills_captured"], "ghosts captured/pills captured x player iteration", "ghost captured/pill captured")
+	add_scatter_plot_to_axis(subplots["K"], non_zero_pills_captured_player_df["index"], non_zero_pills_captured_player_df["ghosts_captured"]/non_zero_pills_captured_player_df["pills_captured"], "ghosts_captured/pills_captured x player iteration", "ghosts_captured/pills_captured")
 
 	## Visited_count x autoplayer generation
-	add_scatter_and_intervalar_means_plot_to_axis(subplots[5][0], player_df["index"], player_df["visited_count"], "grid cells visited x player iteration", "grid cells visited")
+	add_scatter_plot_to_axis(subplots["L"], player_df["index"], player_df["visited_count"], "visited_count x player iteration", "visited_count")
 
 	## grid_cell_changes/updates x autoplayer generation
-	add_scatter_and_intervalar_means_plot_to_axis(subplots[5][1], non_zero_updates_player_df["index"], non_zero_updates_player_df["grid_cell_changes"]/non_zero_updates_player_df["updates"], "grid cell changes/updates  x player iteration", "grid cell changes/updates")
+	add_scatter_plot_to_axis(subplots["M"], non_zero_updates_player_df["index"], non_zero_updates_player_df["grid_cell_changes"]/non_zero_updates_player_df["updates"], "grid_cell_changes/updates  x player iteration", "grid_cell_changes/updates")
 
 	## collision_count/updates x autoplayer generation
-	add_scatter_and_intervalar_means_plot_to_axis(subplots[5][2], non_zero_updates_player_df["index"], non_zero_updates_player_df["collision_count"]/non_zero_updates_player_df["updates"], "collision count/updates x player iteration", "collision count/updates")
+	add_scatter_plot_to_axis(subplots["N"], non_zero_updates_player_df["index"], non_zero_updates_player_df["collision_count"]/non_zero_updates_player_df["updates"], "collision_count/updates x player iteration", "collision_count/updates")
 
 	# distributions
 	# add_distribution_plot_to_axis(subplots[0][2], player_df["updates"], "updates distribution for players")
@@ -258,24 +279,101 @@ def generate_run_report_from_dict(run_dict):
 	plt.show()
 	plt.close()
 
+	## Analise textual
+	text_analysis = config_string + '\n'
+	text_analysis += "Total player entries: " + str(player_df.shape[0])
+	text_analysis += '\n' + "Total non_zero_lifetime player entries: " + str(non_zero_lifetime_player_df.shape[0])
+	text_analysis += '\n' + "Total non_zero_pills_captured player entries: " + str(non_zero_pills_captured_player_df.shape[0])
+	text_analysis += '\n' + "Total non_zero_updates player entries: " + str(non_zero_updates_player_df.shape[0])
+	text_analysis += '\n' + "Total zero_lifetime player entries: " + str(player_df.query("lifetime == 0").shape[0])
+	text_analysis += '\n' + "Total zero_updates player entries: " + str(player_df.query("updates == 0").shape[0])
+	text_analysis += '\n' + "Total zero_updates player entries with lifetime > 0: " + str(player_df.query("updates == 0 and lifetime > 0").shape[0])
+	text_analysis += '\n' + "Total zero_pill player entries: " + str(player_df.query("pills_captured == 0").shape[0])
+	text_analysis += '\n' + "Total pill entries: " + str(pill_df.shape[0])
+	text_analysis += '\n' + "Total ghost entries: " + str(ghost_df.shape[0])
+
+	text_analysis += '\n' + 30*'-' + "Describes :)" + '\n'
+	text_analysis += '\n' + "updates/lifetime: " + '\n' + str(non_zero_lifetime_player_df["updates_per_second"].describe()) + '\n'
+	text_analysis += '\n' + "lifetime: " + '\n' + str(player_df["lifetime"].describe()) + '\n'
+	text_analysis += '\n' + "updates: " + '\n' + str(player_df["updates"].describe()) + '\n'
+	text_analysis += '\n' + "visited_count: " + '\n' + str(player_df["visited_count"].describe()) + '\n'
+	text_analysis += '\n' + "grid_cell_changes: " + '\n' + str(player_df["grid_cell_changes"].describe()) + '\n'
+	text_analysis += '\n' + "grid_cell_changes/updates: " + '\n' + str((non_zero_updates_player_df["grid_cell_changes"]/non_zero_updates_player_df["updates"]).describe()) + '\n'
+	text_analysis += '\n' + "collision_count: " + '\n' + str(player_df["collision_count"].describe()) + '\n'
+	text_analysis += '\n' + "collision_count/updates: " + '\n' + str((non_zero_updates_player_df["collision_count"]/non_zero_updates_player_df["updates"]).describe()) + '\n'
+	text_analysis += '\n' + "ghosts_captured: " + '\n' + str(player_df["ghosts_captured"].describe()) + '\n'
+	text_analysis += '\n' + "pills_captured: " + '\n' + str(player_df["pills_captured"].describe()) + '\n'
+	text_analysis += '\n' + "ghosts lifetime: " + '\n' + str(ghost_df["lifetime"].describe()) + '\n'
+	text_analysis += '\n' + "pills lifetime: " + '\n' + str(pill_df["lifetime"].describe()) + '\n'
+
+	##
+	print("A taxa de atualizacao e as outras metricas")
+	text_analysis += '\n' + 30*'-' + "Correlacoes :)" + '\n'
+	text_analysis += '\n' + "A taxa de atualizacao e as outras metricas" + '\n'
+	desired_correlations = {
+		"updates/lifetime lifetime": (non_zero_lifetime_player_df["updates_per_second"], non_zero_lifetime_player_df["lifetime"]),
+		"updates/lifetime updates": (non_zero_lifetime_player_df["updates_per_second"], non_zero_lifetime_player_df["updates"]),
+		"updates/lifetime visited_count": (non_zero_lifetime_player_df["updates_per_second"], non_zero_lifetime_player_df["visited_count"]),
+		"updates/lifetime grid_cell_changes": (non_zero_lifetime_player_df["updates_per_second"], non_zero_lifetime_player_df["grid_cell_changes"]),
+		"updates/lifetime collision_count": (non_zero_lifetime_player_df["updates_per_second"], non_zero_lifetime_player_df["collision_count"]),
+		"updates/lifetime ghosts_captured": (non_zero_lifetime_player_df["updates_per_second"], non_zero_lifetime_player_df["ghosts_captured"]),
+		"updates/lifetime pills_captured": (non_zero_lifetime_player_df["updates_per_second"], non_zero_lifetime_player_df["pills_captured"]),
+	}
+	for label, series in desired_correlations.items():
+		text_analysis += print_correlations(series[0], series[1], label) + '\n'
+
+	##
+	print("Updates e as outras metricas")
+	text_analysis += '\n' + "Updates e as outras metricas" + '\n'
 	desired_correlations = {
 		"updates lifetime": (player_df["updates"], player_df["lifetime"]),
-		"updates/lifetime updates": (non_zero_lifetime_player_df["updates_per_second"], non_zero_lifetime_player_df["lifetime"]),
-		"updates/lifetime updates": (non_zero_lifetime_player_df["updates_per_second"], non_zero_lifetime_player_df["updates"]),
-		"updates/lifetime cell_visited": (non_zero_lifetime_player_df["updates_per_second"], non_zero_lifetime_player_df["visited_count"]),
-		"updates/lifetime cell changes": (non_zero_lifetime_player_df["updates_per_second"], non_zero_lifetime_player_df["grid_cell_changes"]),
-		"updates cells_visited": (player_df["updates"], player_df["visited_count"]),
-		"lifetime cells_visited": (player_df["lifetime"], player_df["visited_count"]),
-		"cells_visited cell changes": (player_df["visited_count"], player_df["grid_cell_changes"]),
-		"updates cell changes": (player_df["updates"], player_df["grid_cell_changes"]),
-		"lifetime cell changes": (player_df["lifetime"], player_df["grid_cell_changes"])
+		"updates visited_count": (player_df["updates"], player_df["visited_count"]),
+		"updates grid_cell_changes": (player_df["updates"], player_df["grid_cell_changes"]),
+		"updates collision_count": (player_df["updates"], player_df["collision_count"]),
+		"updates ghosts_captured": (player_df["updates"], player_df["ghosts_captured"]),
+		"updates pills_captured": (player_df["updates"], player_df["pills_captured"]),
 	}
-
 	for label, series in desired_correlations.items():
-		print_correlations(series[0], series[1], label)
+		text_analysis += print_correlations(series[0], series[1], label) + '\n'
+
+	##
+	print("Lifetime e as outras metricas")
+	text_analysis += '\n' + "Lifetime e as outras metricas" + '\n'
+	desired_correlations = {
+		"lifetime visited_count": (player_df["lifetime"], player_df["visited_count"]),
+		"lifetime grid_cell_changes": (player_df["lifetime"], player_df["grid_cell_changes"]),
+		"lifetime collision_count": (player_df["lifetime"], player_df["collision_count"]),
+		"lifetime ghosts_captured": (player_df["lifetime"], player_df["ghosts_captured"]),
+		"lifetime pills_captured": (player_df["lifetime"], player_df["pills_captured"]),
+	}
+	for label, series in desired_correlations.items():
+		text_analysis += print_correlations(series[0], series[1], label) + '\n'
+
+	##
+	print("As metricas de movimentacao")
+	text_analysis += '\n' + "As metricas de movimentacao" + '\n'
+	desired_correlations = {
+		"cells_visited grid_cell_changes": (player_df["visited_count"], player_df["grid_cell_changes"]),
+		"cells_visited collision_count": (player_df["visited_count"], player_df["collision_count"]),
+		"grid_cell_changes collision_count": (player_df["grid_cell_changes"], player_df["collision_count"]),
+	}
+	for label, series in desired_correlations.items():
+		text_analysis += print_correlations(series[0], series[1], label) + '\n'
+
+	##
+	print("As metricas de captura")
+	text_analysis += '\n' + "As metricas de captura" + '\n'
+	desired_correlations = {
+		"ghosts_captured pills_captured": (player_df["ghosts_captured"], player_df["pills_captured"]),
+	}
+	for label, series in desired_correlations.items():
+		text_analysis += print_correlations(series[0], series[1], label) + '\n'
 
 	# Conduct the Kruskal-Wallis Test
 	# result = stats.kruskal(data_group1, data_group2, data_group3)
+
+	with open(f"{run_dict['path']}{run_dict['run_id']}_analysis.txt", 'w') as f:
+		f.write(text_analysis)
 
 	return errors
 
@@ -287,7 +385,9 @@ def calculate_correlations(s1, s2):
 
 def print_correlations(s1, s2, label):
 	correlations = calculate_correlations(s1, s2)
-	print(label, "r: " + str(correlations[0]), "rs:"  + str(correlations[1]), "T: " + str(correlations[2]))
+	result = label + " r: " + str(correlations[0]) + " rs: "  + str(correlations[1]) + " T: " + str(correlations[2])
+	print(result)
+	return result
 
 
 def count_captured(row, df):
@@ -340,225 +440,3 @@ def load_dataframe(path, run):
 	return actors_df, errors
 
 ####################################################################################################################################
-# def json_parser(data):
-# 	fixed = json_quote_properties(data)
-# 	fixed = json_replace_equals(fixed)
-# 	#print(data, fixed)
-# 	return json.loads(fixed)
-
-# def json_replace_equals(str):
-# 	return str.replace('=', ':')
-
-# def json_quote_properties(str):
-# 	return re.sub(r"([A-z]+)", r'"\1"', str)
-
-# def create_lifetime_dict_for_actor_type(actor_type, df):
-# 	df_destruction = df[df["event_type"] == "destroyed"]
-# 	df_creation = df[df["event_type"] == "created"]
-
-# 	df_actor_destruction = df_destruction[df_destruction["actor_type"] == actor_type]
-# 	df_actor_creation = df_creation[df_creation["actor_type"] == actor_type]
-
-# 	# lifetime dict
-# 	lifetimes_dict = {}
-# 	for _, row in df_actor_destruction.iterrows():
-# 		id = row["actor_id"]
-
-# 		if not id in lifetimes_dict:
-# 			lifetimes_dict[id] = dict()
-
-# 		this_entry = lifetimes_dict[id]
-# 		this_entry["actor_id"] = row["actor_id"]
-# 		this_entry["actor_type"] = row["actor_type"]
-# 		this_entry["other"] = row["other"]
-# 		this_entry["updates"] = row["updates"]
-# 		this_entry["no_pill_updates"] = row["no_pill_updates"]
-# 		this_entry["visited_count"] = row["visited_count"]
-# 		this_entry["grid_cell_changes"] = row["grid_cell_changes"]
-# 		this_entry["collision_count"] = row["collision_count"]
-
-# 		this_entry["destruction"] = row["timestamp"]
-
-
-# 	for _, row in df_actor_creation.iterrows():
-# 		id = row["actor_id"]
-
-# 		if not id in lifetimes_dict:
-# 			lifetimes_dict[id] = {"creation":None, "destruction":None}
-
-# 		this_entry = lifetimes_dict[id]
-# 		this_entry["creation"] = row["timestamp"]
-
-# 	return lifetimes_dict
-
-# def create_lifetimes_array(lifetimes_dict):
-# 	# lifetime lists and arrays
-# 	lifetime_list = []
-# 	for _, value in lifetimes_dict.items():
-# 		if (value["destruction"] is not None) and (value["creation"] is not None):
-# 			# lifetimes_dict[key]["lifetime"] = value["destruction"] - value["creation"]
-# 			lifetime_list.append(value["destruction"] - value["creation"])
-# 			# print(key, lifetimes_dict[key]["lifetime"])
-# 	return np.array(lifetime_list)
-
-# def create_and_save_updates_per_second(lifetimes_dict, path, run, mode):
-# 	# updates/second
-# 	ratio_list_x = []
-# 	ratio_list_y = []
-# 	short_lived_x = []
-# 	short_lived_y = []
-# 	for index, value in lifetimes_dict.items():
-# 		if (not value["destruction"] is None) and (not value["creation"] is None):
-# 			# lifetimes_dict[key]["lifetime"] = value["destruction"] - value["creation"]
-# 			lifetime = (value["destruction"] - value["creation"])
-# 			updates = value["updates"]
-
-# 			if lifetime == 0:
-# 				short_lived_x.append(index)
-# 				short_lived_y.append(0)
-# 			else:
-# 				ratio_list_x.append(index)
-# 				ratio_list_y.append(updates/lifetime)
-
-
-# 	# plots
-# 	plt.clf()
-# 	plt.figure(figsize = FIG_SIZE)
-# 	plt.title("Update per second for player | run: " + run +  " | ann_mode: " + mode)
-# 	plt.scatter(ratio_list_x, ratio_list_y, label = "Updates/second", alpha = 0.5)
-# 	plt.scatter(short_lived_x, short_lived_y, color = "red", label = "short lived", alpha = 0.3)
-# 	plt.legend()
-# 	plt.savefig(f"{path}{run}_update_per_second_player.png", dpi = 100)
-# 	# plt.show()
-# 	plt.close()
-
-# def create_and_save_seconds_per_update(lifetimes_dict, path, run, mode):
-# 	# seconds/update
-# 	ratio_list_x = []
-# 	ratio_list_y = []
-# 	long_freeze_x = []
-# 	long_freeze_y = []
-# 	short_lived_x = []
-# 	short_lived_y = []
-# 	for index, value in lifetimes_dict.items():
-# 		if (not value["destruction"] is None) and (not value["creation"] is None):
-# 			# lifetimes_dict[key]["lifetime"] = value["destruction"] - value["creation"]
-# 			lifetime = (value["destruction"] - value["creation"])
-# 			updates = value["updates"]
-
-# 			if lifetime == 0:
-# 				short_lived_x.append(index)
-# 				short_lived_y.append(0.99)
-# 			elif updates == 0:
-# 				long_freeze_x.append(index)
-# 				long_freeze_y.append(0.98)
-# 				pass
-# 			else:
-# 				ratio_list_x.append(index)
-# 				ratio_list_y.append(lifetime / updates)
-
-# 	# plots
-# 	plt.clf()
-# 	plt.figure(figsize = FIG_SIZE)
-# 	plt.title("Seconds per update for player | run: " + run +  " | ann_mode: " + mode)
-# 	plt.scatter(ratio_list_x, ratio_list_y, label = "Seconds/update ratio", alpha = 0.5)
-# 	plt.scatter(short_lived_x, short_lived_y, color = "red", label = "short lived", alpha = 0.3)
-# 	plt.scatter(long_freeze_x, long_freeze_y, color = "purple", label = "long freeze", alpha = 0.3)
-# 	plt.legend()
-# 	plt.savefig(f"{path}{run}_update_ratio_player.png", dpi = 100)
-# 	# plt.show()
-# 	plt.close()
-
-# def create_and_save_destruction_heatmap(actor_type, df, path, run, mode):
-# 	df_destruction = df[df["event_type"] == "destroyed"]
-# 	df_actor_destruction = df_destruction[df_destruction["actor_type"] == actor_type]
-# 	# heatmap_points = list(zip(df_actor_destruction["cell_x"], df_actor_destruction["cell_y"]))
-
-# 	heatmap_hist, xedges, yedges = np.histogram2d(df_actor_destruction["cell_x"], df_actor_destruction["cell_y"], bins = (28, 14))
-# 	extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
-# 	#print(xedges[0] - 1, xedges[-1] + 1, yedges[0] - 1, yedges[-1] + 1)
-
-# 	plt.clf()
-# 	plt.figure(figsize = FIG_SIZE)
-# 	plt.imshow(heatmap_hist.T, extent = extent)
-# 	plt.title("Destruction Heatmap for " + actor_type + " | run: " + run + " | ann_mode: " + mode)
-# 	plt.colorbar()
-# 	plt.savefig(f"{path}{run}_heatmap_{actor_type}.png", dpi = 100)
-# 	# plt.show()
-# 	plt.close()
-
-# def create_and_save_lifetime_plot(lifetimes_array, actor_type, path, run, mode):
-# 	lifetime_avg_array_100 = create_array_of_interval_mean(lifetimes_array, 100)
-# 	lifetime_avg_array_10 = create_array_of_interval_mean(lifetimes_array, 10)
-
-# 	plt.clf()
-# 	plt.figure(figsize = FIG_SIZE)
-# 	plt.title("Lifetimes for " + actor_type + " | run: " + run +  " | ann_mode: " + mode)
-# 	plt.scatter(range(1, len(lifetimes_array) + 1), lifetimes_array, label = "lifetime", alpha = 0.1)
-# 	plt.legend()
-# 	plt.savefig(f"{path}{run}_lifetime_plot_{actor_type}.png", dpi = 100)
-# 	# plt.show()
-# 	plt.close()
-
-# 	plt.clf()
-# 	plt.figure(figsize = FIG_SIZE)
-# 	plt.title("Mean lifetime for " + actor_type + " | run: " + run +  " | ann_mode: " + mode)
-# 	plt.plot(lifetime_avg_array_100, label = "intervalar mean 100 blocks", alpha = 0.5)
-# 	plt.plot(lifetime_avg_array_10, label = "intervalar mean 10 blocks")
-# 	plt.hlines(lifetimes_array.mean(), 0, len(lifetimes_array), label = "mean", colors = "red", linestyles = "dotted", alpha = 0.5)
-# 	plt.legend()
-# 	plt.savefig(f"{path}{run}_lifetime_means_{actor_type}.png", dpi = 100)
-# 	# plt.show()
-# 	plt.close()
-
-# 	plt.clf()
-# 	plt.figure(figsize = FIG_SIZE)
-# 	plt.title("Intervalar Lifetime Boxplot for " + actor_type + " | run: " + run +  " | ann_mode: " + mode)
-# 	plt.boxplot(np.array_split(lifetimes_array.tolist(), 10))
-# 	plt.savefig(f"{path}{run}_lifetime_boxplot10_{actor_type}.png", dpi = 100)
-# 	# plt.show()
-# 	plt.close()
-
-# def create_plots(path, run):
-# 	this_baseline_mode = None
-# 	this_ann_layers = None
-# 	print(path, run)
-# 	with open(f"{path}{run}.conf", 'r') as f:
-# 		for line in f.readlines():
-# 			if BASELINE_STRING in line:
-# 				this_baseline_mode = line.replace(BASELINE_STRING, "")
-# 				print(this_baseline_mode)
-# 			elif ANN_LAYERS_STRING in line:
-# 				this_ann_layers = line.replace(ANN_LAYERS_STRING, "")
-# 				print(this_ann_layers)
-
-# 	data = pd.read_csv(f"{path}{run}.data_fixed", skipinitialspace = True, converters = {"genes":gene_parser}, quotechar="'")
-# 	data = data.drop(["genes"], axis = 1)
-# 	print("loaded data!")
-# 	# print(data.info())
-
-# 	# create_and_save_destruction_heatmap("player", data, path, run, this_baseline_mode)
-# 	# create_and_save_destruction_heatmap("ghost", data, path, run, this_baseline_mode)
-# 	# create_and_save_destruction_heatmap("pill", data, path, run, this_baseline_mode)
-
-# 	player_lifetimes_dict = create_lifetime_dict_for_actor_type("player", data)
-# 	ghost_lifetimes_dict = create_lifetime_dict_for_actor_type("ghost", data)
-# 	pill_lifetimes_dict = create_lifetime_dict_for_actor_type("pill", data)
-
-# 	player_lifetimes_array = create_lifetimes_array(player_lifetimes_dict)
-# 	ghost_lifetimes_array = create_lifetimes_array(ghost_lifetimes_dict)
-# 	pill_lifetimes_array = create_lifetimes_array(pill_lifetimes_dict)
-
-# 	# create_and_save_seconds_per_update(player_lifetimes_dict, path, run, this_baseline_mode)
-# 	# create_and_save_updates_per_second(player_lifetimes_dict, path, run, this_baseline_mode)
-
-# 	# create_and_save_lifetime_plot(player_lifetimes_array, "player", path, run, this_baseline_mode)
-# 	# create_and_save_lifetime_plot(ghost_lifetimes_array, "ghost", path, run, this_baseline_mode)
-# 	# create_and_save_lifetime_plot(pill_lifetimes_array, "pill", path, run, this_baseline_mode)
-
-# 	actor_lifetimes_dict = {
-# 		"player": player_lifetimes_array,
-# 		"ghost": ghost_lifetimes_array,
-# 		"pill": pill_lifetimes_array,
-# 	}
-# 	return create_analysis_plot(data, actor_lifetimes_dict, player_lifetimes_dict, path, run, this_baseline_mode)

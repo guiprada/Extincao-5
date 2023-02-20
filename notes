@@ -17,6 +17,7 @@
 - add the pheromone thingy :)
 
 -- Melhorias
+	- Fazer cruzamentos com ordenacao para NE(alinhar os neuronios da camadas por proximidade funcional, o alinhamento tem que ser "propagado")
 	- utilizar os algoritmos especialistas para analisar as funcoes fitness
 	- Analise da significancia estatistica da alteracoes analisadas com Kruskal
 	- Testar pre-treinamento para NE

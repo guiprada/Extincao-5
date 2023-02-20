@@ -11,9 +11,6 @@ local autoplayer_type_name = "player"
 
 -------------------------------------------------------------------------------
 local fitness_modes = {}
-fitness_modes.movement = function (self)
-	self._fitness = self:get_grid_cell_changes() * self:get_visited_count()
-end
 
 fitness_modes.updates = function (self)
 	self._fitness = self:get_update_count()
@@ -27,13 +24,8 @@ fitness_modes.cells_visited = function (self)
 	self._fitness = self:get_visited_count()
 end
 
-fitness_modes.movement2 = function (self)
-	local updates = self:get_update_count()
-	if updates > 0 then
-		self._fitness = (self:get_grid_cell_changes()/self:get_update_count()) + self:get_visited_count()
-	else
-		self._fitness = self:get_visited_count()
-	end
+fitness_modes.movement = function (self)
+	self._fitness = self:get_grid_cell_changes() * self:get_visited_count()
 end
 
 fitness_modes.movement_captures = function (self)
@@ -44,7 +36,15 @@ fitness_modes.movement_captures_hack_26 = function (self)
 	if self:get_visited_count() > 26 then -- 26 is the size of the longest path
 		self._fitness = self:get_visited_count() + self._pills_caught + self._ghosts_caught
 	else
-		self._fitness = math.max(26, self:get_grid_cell_changes())
+		self._fitness = math.min(26, self:get_grid_cell_changes())
+	end
+end
+
+fitness_modes.movement_updates = function (self)
+	if self:get_visited_count() > 26 then -- 26 is the size of the longest path
+		self._fitness = self:get_visited_count() + self._pills_caught + self._ghosts_caught
+	else
+		self._fitness = math.min(26, self:get_update_count()/10000)
 	end
 end
 

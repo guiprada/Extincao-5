@@ -17,6 +17,7 @@
 - add the pheromone thingy :)
 
 -- Melhorias
+	- utilizar os algoritmos especialistas para analisar as funcoes fitness
 	- Analise da significancia estatistica da alteracoes analisadas com Kruskal
 	- Testar pre-treinamento para NE
 	- Testar treinar usando similaridade de resposta a um conjunto como fitness para NEAT

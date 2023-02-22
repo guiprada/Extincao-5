@@ -595,14 +595,16 @@ function _Genome:new(neurons, links, hidden_layers_activation_function_name, hid
 
 	o._neurons = neurons
 	o._links = links
-	o:_sort_genes()
 
-	o:reset_layer_config()
 
 	o._hidden_layers_activation_function_name = hidden_layers_activation_function_name
 
 	o._hidden_layers_activation_function_parameters = hidden_layers_activation_function_parameters
 
+	o:_sort_genes()
+	o:_init_n_inputs()
+	o:_init_n_outputs()
+	o:_reset_unique_layers()
 	-- o._amount_to_spawn = 0
 	return o
 end
@@ -629,7 +631,7 @@ function _Genome:_init_n_outputs()
 	self._n_outputs = n_outputs
 end
 
-function _Genome:_init_unique_layers()
+function _Genome:_reset_unique_layers()
 	local unique_layer_dict = {}
 	for i = 1, #self._neurons do
 		local this_layer = self._neurons[i]:get_x()
@@ -644,15 +646,9 @@ function _Genome:_init_unique_layers()
 		unique_layers[#unique_layers + 1] = layer
 	end
 
-	-- table.sort(unique_layers)
+	table.sort(unique_layers)
 
 	self._unique_layers = unique_layers
-end
-
-function _Genome:reset_layer_config()
-	self:_init_n_inputs()
-	self:_init_n_outputs()
-	self:_init_unique_layers()
 end
 
 function _Genome:crossover(dad, mutate_chance, mutate_percentage, chance_add_neuron, chance_add_link, chance_loopback, crossover)
@@ -688,11 +684,6 @@ function _Genome:crossover(dad, mutate_chance, mutate_percentage, chance_add_neu
 			local new_neuron = mom_neuron_gene:inherit(mutate_chance, mutate_percentage)
 			table.insert(neurons, new_neuron)
 			mom_index = mom_index + 1
-		-- elseif dad_neuron_gene then
-		-- 	local new_neuron = dad_neuron_gene:inherit(mutate_chance, mutate_percentage)
-		-- 	table.insert(neurons, new_neuron)
-		-- 	dad_index = dad_index + 1
-		-- 	if not new_neuron then print("Try to insert nil neuron 4") end
 		end
 
 		mom_neuron_gene = mom._neurons[mom_index]
@@ -725,10 +716,6 @@ function _Genome:crossover(dad, mutate_chance, mutate_percentage, chance_add_neu
 			local new_link = mom_link_gene:inherit(mutate_chance, mutate_percentage)
 			table.insert(links, new_link)
 			mom_index = mom_index + 1
-		-- elseif dad_link_gene then
-		-- 	local new_link = dad_link_gene:inherit(mutate_chance, mutate_percentage)
-		-- 	table.insert(links, new_link)
-		-- 	dad_index = dad_index + 1
 		end
 
 		mom_link_gene = mom._links[mom_index]
@@ -897,6 +884,7 @@ function _Genome:add_link(chance_loopback)
 	end
 
 	self:create_link(selected_input_neuron, selected_output_neuron, innovation_id)
+	self:_sort_genes()
 end
 
 function _Genome:add_neuron()
@@ -982,7 +970,7 @@ function _Genome:add_neuron()
 		table.insert(self._links, new_link_output)
 
 		self:_sort_genes()
-		self:_init_unique_layers()
+		self:_reset_unique_layers()
 	end
 end
 
@@ -1201,6 +1189,8 @@ function ANN:new(genome, o)
 			qpd_gamestate.switch("menu")
 		end
 
+		-- print(this_neuron:get_x(), this_neuron:get_y())
+		-- o._layers[this_neuron:get_x() + 1][this_neuron:get_y() + 1] = this_neuron
 		table.insert(o._layers[this_layer], this_neuron)
 	end
 
@@ -1285,25 +1275,34 @@ end
 
 function ANN:get_outputs(inputs, run_type)
 	-- update input layer
-	-- -- print(#self._layers[1])
-	-- for i = 1, #(self._layers[1]) do
-	-- 	local this_neuron = self._layers[1][i]
-	-- 	-- if not this_neuron then
-	-- 	-- 	print(i)
-	-- 	-- 	print(#self._layers[1])
-	-- 	-- 	print(":")
-	-- 	-- 	print(self)
-	-- 	-- 	print(self._layers)
-	-- 	-- 	print(self._layers[1][i])
-	-- 	-- 	print(this_neuron:type())
-	-- 	-- end
-	-- 	this_neuron:update(inputs[i])
-	-- end
+	-- print(#self._layers[1])
+	for i = 1, #(self._layers[1]) do
+		local this_neuron = self._layers[1][i]
 
-	-- update input layer
-	for index, value in ipairs(self._layers[1]) do
-		value:update(inputs[index])
+		if not this_neuron then
+			print(i)
+			print(#self._layers[1])
+			print(":")
+			print(self)
+			print(self._layers)
+			print(self._layers[1][i])
+			print(this_neuron:type())
+			print("\n")
+			for key, value in pairs(self._layers[1]) do
+				print(key, value)
+			end
+			for value in ipairs(self._layers[1]) do
+				print(value)
+			end
+		end
+
+		this_neuron:update(inputs[i])
 	end
+
+	-- -- update input layer
+	-- for index, value in ipairs(self._layers[1]) do
+	-- 	value:update(inputs[index])
+	-- end
 
 	-- update other layers
 	for i = 2, #self._layers do

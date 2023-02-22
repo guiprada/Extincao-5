@@ -1,54 +1,43 @@
 ----------------- TODO
-- implementar NEAT
-	- option to add aumentating neurons and links with fixed(0.5 or 1) weight(disturb less the genome's functionality)
-	- should links be reactivate on crossover?
-	- speciation
-	- remove unused neurons from fenotype
+- pesquisar bug ipairs x #self._layers
+	https://stackoverflow.com/questions/23590885/why-does-luas-length-operator-return-unexpected-values
+	Background: Tables in Lua are internally divided into array part and hash part. That's an optimization. Lua tries to avoid allocating memory often, so it pre allocates for the next power of two. That's another optimization.
 
+	When the last item in the array part is nil, the result of # is the length of the shortest valid sequence found by binsearching the array part for the first nil-followed key.
+	When the last item in the array part is not nil AND the hash part is empty, the result of # is the physical length of the array part.
+	When the last item in the array part is not nil AND the hash part is NOT empty, the result of # is the length of the shortest valid sequence found by binsearching the hash part for for the first nil-followed key (that is such positive integer i that t[i] ~= nil and t[i+1] == nil), assuming that the array part is full of non-nils(!).
+	So the result of # is almost always the (desired) length of the shortest valid sequence, unless the last element in the array part representing a non-sequence is non-nil. Then, the result is bigger than desired.
+- melhorar resolucao de tempo
+- adicionar velocidade constante como opcao
+- Adicionar servidor de populacao
+	- Adicionar suporte a headless
+- todas as configuracoes em lua
+- remove unused neurons from NEAT fenotype
 - implementar funcoes que nao usam "self" para AutoplayerAnnModes.lua
 - implementar gameplay data capture and offline learning
 - implementar teste com o dataset mnist
-
 - NEAT para fantasmas
-
 - implementar load and save population
-- adicionar suporte a elitismo
 - Add map and population loading
-- add the pheromone thingy :)
-
--- Melhorias
-	- Fazer cruzamentos com ordenacao para NE(alinhar os neuronios da camadas por proximidade funcional, o alinhamento tem que ser "propagado")
-	- utilizar os algoritmos especialistas para analisar as funcoes fitness
-	- Analise da significancia estatistica da alteracoes analisadas com Kruskal
-	- Testar pre-treinamento para NE
-	- Testar treinar usando similaridade de resposta a um conjunto como fitness para NEAT
-	- monitorar a variedade genetica e informacao dos genes
-	- adicionar alguma forma de scaling para neat_ann activation_response
-	- unificar anns
-	- possibilitar link_weight negativos(para tanh...)
-	- Usar dataset de treino para fitness(quao semelhante)
-	- Clusterizacao nos genes
-	- tecnicas para aumentar diversidade.
-		-(modificar totalmente um gene no crossover)
-		- Valor de corte para especiacao diminui com o tempo(proporcional a geracao, ou a contagem de geracoes sem especiacao, ou a quantidade de especies ativas)
+- add the pheromone thingy :) -- WTF?
+- tecnicas para aumentar diversidade.
+	-(modificar totalmente um gene no crossover)
+	- Valor de corte para especiacao diminui com o tempo(proporcional a geracao, ou a contagem de geracoes sem especiacao, ou a quantidade de especies ativas)
 		- taxa de mutacao e adicionar neuronios e links dinamica.
-	- Desenvolver um fitness baseado em dados
-	- Testar neuro-evolucao sem crossover(Evolutionary Programming)
-	- visualizador de topologia do neat(funcionamento em tempo real?)
-	- melhorar resolucao de tempo
-	- adicionar velocidade constante como opcao
-	- Fantasmas capturados tem um delay para voltarem(pressao para captura)
-	- Player spawnan em um linha onde nao ha spawn de pilulas nem fantasmas
-	- Melhorar robustez do sistema de log
-	- Object pools
-	- Testar uma rede neural como preditora do fitness
-	- Testar uma rede com treinamento por backpropagation
-	- Testar uma rede iniciada com backpropagation e com evolucao continuada
+- visualizador de topologia do neat(funcionamento em tempo real?)
+- serializar ANN neat
+
+
+- Fantasmas capturados tem um delay para voltarem(pressao para captura)
+- Player spawnan em um linha onde nao ha spawn de pilulas nem fantasmas
+- Melhorar robustez do sistema de log
+- Object pools
+
 	- Testar cooevolucao
 	- Testar adaptabilidade da populacao uma vez convergida
-	- Adicionar servidor de populacao
-	- Adicionar suporte a headless
-	- todas as configuracoes em lua
+
+
+
 	- layout em uma configuracao lua
 
 ----------------- DONE

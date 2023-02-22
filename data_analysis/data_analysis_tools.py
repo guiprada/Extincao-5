@@ -5,6 +5,7 @@ import scipy.stats as stats
 import os
 import json
 import re
+import math
 
 #timestamp, actor_id, actor_type, event_type, other, cell_x, cell_y, updates, no_pill_updates, visited_count, grid_cell_changes, collision_count, genes
 ########################################################################## Config
@@ -166,12 +167,30 @@ def add_scatter_and_intervalar_means_plot_to_axis(axis, scatter_x, scatter_y, ti
 	plt.setp(axis.get_xticklabels(), rotation=30, horizontalalignment='right')
 	# axis.legend(fontsize = SMALL_LEGEND_FONTSIZE)
 
+def filter_low_performance(df, intervals = 10):
+	# performance_df = df["updates_per_second"]
+	# performance_df_intervals = create_array_of_interval_mean(performance_df, 100)
+	# cut_position_start = 0
+	# cut_position_end = 0
+	# for interval in performance_df_intervals:
+		# print(interval)
+	if df["run_id"] in ["1675110985", "1675111001", "1675111017"]:
+		entries = df["df"].shape[0]
+		drop_point = entries/2
+		print(entries, drop_point)
+		df["df"] = df["df"][:math.floor(drop_point)]
+		print(df["df"].head())
+		print(df["df"].tail())
+
 def add_distribution_plot_to_axis(axis, data, title):
 	axis.set_title(title)
 	axis.hist(data, bins = 50)
 
 
-def generate_run_report_from_dict(run_dict):
+def generate_run_report_from_dict(run_dict, filter_low_performance = False):
+	if filter_low_performance:
+		filter_low_performance(run_dict["df"])
+
 	player_df = run_dict["df"].loc[run_dict["df"]["actor_type"] == "player"]
 	non_zero_lifetime_player_df = player_df.query("lifetime > 0")
 	non_zero_updates_player_df = player_df.query("updates > 0")
@@ -326,7 +345,7 @@ def generate_run_report_from_dict(run_dict):
 		text_analysis += print_correlations(series[0], series[1], label) + '\n'
 
 	##
-	print("Updates e as outras metricas")
+	print("updates e as outras metricas")
 	text_analysis += '\n' + "Updates e as outras metricas" + '\n'
 	desired_correlations = {
 		"updates lifetime": (player_df["updates"], player_df["lifetime"]),
@@ -340,7 +359,7 @@ def generate_run_report_from_dict(run_dict):
 		text_analysis += print_correlations(series[0], series[1], label) + '\n'
 
 	##
-	print("Lifetime e as outras metricas")
+	print("lifetime e as outras metricas")
 	text_analysis += '\n' + "Lifetime e as outras metricas" + '\n'
 	desired_correlations = {
 		"lifetime visited_count": (player_df["lifetime"], player_df["visited_count"]),
@@ -353,11 +372,24 @@ def generate_run_report_from_dict(run_dict):
 		text_analysis += print_correlations(series[0], series[1], label) + '\n'
 
 	##
+	print("Visited_count e outras metricas")
+	text_analysis += '\n' + "As metricas de movimentacao" + '\n'
+	desired_correlations = {
+		"visited_count grid_cell_changes": (player_df["visited_count"], player_df["grid_cell_changes"]),
+		"visited_count collision_count": (player_df["visited_count"], player_df["collision_count"]),
+		"visited_count ghosts_captured": (player_df["visited_count"], player_df["ghosts_captured"]),
+		"visited_count pills_captured": (player_df["visited_count"], player_df["pills_captured"]),
+	}
+	for label, series in desired_correlations.items():
+		text_analysis += print_correlations(series[0], series[1], label) + '\n'
+
+
+	##
 	print("As metricas de movimentacao")
 	text_analysis += '\n' + "As metricas de movimentacao" + '\n'
 	desired_correlations = {
-		"cells_visited grid_cell_changes": (player_df["visited_count"], player_df["grid_cell_changes"]),
-		"cells_visited collision_count": (player_df["visited_count"], player_df["collision_count"]),
+		"visited_count grid_cell_changes": (player_df["visited_count"], player_df["grid_cell_changes"]),
+		"visited_count collision_count": (player_df["visited_count"], player_df["collision_count"]),
 		"grid_cell_changes collision_count": (player_df["grid_cell_changes"], player_df["collision_count"]),
 	}
 	for label, series in desired_correlations.items():

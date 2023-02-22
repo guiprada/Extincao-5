@@ -189,8 +189,8 @@ function gs.load(map_file_path)
 		gs.grid = qpd.grid.new(gs.map_matrix, collisions)
 
 		-- seed with a known value
-		gs.game_conf.seed = os.time()
-		qpd.random.seed(gs.game_conf.seed )
+		gs.game_conf.seed = gs.game_conf.seed or os.time()
+		qpd.random.seed(gs.game_conf.seed)
 		local this_log_path = "logs/" .. tostring(gs.game_conf.seed )
 
 		-- save configuration used

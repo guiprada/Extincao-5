@@ -189,6 +189,7 @@ function Ghost:update(dt, speed, targets)
 			print("physics sanity check failed, Actor traveled distance > tilesize")
 		end
 
+		qpd.array.shuffle(self._try_order)
 		if GridActor._tilesize ~= self._tilesize then
 			self._tilesize = GridActor._tilesize
 			-- here we just center on grid, we should perhaps do a scaling

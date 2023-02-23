@@ -3,6 +3,7 @@ local ANN = {}
 ANN.__index = ANN
 
 local qpd_gamestate = require "qpd.gamestate"
+local qpd_array = require "qpd.array"
 local qpd_table = require "qpd.table"
 local qpd_random = require "qpd.random"
 local ann_activation_functions = require "qpd.ann_activation_functions"
@@ -164,13 +165,7 @@ function _Link:new(input_neuron, output_neuron, weight, recurrent, o)
 	return o
 end
 
-function _Link:new_from_gene(link_gene, layers, neuron_id_to_position)
-	local input_neuron_position  = neuron_id_to_position[link_gene:get_input_neuron():get_id()]
-	local output_neuron_position = neuron_id_to_position[link_gene:get_output_neuron():get_id()]
-
-	local input_neuron = layers[input_neuron_position.x][input_neuron_position.y]
-	local output_neuron = layers[output_neuron_position.x][output_neuron_position.y]
-
+function _Link:new_from_gene(link_gene, input_neuron, output_neuron)
 	return _Link:new(input_neuron, output_neuron, link_gene:get_weight(), link_gene:is_recurrent())
 end
 
@@ -1169,19 +1164,20 @@ function ANN:new(genome, o)
 	o._genome = genome
 	o._specie = false
 
-	-- fill in layer_to_layer_position_dict and start layers array.
+	-- fill in layer_to_layer_position_dict_x and start layers array.
 	o._layers = {}
-	local layer_to_layer_position_dict = {}
+	local layer_to_layer_position_dict_x = {}
 	for i = 1, #genome._unique_layers do
 		local this_layer = genome._unique_layers[i]
-		layer_to_layer_position_dict[this_layer] = i
+		layer_to_layer_position_dict_x[this_layer] = i
+
 		o._layers[i] = {}
 	end
 
 	-- fill in layers
 	for i = 1, #genome._neurons do
 		local this_neuron_gene = genome._neurons[i]
-		local this_layer = layer_to_layer_position_dict[this_neuron_gene:get_x()]
+		local this_layer = layer_to_layer_position_dict_x[this_neuron_gene:get_x()]
 		local this_neuron = _Neuron:new_from_gene(this_neuron_gene)
 
 		if not this_neuron then
@@ -1189,19 +1185,27 @@ function ANN:new(genome, o)
 			qpd_gamestate.switch("menu")
 		end
 
-		-- print(this_neuron:get_x(), this_neuron:get_y())
-		-- o._layers[this_neuron:get_x() + 1][this_neuron:get_y() + 1] = this_neuron
 		table.insert(o._layers[this_layer], this_neuron)
 	end
 
 	-- sort layer and fill neuron_id_to_position
-	local neuron_id_to_position = {}
+	local id_to_neuron = {}
 	for i = 1, #o._layers do
+		local sorted_layer = qpd_table.clone(o._layers[i])
+		local length_before = #sorted_layer
 		table.sort(o._layers[i], function (a, b) return a:get_y() < b:get_y() end)
+		local length_after = #sorted_layer
+		if length_before ~= length_after then
+			print("sorting messed up the length")
+			o._layers[i] = qpd_array.clone(sorted_layer)
+			print("fixed?",length_before, #o._layers[i])
+		else
+			o._layers[i] = sorted_layer
+		end
 
 		for j = 1, #o._layers[i] do
 			local this_neuron = o._layers[i][j]
-			neuron_id_to_position[this_neuron:get_id()] = {x = i, y = j}
+			id_to_neuron[this_neuron:get_id()] = this_neuron
 		end
 	end
 
@@ -1210,12 +1214,12 @@ function ANN:new(genome, o)
 		local this_link_gene = genome._links[i]
 		if this_link_gene:is_enabled() then
 			-- check neurons exist in this genome
-			if 	neuron_id_to_position[this_link_gene:get_input_neuron():get_id()] and
-				neuron_id_to_position[this_link_gene:get_output_neuron():get_id()] then
-
-				local this_link = _Link:new_from_gene(this_link_gene, o._layers, neuron_id_to_position)
+			local input_neuron = id_to_neuron[this_link_gene:get_input_neuron():get_id()]
+			local output_neuron = id_to_neuron[this_link_gene:get_output_neuron():get_id()]
+			if input_neuron and output_neuron then
+				_Link:new_from_gene(this_link_gene, input_neuron, output_neuron)
 			else
-				print("ERROR - _ANN:new() - Invalid Link - Neuron not registered in neuron_id_to_position!")
+				print("ERROR - _ANN:new() - Invalid Link - Neuron not registered in id_to_neuron!")
 				qpd_gamestate.switch("menu")
 			end
 		end
@@ -1274,35 +1278,35 @@ function ANN:get_gene_count()
 end
 
 function ANN:get_outputs(inputs, run_type)
-	-- update input layer
-	-- print(#self._layers[1])
-	for i = 1, #(self._layers[1]) do
-		local this_neuron = self._layers[1][i]
-
-		if not this_neuron then
-			print(i)
-			print(#self._layers[1])
-			print(":")
-			print(self)
-			print(self._layers)
-			print(self._layers[1][i])
-			print(this_neuron:type())
-			print("\n")
-			for key, value in pairs(self._layers[1]) do
-				print(key, value)
-			end
-			for value in ipairs(self._layers[1]) do
-				print(value)
-			end
-		end
-
-		this_neuron:update(inputs[i])
-	end
-
 	-- -- update input layer
-	-- for index, value in ipairs(self._layers[1]) do
-	-- 	value:update(inputs[index])
+	-- -- print(#self._layers[1])
+	-- for i = 1, #(self._layers[1]) do
+	-- 	local this_neuron = self._layers[1][i]
+
+	-- 	if not this_neuron then
+	-- 		print(i)
+	-- 		print(#self._layers[1])
+	-- 		print(":")
+	-- 		print(self)
+	-- 		print(self._layers)
+	-- 		-- print(self._layers[1][i])
+	-- 		-- print(this_neuron:type())
+	-- 		print("\n--")
+	-- 		for key, value in pairs(self._layers[1]) do
+	-- 			print(key, value)
+	-- 		end
+	-- 		for index, value in ipairs(self._layers[1]) do
+	-- 			print(index, value)
+	-- 		end
+	-- 	end
+
+	-- 	this_neuron:update(inputs[i])
 	-- end
+
+	-- update input layer
+	for index, value in ipairs(self._layers[1]) do
+		value:update(inputs[index])
+	end
 
 	-- update other layers
 	for i = 2, #self._layers do

@@ -59,8 +59,9 @@ local function player_caught_callback()
 	for i, ghost in ipairs(ghost_population) do
 		local target_offset = ghost:get_target_offset()
 		local direction = "right"
-		local pos = {x = 2, y = 6}
+		local pos = {x = 1, y = 6}
 		if i%2 == 0 then
+			pos.y = 13
 			pos.x = 26
 			direction = "left"
 		end
@@ -415,10 +416,12 @@ function gs.draw()
 		gs.game_conf.autoplayer_ann_mode,
 		600,
 		0)
-	love.graphics.print(
-		gs.game_conf.autoplayer_fitness_mode,
-		400,
-		0)
+	if gs.game_conf.autoplayer_fitness_mode then
+		love.graphics.print(
+			gs.game_conf.autoplayer_fitness_mode,
+			400,
+			0)
+	end
 
 	if gs.game_conf.autoplayer_neat_enable then
 		love.graphics.print(

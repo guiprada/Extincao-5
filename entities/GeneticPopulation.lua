@@ -31,7 +31,7 @@ function GeneticPopulation:new(class, active_size, initial_random_population_siz
 
 	o._active_size = active_size
 	o._initial_random_population_size = initial_random_population_size
-	o._random_init = initial_random_population_size
+	o._random_init = initial_random_population_size or 0
 	o._population_history_size = population_history_size
 	o._new_table = o._new_table
 	o._reset_table = reset_table
@@ -186,7 +186,9 @@ function GeneticPopulation:replace(i)
 	self._count = self._count + 1
 
 	local this_actor = self._population[i]
-	self:add_to_history(this_actor)
+	if self._population_history_size then
+		self:add_to_history(this_actor)
+	end
 
 	-- replace
 	if self._random_init > 0 then

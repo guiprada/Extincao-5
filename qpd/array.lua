@@ -12,6 +12,15 @@ function array.shuffle(array)
 	end
 end
 
+function array.clone(source)
+	local dest = {}
+	for value in ipairs(source) do
+		table.insert(dest, value)
+	end
+
+	return dest
+end
+
 function array.extend(a1, a2)
 	-- appends the values of array 1 to array 2
 	local insert_position = #a1

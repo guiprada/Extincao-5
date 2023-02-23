@@ -133,7 +133,11 @@ function gs.load(map_file_path)
 		gs.headless = gs.game_conf.headless or false
 		gs.game_speed = gs.game_conf.game_speed or 100
 		gs.default_zoom = gs.game_conf.default_zoom
+		gs.game_fixed_speed = gs.game_conf.game_fixed_speed
 		-- local difficulty_factor = gs.game_conf.difficulty/3
+		if gs.game_conf.game_precise_timer then
+			GridActor:enablePreciseTime()
+		end
 
 		gs.fps = qpd.fps.new()
 
@@ -193,9 +197,6 @@ function gs.load(map_file_path)
 		qpd.random.seed(gs.game_conf.seed)
 		local this_log_path = "logs/" .. tostring(gs.game_conf.seed )
 
-		-- save configuration used
-		save_config_to_file(this_log_path .. ".conf", gs.game_conf)
-
 		-- Create a logger
 		local event_logger_file_path = this_log_path .. ".data"
 		local event_logger_columns = {"timestamp", "actor_id", "actor_type", "event_type", "other", "cell_x", "cell_y", "updates", "no_pill_updates", "visited_count", "grid_cell_changes", "collision_count", "genes"}
@@ -223,6 +224,9 @@ function gs.load(map_file_path)
 		gs.ghost_chase_time = gs.game_conf.ghost_chase_time
 		gs.ghost_scatter_time = gs.game_conf.ghost_scatter_time
 		gs.ghost_speed_factor = gs.game_conf.ghost_speed_factor
+		if gs.game_conf.ghost_set_ramdomize_home then
+			Ghost.set_randomize_home(true)
+		end
 
 		gs.ghost_state_timer = qpd.timer.new(gs.ghost_scatter_time, change_ghost_state_callback)
 		reset_ghost_state()
@@ -337,6 +341,9 @@ function gs.load(map_file_path)
 
 		-- max dt
 		gs.max_dt = (gs.tilemap_view.tilesize / 4) / qpd.value.max(gs.autoplayer_speed_factor * gs.game_speed, gs.ghost_speed_factor * gs.game_speed)
+		gs.game_conf.max_dt = gs.max_dt
+		-- save configuration used
+		save_config_to_file(this_log_path .. ".conf", gs.game_conf)
 
 		-- define keyboard actions
 		gs.actions_keyup = {}
@@ -377,6 +384,10 @@ function gs.load(map_file_path)
 				add_ghost()
 				print("active ghost added!")
 			end
+		gs.actions_keyup['f'] =
+			function ()
+				gs.game_fixed_speed = not gs.game_fixed_speed
+			end
 		gs.actions_keyup['h'] =
 			function ()
 				gs.headless = not gs.headless
@@ -400,6 +411,21 @@ function gs.draw()
 		gs.AutoPlayerPopulation:get_count(),
 		200,
 		0)
+	love.graphics.print(
+		gs.game_conf.autoplayer_ann_mode,
+		600,
+		0)
+	love.graphics.print(
+		gs.game_conf.autoplayer_fitness_mode,
+		400,
+		0)
+
+	if gs.game_conf.autoplayer_neat_enable then
+		love.graphics.print(
+			"NEAT",
+			300,
+			0)
+	end
 	if gs.paused then
 		gs.paused_text:draw()
 	end
@@ -410,9 +436,13 @@ function gs.update(dt)
 	-- gs.tilemap_view:follow(dt, gs.player.speed_factor, gs.player:get_center())
 	if not gs.paused then
 		-- dt should not be to high
-		local dt = dt < gs.max_dt and dt or gs.max_dt
-		if (dt > gs.max_dt ) then
-			print("ops, dt too high, physics wont work, skipping dt= " .. dt)
+		if gs.game_fixed_speed then
+			dt = gs.max_dt
+		else
+			if (dt > gs.max_dt ) then
+				print("ops, dt too high, physics wont work, limiting dt too:", gs.max_dt)
+				dt = gs.max_dt
+			end
 		end
 
 		-- clear grid collisions

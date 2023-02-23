@@ -7,6 +7,7 @@ local qpd = require "qpd.qpd"
 local ghost_type_name = "ghost"
 
 Ghost._state = "none"
+Ghost._randomize_home = false
 
 function Ghost.set_state(new_state)
 	Ghost._state = new_state
@@ -14,6 +15,10 @@ end
 
 function Ghost.set_speed(new_speed)
 	Ghost._speed = new_speed
+end
+
+function Ghost.set_randomize_home(value)
+	Ghost._randomize_home = value or true
 end
 
 function Ghost.init(grid,
@@ -214,6 +219,7 @@ function Ghost:update(dt, speed, targets)
 				self:collided(target)
 			end
 		else
+			print("no target")
 			target = Ghost._grid:get_invalid_cell()
 		end
 
@@ -423,6 +429,10 @@ function Ghost:wander(possible_next_moves)
 end
 
 function Ghost:go_home(possible_next_moves)
+	if self._randomize_home then
+		self._home = Ghost._grid:get_invalid_cell()
+	end
+
 	local destination = {}
 	destination.x = self._home.x
 	destination.y = self._home.y

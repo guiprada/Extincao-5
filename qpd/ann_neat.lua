@@ -884,7 +884,7 @@ function _Genome:add_link(chance_loopback)
 	end
 
 	self:create_link(selected_input_neuron, selected_output_neuron, innovation_id)
-	self:_sort_genes()
+	self:_sort_links()
 end
 
 function _Genome:add_neuron()

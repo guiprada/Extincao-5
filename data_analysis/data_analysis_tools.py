@@ -19,6 +19,8 @@ ANN_LAYERS_STRING = "autoplayer_ann_layers = "
 
 OVERRIDE_OLD_DATAFRAME = False
 
+IMAGE_DPI = 100
+
 ########################################################################## Data Processing
 # def json_parser(data):
 # 	fixed = json_quote_properties(data)
@@ -294,7 +296,7 @@ def generate_run_report_from_dict(run_dict, filter_low_performance = False):
 	# )
 	plt.tight_layout()
 
-	plt.savefig(f"{run_dict['path']}{run_dict['run_id']}_all2.png", dpi = 100)
+	plt.savefig(f"{run_dict['path']}{run_dict['run_id']}_plots.png", dpi = IMAGE_DPI)
 	plt.show()
 	plt.close()
 

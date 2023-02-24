@@ -264,17 +264,18 @@ function GridActor:update_dynamic_front()
 	-- it does consider the direction obj is set
 	local point = {}
 	-- the player has a dynamic center
+	local lookahead = self._tilesize/2
 	if self._direction == "up" then
-		point.y = self.y - 5*(self._tilesize/8)
+		point.y = self.y - lookahead
  		point.x = self.x
 	elseif self._direction == "down" then
-		point.y = self.y +  5*(self._tilesize/8)
+		point.y = self.y + lookahead
 		point.x = self.x
 	elseif self._direction == "left" then
-		point.x = self.x -  5*(self._tilesize/8)
+		point.x = self.x - lookahead
 		point.y = self.y
 	elseif self._direction == "right" then
-		point.x = self.x +  5*(self._tilesize/8)
+		point.x = self.x + lookahead
 		point.y = self.y
 	else -- "idle"
 		point.y = self.y

@@ -12,6 +12,8 @@ local Pill = require "entities.Pill"
 local ANN = require "qpd.ann"
 
 --------------------------------------------------------------------------------
+local MAX_DT_FACTOR = 4
+
 local color_array = {}
 color_array[1] = qpd.color.gray
 color_array[2] = qpd.color.pink
@@ -135,6 +137,8 @@ function gs.load(map_file_path)
 		gs.game_speed = gs.game_conf.game_speed or 100
 		gs.default_zoom = gs.game_conf.default_zoom
 		gs.game_fixed_speed = gs.game_conf.game_fixed_speed
+		MAX_DT_FACTOR = gs.game_conf.game_max_dt_factor or MAX_DT_FACTOR
+		print(MAX_DT_FACTOR)
 		-- local difficulty_factor = gs.game_conf.difficulty/3
 		if gs.game_conf.game_precise_timer then
 			GridActor:enablePreciseTime()
@@ -200,7 +204,7 @@ function gs.load(map_file_path)
 
 		-- Create a logger
 		local event_logger_file_path = this_log_path .. ".data"
-		local event_logger_columns = {"timestamp", "actor_id", "actor_type", "event_type", "other", "cell_x", "cell_y", "updates", "no_pill_updates", "visited_count", "grid_cell_changes", "collision_count", "genes"}
+		local event_logger_columns = {"timestamp", "actor_id", "actor_type", "event_type", "other", "cell_x", "cell_y", "updates", "no_pill_updates", "visited_count", "grid_cell_changes", "collision_count", "fps", "lifetime", "genes"}
 		local event_logger = qpd.logger:new(event_logger_file_path, event_logger_columns, 10)
 
 		-- Initialze GridActor
@@ -225,8 +229,11 @@ function gs.load(map_file_path)
 		gs.ghost_chase_time = gs.game_conf.ghost_chase_time
 		gs.ghost_scatter_time = gs.game_conf.ghost_scatter_time
 		gs.ghost_speed_factor = gs.game_conf.ghost_speed_factor
-		if gs.game_conf.ghost_set_ramdomize_home then
+		if gs.game_conf.ghost_ramdomize_home then
 			Ghost.set_randomize_home(true)
+		end
+		if gs.game_conf.ghost_shuffle_try_order then
+			Ghost.set_shuffle_try_order(true)
 		end
 
 		gs.ghost_state_timer = qpd.timer.new(gs.ghost_scatter_time, change_ghost_state_callback)
@@ -341,7 +348,7 @@ function gs.load(map_file_path)
 		end
 
 		-- max dt
-		gs.max_dt = (gs.tilemap_view.tilesize / 4) / qpd.value.max(gs.autoplayer_speed_factor * gs.game_speed, gs.ghost_speed_factor * gs.game_speed)
+		gs.max_dt = (gs.tilemap_view.tilesize / MAX_DT_FACTOR) / qpd.value.max(gs.autoplayer_speed_factor * gs.game_speed, gs.ghost_speed_factor * gs.game_speed)
 		gs.game_conf.max_dt = gs.max_dt
 		-- save configuration used
 		save_config_to_file(this_log_path .. ".conf", gs.game_conf)
@@ -443,7 +450,7 @@ function gs.update(dt)
 			dt = gs.max_dt
 		else
 			if (dt > gs.max_dt ) then
-				print("ops, dt too high, physics wont work, limiting dt too:", gs.max_dt)
+				-- print("ops, dt too high, physics wont work, limiting dt too:", gs.max_dt)
 				dt = gs.max_dt
 			end
 		end
@@ -506,7 +513,7 @@ function gs.resize(w, h)
 	gs.tilemap_view:resize(gs.width, gs.height)
 
 	GridActor.set_tilesize(gs.tilemap_view.tilesize)
-	gs.max_dt = (gs.tilemap_view.tilesize / 4) / qpd.value.max(gs.autoplayer_speed_factor * gs.game_speed, gs.ghost_speed_factor * gs.game_speed)
+	gs.max_dt = (gs.tilemap_view.tilesize / MAX_DT_FACTOR) / qpd.value.max(gs.autoplayer_speed_factor * gs.game_speed, gs.ghost_speed_factor * gs.game_speed)
 end
 
 function gs.unload()

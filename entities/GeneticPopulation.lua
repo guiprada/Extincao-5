@@ -31,8 +31,9 @@ function GeneticPopulation:new(class, active_size, initial_random_population_siz
 
 	o._active_size = active_size
 	o._initial_random_population_size = initial_random_population_size
-	o._random_init = initial_random_population_size or 0
+	o._random_init = initial_random_population_size
 	o._population_history_size = population_history_size
+	o._genetics_enabled = population_history_size and true or false
 	o._new_table = o._new_table
 	o._reset_table = reset_table
 
@@ -186,54 +187,56 @@ function GeneticPopulation:replace(i)
 	self._count = self._count + 1
 
 	local this_actor = self._population[i]
-	if self._population_history_size then
+	if self._genetics_enabled then
 		self:add_to_history(this_actor)
-	end
 
-	-- replace
-	if self._random_init > 0 then
-		self._random_init = self._random_init - 1
-		this_actor:reset(self:get_reset_table())
-	elseif self._speciatable and #self._specie_niche > 0 then
-		local specie = self._specie_niche[#self._specie_niche]
-		local specie_id = specie:get_id()
-		local mom
-		local dad
-		if self._specie_mule_start then
-			mom = specie:roulette()
-			dad = self:_roulette(self._history)
-		elseif self._specie_all_roulette_start then
-			mom = specie:roulette()
-			dad = specie:roulette()
+		-- replace
+		if self._random_init > 0 then
+			self._random_init = self._random_init - 1
+			this_actor:reset(self:get_reset_table())
+		elseif self._speciatable and #self._specie_niche > 0 then
+			local specie = self._specie_niche[#self._specie_niche]
+			local specie_id = specie:get_id()
+			local mom
+			local dad
+			if self._specie_mule_start then
+				mom = specie:roulette()
+				dad = self:_roulette(self._history)
+			elseif self._specie_all_roulette_start then
+				mom = specie:roulette()
+				dad = specie:roulette()
+			else
+				mom = specie:get_leader()
+				dad = specie:roulette()
+			end
+			this_actor:crossover(mom, dad, self:get_reset_table())
+			self._specie_niche[#self._specie_niche] = nil
+			self._specie_niche_count[specie_id] = self._specie_niche_count[specie_id] - 1
+			self:check_extinct(specie_id)
+
+			-- speciate
+			local new_specie = this_actor:get_ann():speciate(self:get_species(), self._specie_threshold)
+			self:new_specie(new_specie)
+			if new_specie then
+				print("[WARN] - Speciating in speciation niche!")
+			end
+
+			return
 		else
-			mom = specie:get_leader()
-			dad = specie:roulette()
+			-- find parents
+			local mom, dad = self:_selection()
+
+			-- cross
+			this_actor:crossover(mom, dad, self:get_reset_table())
 		end
-		this_actor:crossover(mom, dad, self:get_reset_table())
-		self._specie_niche[#self._specie_niche] = nil
-		self._specie_niche_count[specie_id] = self._specie_niche_count[specie_id] - 1
-		self:check_extinct(specie_id)
 
 		-- speciate
-		local new_specie = this_actor:get_ann():speciate(self:get_species(), self._specie_threshold)
-		self:new_specie(new_specie)
-		if new_specie then
-			print("[WARN] - Speciating in speciation niche!")
+		if self._speciatable then
+			local new_specie = this_actor:get_ann():speciate(self:get_species(), self._specie_threshold)
+			self:new_specie(new_specie)
 		end
-
-		return
 	else
-		-- find parents
-		local mom, dad = self:_selection()
-
-		-- cross
-		this_actor:crossover(mom, dad, self:get_reset_table())
-	end
-
-	-- speciate
-	if self._speciatable then
-		local new_specie = this_actor:get_ann():speciate(self:get_species(), self._specie_threshold)
-		self:new_specie(new_specie)
+		this_actor:reset(self:get_reset_table())
 	end
 end
 

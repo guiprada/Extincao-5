@@ -1,175 +1,199 @@
 -----------1
 game_speed = 150
-autoplayer_speed_factor = 10
-autoplayer_search_path_length = 5
-__ghost_active_population = 2
-autoplayer_ann_mode = baseline_collide_random
-autoplayer_fitness_mode = movement
+seed = 1665499567
+headless = true
+default_zoom = 3
+
 ghost_chase_time = 5
 ghost_scatter_time = 2
-autoplayer_population_history_size = 0
-seed = 1665499567
-pill_effect_time = 3
-default_zoom = 3
-pill_active_population = 2
 ghost_speed_factor = 10
 ghost_population_target_offset_array = {4, -5}
-headless = true
-autoplayer_initial_random_population_size = 0
+__ghost_active_population = 2
 __ghost_target_spread = 5
-autoplayer_active_population = 1
 __ghost_initial_random_population_size = 0
+
+autoplayer_ann_mode = baseline_collide_random
+autoplayer_fitness_mode = movement
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+autoplayer_population_history_size = 0
+autoplayer_initial_random_population_size = 0
+autoplayer_active_population = 1
+
+pill_active_population = 2
+pill_effect_time = 3
 
 -----------2
 game_speed = 150
-default_zoom = 3
+seed = 1665499585
 headless = true
-pill_active_population = 2
-ghost_speed_factor = 10
-ghost_population_target_offset_array = {4, -5}
-autoplayer_speed_factor = 10
-autoplayer_search_path_length = 5
+default_zoom = 3
+
 ghost_chase_time = 5
 ghost_scatter_time = 2
-autoplayer_ann_mode = baseline_full_random
-seed = 1665499585
-autoplayer_fitness_mode = movement
-autoplayer_population_history_size = 0
-__ghost_target_spread = 5
-autoplayer_initial_random_population_size = 0
-__ghost_initial_random_population_size = 0
-autoplayer_active_population = 1
-pill_effect_time = 3
+ghost_speed_factor = 10
+ghost_population_target_offset_array = {4, -5}
 __ghost_active_population = 2
+__ghost_target_spread = 5
+__ghost_initial_random_population_size = 0
+
+autoplayer_ann_mode = baseline_full_random
+autoplayer_fitness_mode = movement
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+autoplayer_population_history_size = 0
+autoplayer_initial_random_population_size = 0
+autoplayer_active_population = 1
+
+pill_active_population = 2
+pill_effect_time = 3
 
 -----------3
 game_speed = 150
-autoplayer_active_population = 1
-autoplayer_initial_random_population_size = 0
+seed = 1665499608
+headless = true
+default_zoom = 3
+
 ghost_chase_time = 5
 ghost_scatter_time = 2
-pill_active_population = 2
 ghost_speed_factor = 10
 ghost_population_target_offset_array = {4, -5}
-pill_effect_time = 3
-autoplayer_speed_factor = 10
-__ghost_target_spread = 5
-seed = 1665499608
-__ghost_initial_random_population_size = 0
-default_zoom = 3
-autoplayer_ann_mode = baseline_valid_random
 __ghost_active_population = 2
-autoplayer_search_path_length = 5
+__ghost_target_spread = 5
+__ghost_initial_random_population_size = 0
+
+autoplayer_ann_mode = baseline_valid_random
 autoplayer_fitness_mode = movement
-headless = true
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
 autoplayer_population_history_size = 0
+autoplayer_initial_random_population_size = 0
+autoplayer_active_population = 1
+
+pill_active_population = 2
+pill_effect_time = 3
 
 -----------4
 game_speed = 150
-autoplayer_fitness_mode = movement
+seed = 1665499628
+headless = true
+default_zoom = 3
+
 ghost_chase_time = 5
 ghost_scatter_time = 2
-autoplayer_active_population = 1
-autoplayer_initial_random_population_size = 0
-autoplayer_population_history_size = 0
-default_zoom = 3
-pill_effect_time = 3
-pill_active_population = 2
 ghost_speed_factor = 10
-seed = 1665499628
 ghost_population_target_offset_array = {4, -5}
+__ghost_active_population = 2
 __ghost_target_spread = 5
 __ghost_initial_random_population_size = 0
-autoplayer_speed_factor = 10
-__ghost_active_population = 2
+
 autoplayer_ann_mode = baseline_valid_full_random
+autoplayer_fitness_mode = movement
+autoplayer_speed_factor = 10
 autoplayer_search_path_length = 5
-headless = true
+autoplayer_population_history_size = 0
+autoplayer_initial_random_population_size = 0
+autoplayer_active_population = 1
+
+pill_active_population = 2
+pill_effect_time = 3
 
 -----------5
 game_speed = 150
+seed = 1665529647
+headless = true
+default_zoom = 3
+
 ghost_chase_time = 5
 ghost_scatter_time = 2
-autoplayer_active_population = 1
-autoplayer_initial_random_population_size = 0
-autoplayer_population_history_size = 0
-default_zoom = 3
-pill_effect_time = 3
-pill_active_population = 2
 ghost_speed_factor = 10
-__ghost_target_spread = 5
 ghost_population_target_offset_array = {4, -5}
-__ghost_initial_random_population_size = 0
 __ghost_active_population = 2
+__ghost_target_spread = 5
+__ghost_initial_random_population_size = 0
+
+autoplayer_ann_mode = baseline_random
+autoplayer_fitness_mode = movement
 autoplayer_speed_factor = 10
 autoplayer_search_path_length = 5
-seed = 1665529647
-autoplayer_ann_mode = baseline_random
-headless = true
-autoplayer_fitness_mode = movement
+autoplayer_population_history_size = 0
+autoplayer_initial_random_population_size = 0
+autoplayer_active_population = 1
+
+pill_active_population = 2
+pill_effect_time = 3
 
 -----------6
 game_speed = 150
-__ghost_target_spread = 5
-__ghost_initial_random_population_size = 0
-pill_effect_time = 3
-__ghost_active_population = 2
-ghost_speed_factor = 10
-ghost_population_target_offset_array = {4, -5}
+seed = 1665852809
+headless = true
+default_zoom = 3
+
 ghost_chase_time = 5
 ghost_scatter_time = 2
-autoplayer_search_path_length = 5
+ghost_speed_factor = 10
+ghost_population_target_offset_array = {4, -5}
+__ghost_active_population = 2
+__ghost_target_spread = 5
+__ghost_initial_random_population_size = 0
+
 autoplayer_ann_mode = baseline
-seed = 1665852809
 autoplayer_fitness_mode = movement
-default_zoom = 3
 autoplayer_speed_factor = 10
-headless = true
-pill_active_population = 2
-autoplayer_active_population = 1
-autoplayer_initial_random_population_size = 0
+autoplayer_search_path_length = 5
 autoplayer_population_history_size = 0
+autoplayer_initial_random_population_size = 0
+autoplayer_active_population = 1
+
+pill_active_population = 2
+pill_effect_time = 3
 
 -----------7
 game_speed = 150
-autoplayer_search_path_length = 5
-autoplayer_ann_mode = baseline_pill
-autoplayer_fitness_mode = movement
+seed = 1665852831
+headless = true
+default_zoom = 3
+
 ghost_chase_time = 5
 ghost_scatter_time = 2
-__ghost_target_spread = 5
-autoplayer_active_population = 1
-__ghost_initial_random_population_size = 0
-autoplayer_population_history_size = 0
-__ghost_active_population = 2
-pill_effect_time = 3
-pill_active_population = 2
 ghost_speed_factor = 10
-headless = true
-seed = 1665852831
-default_zoom = 3
 ghost_population_target_offset_array = {4, -5}
-autoplayer_initial_random_population_size = 0
+__ghost_active_population = 2
+__ghost_target_spread = 5
+__ghost_initial_random_population_size = 0
+
+autoplayer_ann_mode = baseline_pill
+autoplayer_fitness_mode = movement
 autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+autoplayer_population_history_size = 0
+autoplayer_initial_random_population_size = 0
+autoplayer_active_population = 1
+
+pill_active_population = 2
+pill_effect_time = 3
 
 -----------8
 game_speed = 150
-autoplayer_active_population = 1
-autoplayer_initial_random_population_size = 0
-autoplayer_population_history_size = 0
-__ghost_active_population = 2
+seed = 1665852850
+headless = true
+default_zoom = 3
+
 ghost_chase_time = 5
 ghost_scatter_time = 2
-seed = 1665852850
-default_zoom = 3
-pill_effect_time = 3
-ghost_population_target_offset_array = {4, -5}
-pill_active_population = 2
 ghost_speed_factor = 10
+ghost_population_target_offset_array = {4, -5}
+__ghost_active_population = 2
 __ghost_target_spread = 5
-autoplayer_ann_mode = baseline_pill_ghost
-headless = true
-autoplayer_speed_factor = 10
-autoplayer_fitness_mode = movement
-autoplayer_search_path_length = 5
 __ghost_initial_random_population_size = 0
+
+autoplayer_ann_mode = baseline_pill_ghost
+autoplayer_fitness_mode = movement
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+autoplayer_population_history_size = 0
+autoplayer_initial_random_population_size = 0
+autoplayer_active_population = 1
+
+pill_active_population = 2
+pill_effect_time = 3

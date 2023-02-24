@@ -8,6 +8,7 @@ local ghost_type_name = "ghost"
 
 Ghost._state = "none"
 Ghost._randomize_home = false
+Ghost._shuffle_try_order = false
 
 function Ghost.set_state(new_state)
 	Ghost._state = new_state
@@ -19,6 +20,10 @@ end
 
 function Ghost.set_randomize_home(value)
 	Ghost._randomize_home = value or true
+end
+
+function Ghost.set_shuffle_try_order(value)
+	Ghost._shuffle_try_order = value or true
 end
 
 function Ghost.init(grid,
@@ -186,10 +191,15 @@ end
 function Ghost:update(dt, speed, targets)
 	if (self._is_active) then
 		if speed*dt > (GridActor._tilesize/2) then
-			print("physics sanity check failed, Actor traveled distance > tilesize")
+			print("physics sanity check failed, Actor traveled distance > tilesize/2")
 		end
 
-		qpd.array.shuffle(self._try_order)
+		self._lifetime = self._lifetime + dt
+
+		if self._shuffle_try_order then
+			qpd.array.shuffle(self._try_order)
+		end
+
 		if GridActor._tilesize ~= self._tilesize then
 			self._tilesize = GridActor._tilesize
 			-- here we just center on grid, we should perhaps do a scaling
@@ -264,10 +274,11 @@ function Ghost:update(dt, speed, targets)
 
 		if self._direction ~= "idle" then
 			--print("X: ", self.x, "Y:", self.y)
-			if self._direction == "up" then self.y = self.y - dt * speed
-			elseif self._direction == "down" then self.y = self.y + dt * speed
-			elseif self._direction == "left" then self.x = self.x -dt * speed
-			elseif self._direction == "right" then self.x = self.x +dt * speed
+			local this_speed = dt * speed
+			if self._direction == "up" then self.y = self.y - this_speed
+			elseif self._direction == "down" then self.y = self.y + this_speed
+			elseif self._direction == "left" then self.x = self.x - this_speed
+			elseif self._direction == "right" then self.x = self.x +this_speed
 			end
 		else
 			self._direction = self._next_direction
@@ -287,8 +298,8 @@ function Ghost:find_next_direction(target)
 		elseif not Ghost._grid:is_corridor(self._cell.x, self._cell.y) then
 		-- if 	(Ghost._grid.grid_types[self._cell.y][self._cell.x]~=3 and-- invertido
 		-- 	Ghost._grid.grid_types[self._cell.y][self._cell.x]~=12 ) then
-			--check which one is closer to the target
-			-- make a table to contain the posible destinations
+		-- 	check which one is closer to the target
+		-- 	make a table to contain the posible destinations
 			local possible_next_moves = {}
 			for i = 1, #self._try_order, 1 do
 				if (self.enabled_directions[self._try_order[i]] == true) then

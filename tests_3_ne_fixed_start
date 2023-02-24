@@ -1,8 +1,10 @@
-1-----------------------------------------
+1---------------------------- b1
 game_speed = 150
 game_fixed_speed = true
 game_precise_timer = true
+game_max_dt_factor = 12
 headless = false
+default_zoom = 3
 
 ghost_chase_time = 6
 ghost_scatter_time = 3
@@ -13,29 +15,13 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {0, -4}
 ghost_state_reset_on_autoplayer_capture = true
-ghost_set_ramdomize_home = true
-
-autoplayer_neat_enable = true
-autoplayer_neat_speciate = true
-autoplayer_neat_initial_links = 1
-autoplayer_neat_fully_connected = false
-autoplayer_neat_randon_weight_reset_on_crossover_chance = 0
-autoplayer_neat_add_neuron_chance = 0.01
-autoplayer_neat_add_link_chance = 0.02
-autoplayer_neat_loopback_chance = 0.05
-
-autoplayer_neat_specie_niche_initial_population_size = 300
-autoplayer_neat_specie_niche_population_history_size = 50
-autoplayer_neat_specie_mule_start = false
-autoplayer_specie_all_roulette_start = true
-autoplayer_neat_specie_threshold = 3
-autoplayer_neat_negative_weight_and_activation = true
-autoplayer_neat_input_proportional_activation = false
+ghost_ramdomize_home = true
+ghost_shuffle_try_order = true
 
 autoplayer_start_idle = true
 autoplayer_start_on_center = true
 autoplayer_ann_mode = b1
-autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {activation_function_name = "tanh"}, {count = 1, activation_function_name = "binary_step"}}
+autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {count = 3, activation_function_name = "tanh"}, {count = 1, activation_function_name = "binary_step"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
@@ -56,11 +42,13 @@ autoplayer_search_path_length = 5
 pill_effect_time = 3
 pill_active_population = 2
 
-2-----------------------------------------
+2---------------------------- b1_path_grading_hack
 game_speed = 150
 game_fixed_speed = true
 game_precise_timer = true
+game_max_dt_factor = 12
 headless = false
+default_zoom = 3
 
 ghost_chase_time = 6
 ghost_scatter_time = 3
@@ -71,29 +59,13 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {0, -4}
 ghost_state_reset_on_autoplayer_capture = true
-ghost_set_ramdomize_home = true
-
-autoplayer_neat_enable = true
-autoplayer_neat_speciate = true
-autoplayer_neat_initial_links = 1
-autoplayer_neat_fully_connected = false
-autoplayer_neat_randon_weight_reset_on_crossover_chance = 0
-autoplayer_neat_add_neuron_chance = 0.01
-autoplayer_neat_add_link_chance = 0.02
-autoplayer_neat_loopback_chance = 0.05
-
-autoplayer_neat_specie_niche_initial_population_size = 300
-autoplayer_neat_specie_niche_population_history_size = 50
-autoplayer_neat_specie_mule_start = false
-autoplayer_specie_all_roulette_start = true
-autoplayer_neat_specie_threshold = 3
-autoplayer_neat_negative_weight_and_activation = true
-autoplayer_neat_input_proportional_activation = false
+ghost_ramdomize_home = true
+ghost_shuffle_try_order = true
 
 autoplayer_start_idle = true
 autoplayer_start_on_center = true
 autoplayer_ann_mode = b1_path_grading_hack
-autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {activation_function_name = "tanh"}, {count = 1, activation_function_name = "binary_step"}}
+autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {count = 3, activation_function_name = "tanh"}, {count = 1, activation_function_name = "binary_step"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
@@ -114,11 +86,13 @@ autoplayer_search_path_length = 5
 pill_effect_time = 3
 pill_active_population = 2
 
-3----------------------------------------
+3---------------------------- nb4
 game_speed = 150
 game_fixed_speed = true
 game_precise_timer = true
+game_max_dt_factor = 12
 headless = false
+default_zoom = 3
 
 ghost_chase_time = 6
 ghost_scatter_time = 3
@@ -129,29 +103,13 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {0, -4}
 ghost_state_reset_on_autoplayer_capture = true
-ghost_set_ramdomize_home = true
-
-autoplayer_neat_enable = true
-autoplayer_neat_speciate = true
-autoplayer_neat_initial_links = 1
-autoplayer_neat_fully_connected = false
-autoplayer_neat_randon_weight_reset_on_crossover_chance = 0
-autoplayer_neat_add_neuron_chance = 0.01
-autoplayer_neat_add_link_chance = 0.02
-autoplayer_neat_loopback_chance = 0.05
-
-autoplayer_neat_specie_niche_initial_population_size = 300
-autoplayer_neat_specie_niche_population_history_size = 50
-autoplayer_neat_specie_mule_start = false
-autoplayer_specie_all_roulette_start = true
-autoplayer_neat_specie_threshold = 3
-autoplayer_neat_negative_weight_and_activation = true
-autoplayer_neat_input_proportional_activation = false
+ghost_ramdomize_home = true
+ghost_shuffle_try_order = true
 
 autoplayer_start_idle = true
 autoplayer_start_on_center = true
 autoplayer_ann_mode = nb4
-autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 4, activation_function_name = "identity"}}
+autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {count = 12, activation_function_name = "relu"}, {count = 4, activation_function_name = "identity"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
@@ -172,12 +130,13 @@ autoplayer_search_path_length = 5
 pill_effect_time = 3
 pill_active_population = 2
 
-
-4----------------------------------------
+4---------------------------- nb4_path_grading
 game_speed = 150
 game_fixed_speed = true
 game_precise_timer = true
+game_max_dt_factor = 12
 headless = false
+default_zoom = 3
 
 ghost_chase_time = 6
 ghost_scatter_time = 3
@@ -188,29 +147,13 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {0, -4}
 ghost_state_reset_on_autoplayer_capture = true
-ghost_set_ramdomize_home = true
-
-autoplayer_neat_enable = true
-autoplayer_neat_speciate = true
-autoplayer_neat_initial_links = 1
-autoplayer_neat_fully_connected = false
-autoplayer_neat_randon_weight_reset_on_crossover_chance = 0
-autoplayer_neat_add_neuron_chance = 0.01
-autoplayer_neat_add_link_chance = 0.02
-autoplayer_neat_loopback_chance = 0.05
-
-autoplayer_neat_specie_niche_initial_population_size = 300
-autoplayer_neat_specie_niche_population_history_size = 50
-autoplayer_neat_specie_mule_start = false
-autoplayer_specie_all_roulette_start = true
-autoplayer_neat_specie_threshold = 3
-autoplayer_neat_negative_weight_and_activation = true
-autoplayer_neat_input_proportional_activation = false
+ghost_ramdomize_home = true
+ghost_shuffle_try_order = true
 
 autoplayer_start_idle = true
 autoplayer_start_on_center = true
 autoplayer_ann_mode = nb4_path_grading
-autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 1, activation_function_name = "identity"}}
+autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {count = 3, activation_function_name = "relu"}, {count = 3, activation_function_name = "relu"}, {count = 1, activation_function_name = "identity"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
@@ -231,11 +174,13 @@ autoplayer_search_path_length = 5
 pill_effect_time = 3
 pill_active_population = 2
 
-5----------------------------------------- *
+5---------------------------- b1
 game_speed = 150
 game_fixed_speed = true
 game_precise_timer = true
+game_max_dt_factor = 12
 headless = false
+default_zoom = 3
 
 ghost_chase_time = 6
 ghost_scatter_time = 3
@@ -246,29 +191,13 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {0, -4}
 ghost_state_reset_on_autoplayer_capture = true
-ghost_set_ramdomize_home = true
-
-autoplayer_neat_enable = true
-autoplayer_neat_speciate = true
-autoplayer_neat_initial_links = 1
-autoplayer_neat_fully_connected = false
-autoplayer_neat_randon_weight_reset_on_crossover_chance = 0
-autoplayer_neat_add_neuron_chance = 0.01
-autoplayer_neat_add_link_chance = 0.02
-autoplayer_neat_loopback_chance = 0.05
-
-autoplayer_neat_specie_niche_initial_population_size = 300
-autoplayer_neat_specie_niche_population_history_size = 50
-autoplayer_neat_specie_mule_start = false
-autoplayer_specie_all_roulette_start = true
-autoplayer_neat_specie_threshold = 3
-autoplayer_neat_negative_weight_and_activation = true
-autoplayer_neat_input_proportional_activation = false
+ghost_ramdomize_home = true
+ghost_shuffle_try_order = true
 
 autoplayer_start_idle = true
 autoplayer_start_on_center = true
 autoplayer_ann_mode = b1
-autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {activation_function_name = "tanh"}, {count = 1, activation_function_name = "binary_step"}}
+autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {count = 3, activation_function_name = "tanh"}, {count = 1, activation_function_name = "binary_step"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
@@ -289,11 +218,13 @@ autoplayer_search_path_length = 5
 pill_effect_time = 3
 pill_active_population = 2
 
-6---------------------------------------- *
+6---------------------------- b1_path_grading_hack
 game_speed = 150
 game_fixed_speed = true
 game_precise_timer = true
+game_max_dt_factor = 12
 headless = false
+default_zoom = 3
 
 ghost_chase_time = 6
 ghost_scatter_time = 3
@@ -304,29 +235,13 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {0, -4}
 ghost_state_reset_on_autoplayer_capture = true
-ghost_set_ramdomize_home = true
-
-autoplayer_neat_enable = true
-autoplayer_neat_speciate = true
-autoplayer_neat_initial_links = 1
-autoplayer_neat_fully_connected = false
-autoplayer_neat_randon_weight_reset_on_crossover_chance = 0
-autoplayer_neat_add_neuron_chance = 0.01
-autoplayer_neat_add_link_chance = 0.02
-autoplayer_neat_loopback_chance = 0.05
-
-autoplayer_neat_specie_niche_initial_population_size = 300
-autoplayer_neat_specie_niche_population_history_size = 50
-autoplayer_neat_specie_mule_start = false
-autoplayer_specie_all_roulette_start = true
-autoplayer_neat_specie_threshold = 3
-autoplayer_neat_negative_weight_and_activation = true
-autoplayer_neat_input_proportional_activation = false
+ghost_ramdomize_home = true
+ghost_shuffle_try_order = true
 
 autoplayer_start_idle = true
 autoplayer_start_on_center = true
 autoplayer_ann_mode = b1_path_grading_hack
-autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {activation_function_name = "tanh"}, {count = 1, activation_function_name = "binary_step"}}
+autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {count = 3, activation_function_name = "tanh"}, {count = 1, activation_function_name = "binary_step"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
@@ -347,11 +262,13 @@ autoplayer_search_path_length = 5
 pill_effect_time = 3
 pill_active_population = 2
 
-7---------------------------------------- *
+7---------------------------- nb4
 game_speed = 150
 game_fixed_speed = true
 game_precise_timer = true
+game_max_dt_factor = 12
 headless = false
+default_zoom = 3
 
 ghost_chase_time = 6
 ghost_scatter_time = 3
@@ -362,29 +279,13 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {0, -4}
 ghost_state_reset_on_autoplayer_capture = true
-ghost_set_ramdomize_home = true
-
-autoplayer_neat_enable = true
-autoplayer_neat_speciate = true
-autoplayer_neat_initial_links = 1
-autoplayer_neat_fully_connected = false
-autoplayer_neat_randon_weight_reset_on_crossover_chance = 0
-autoplayer_neat_add_neuron_chance = 0.01
-autoplayer_neat_add_link_chance = 0.02
-autoplayer_neat_loopback_chance = 0.05
-
-autoplayer_neat_specie_niche_initial_population_size = 300
-autoplayer_neat_specie_niche_population_history_size = 50
-autoplayer_neat_specie_mule_start = false
-autoplayer_specie_all_roulette_start = true
-autoplayer_neat_specie_threshold = 3
-autoplayer_neat_negative_weight_and_activation = true
-autoplayer_neat_input_proportional_activation = false
+ghost_ramdomize_home = true
+ghost_shuffle_try_order = true
 
 autoplayer_start_idle = true
 autoplayer_start_on_center = true
 autoplayer_ann_mode = nb4
-autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 4, activation_function_name = "identity"}}
+autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {count = 12, activation_function_name = "relu"}, {count = 4, activation_function_name = "identity"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
@@ -405,12 +306,13 @@ autoplayer_search_path_length = 5
 pill_effect_time = 3
 pill_active_population = 2
 
-
-8--------------------------------------- *
+8---------------------------- nb4_path_grading
 game_speed = 150
 game_fixed_speed = true
 game_precise_timer = true
+game_max_dt_factor = 12
 headless = false
+default_zoom = 3
 
 ghost_chase_time = 6
 ghost_scatter_time = 3
@@ -421,29 +323,13 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {0, -4}
 ghost_state_reset_on_autoplayer_capture = true
-ghost_set_ramdomize_home = true
-
-autoplayer_neat_enable = true
-autoplayer_neat_speciate = true
-autoplayer_neat_initial_links = 1
-autoplayer_neat_fully_connected = false
-autoplayer_neat_randon_weight_reset_on_crossover_chance = 0
-autoplayer_neat_add_neuron_chance = 0.01
-autoplayer_neat_add_link_chance = 0.02
-autoplayer_neat_loopback_chance = 0.05
-
-autoplayer_neat_specie_niche_initial_population_size = 300
-autoplayer_neat_specie_niche_population_history_size = 50
-autoplayer_neat_specie_mule_start = false
-autoplayer_specie_all_roulette_start = true
-autoplayer_neat_specie_threshold = 3
-autoplayer_neat_negative_weight_and_activation = true
-autoplayer_neat_input_proportional_activation = false
+ghost_ramdomize_home = true
+ghost_shuffle_try_order = true
 
 autoplayer_start_idle = true
 autoplayer_start_on_center = true
 autoplayer_ann_mode = nb4_path_grading
-autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 1, activation_function_name = "identity"}}
+autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {count = 3, activation_function_name = "relu"}, {count = 3, activation_function_name = "relu"}, {count = 1, activation_function_name = "identity"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1

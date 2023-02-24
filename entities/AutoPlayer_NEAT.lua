@@ -16,6 +16,10 @@ fitness_modes.updates = function (self)
 	self._fitness = self:get_update_count()
 end
 
+fitness_modes.lifetime = function (self)
+	self._fitness = self._lifetime
+end
+
 fitness_modes.no_pill_updates = function (self)
 	self._fitness = self:get_no_pill_update_count()
 end

@@ -49,6 +49,7 @@ function GridActor:new(o)
 	local o = o or {}
 	setmetatable(o, self)
 
+	o._lifetime = 0
 	o._cell = {}
 	o._enabled_directions = {}
 	o._front = {}
@@ -88,6 +89,7 @@ function GridActor:reset(cell)
 	GridActor._current_actor_id = GridActor._current_actor_id + 1
 	self._id = GridActor._current_actor_id
 
+	self._lifetime = 0
 	self._changed_grid_cell = false
 	self._has_collided = false
 	self._direction = "idle"
@@ -136,8 +138,10 @@ end
 
 function GridActor:update(dt, speed)
 	if speed*dt > (GridActor._tilesize/2) then
-		print("physics sanity check failed, Actor traveled distance > tilesize")
+		print("physics sanity check failed, Actor traveled distance > tilesize/2")
 	end
+
+	self._lifetime = self._lifetime +  dt
 
 	self._update_count = self._update_count + 1
 
@@ -261,16 +265,16 @@ function GridActor:update_dynamic_front()
 	local point = {}
 	-- the player has a dynamic center
 	if self._direction == "up" then
-		point.y = self.y - (self._tilesize/2)
+		point.y = self.y - 5*(self._tilesize/8)
  		point.x = self.x
 	elseif self._direction == "down" then
-		point.y = self.y + (self._tilesize/2)
+		point.y = self.y +  5*(self._tilesize/8)
 		point.x = self.x
 	elseif self._direction == "left" then
-		point.x = self.x - (self._tilesize/2)
+		point.x = self.x -  5*(self._tilesize/8)
 		point.y = self.y
 	elseif self._direction == "right" then
-		point.x = self.x + (self._tilesize/2)
+		point.x = self.x +  5*(self._tilesize/8)
 		point.y = self.y
 	else -- "idle"
 		point.y = self.y
@@ -349,6 +353,7 @@ function GridActor:log(event_type, other)
 	event_table["grid_cell_changes"] = self:get_grid_cell_changes()
 	event_table["collision_count"] = self:get_collision_count()
 	event_table["fps"] = tostring(love.timer.getFPS())
+	event_table["lifetime"] = self._lifetime
 	event_table["genes"] = self:get_genes()
 
 	GridActor._event_logger:log(event_table)

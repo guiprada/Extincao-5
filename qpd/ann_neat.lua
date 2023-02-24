@@ -733,8 +733,8 @@ function _Genome:crossover(dad, mutate_chance, mutate_percentage, chance_add_neu
 			print("Link is enabled: ", this_link:is_enabled())
 		end
 	end
-	print("neurons ", new_genome:get_neuron_count())
-	print("links ", new_genome:get_link_count())
+	-- print("neurons ", new_genome:get_neuron_count())
+	-- print("links ", new_genome:get_link_count())
 
 	return new_genome
 end
@@ -1251,7 +1251,7 @@ function ANN:speciate(species, threshold)
 	end
 
 	if closest_compatibility then
-		print("closest_compatibility: ", closest_compatibility, closest_specie:get_id())
+		-- print("closest_compatibility: ", closest_compatibility, closest_specie:get_id())
 		if closest_compatibility < threshold then
 			ann_specie = closest_specie
 		end

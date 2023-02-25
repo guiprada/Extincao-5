@@ -321,10 +321,7 @@ function Ghost:find_next_direction(target)
 			if (#possible_next_moves == 0) then
 				-- print("possible_next_moves cant be empty")
 				self._direction = "idle"
-				return
-			end
-
-			if (target._is_active) then
+			elseif (target._is_active) then
 				if (Ghost._state == "chasing") then
 					self:go_to_target(target, possible_next_moves)
 				elseif (Ghost._state == "scattering") then

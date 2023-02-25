@@ -212,8 +212,6 @@ function GridActor:update(dt, speed)
 
 		if self._changed_grid_cell then
 			self._enabled_directions = self:get_enabled_directions()
-			self._last_cell.x = self._cell.x
-			self._last_cell.y = self._cell.y
 		end
 
 		-- relays mov for cornering
@@ -264,7 +262,7 @@ function GridActor:update_dynamic_front()
 	-- it does consider the direction obj is set
 	local point = {}
 	-- the player has a dynamic center
-	local lookahead = self._tilesize/2
+	local lookahead = (self._tilesize/2)
 	if self._direction == "up" then
 		point.y = self.y - lookahead
  		point.x = self.x
@@ -286,6 +284,7 @@ function GridActor:update_dynamic_front()
 end
 
 function GridActor:update_cell()
+	self._last_cell.x, self._last_cell.y = self._cell.x, self._cell.y
 	self._cell.x, self._cell.y = GridActor._grid.point_to_cell(self.x, self.y, self._tilesize)
 end
 
@@ -300,6 +299,17 @@ end
 function GridActor:is_front_wall()
 	local cell_x, cell_y = self:get_cell_in_front()
 	return GridActor._grid:is_blocked_cell(cell_x, cell_y)
+end
+
+function GridActor:is_cell_valid()
+	return GridActor._grid:is_valid_cell(self._cell.x, self._cell.y)
+end
+
+function GridActor:roll_back_cell()
+	self._cell_x = self._last_cell.x
+	self._cell_y = self._last_cell.y
+	self:center_on_cell()
+	self:update_dynamic_front()
 end
 
 function GridActor:get_id()

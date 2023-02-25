@@ -61,7 +61,7 @@ local function player_caught_callback()
 	for i, ghost in ipairs(ghost_population) do
 		local target_offset = ghost:get_target_offset()
 		local direction = "right"
-		local pos = {x = 1, y = 6}
+		local pos = {x = 1, y = 2}
 		if i%2 == 0 then
 			pos.y = 13
 			pos.x = 26
@@ -136,10 +136,7 @@ function gs.load(map_file_path)
 		gs.headless = gs.game_conf.headless or false
 		gs.game_speed = gs.game_conf.game_speed or 100
 		gs.default_zoom = gs.game_conf.default_zoom
-		gs.game_fixed_speed = gs.game_conf.game_fixed_speed
-		MAX_DT_FACTOR = gs.game_conf.game_max_dt_factor or MAX_DT_FACTOR
-		print(MAX_DT_FACTOR)
-		-- local difficulty_factor = gs.game_conf.difficulty/3
+
 		if gs.game_conf.game_precise_timer then
 			GridActor:enablePreciseTime()
 		end

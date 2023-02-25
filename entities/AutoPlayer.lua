@@ -40,7 +40,7 @@ fitness_modes.movement_captures_hack_26 = function (self)
 	if self:get_visited_count() > 26 then -- 26 is the size of the longest path
 		self._fitness = self:get_visited_count() + self._pills_caught + self._ghosts_caught
 	else
-		self._fitness = math.min(26, self:get_grid_cell_changes())
+		self._fitness = self:get_visited_count()
 	end
 end
 

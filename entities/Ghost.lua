@@ -234,42 +234,57 @@ function Ghost:update(dt, speed, targets)
 			target = Ghost._grid:get_invalid_cell()
 		end
 
-		self:update_dynamic_front()
-		self:update_cell()
+		-- get it moving
+		local has_changed_direction = false
 
+		self:update_dynamic_front()
 		-- check collision with wall
 		self._has_collided = false
 		if(self:is_front_wall()) then
 			self:center_on_cell() -- it stops relayed cornering
 			self:find_next_direction(target)
+			has_changed_direction = true
 			self._has_collided = true
 		end
 
-		--on change tile
-		self._changed_grid_cell = false
-		if  self._cell.x ~= self._last_cell.x then
-			self._changed_grid_cell = "x"
-		end
-		if self._cell.y ~= self._last_cell.y then
-			if self._changed_grid_cell then
-				self._changed_grid_cell = "xy"
-			else
-				self._changed_grid_cell = "y"
+		if not has_changed_direction then
+			self:update_cell()
+			--on change tile
+			self._changed_grid_cell = false
+			if self._cell.x ~= self._last_cell.x then
+				self._changed_grid_cell = "x"
 			end
-		end
-		if self._changed_grid_cell then
-			self._debounce_get_next_direction = false
+			if self._cell.y ~= self._last_cell.y then
+				if self._changed_grid_cell then
+					self._changed_grid_cell = "xy"
+				else
+					self._changed_grid_cell = "y"
+				end
+			end
+
+			if self._changed_grid_cell then
+				self._debounce_get_next_direction = false
+				if not self:is_cell_valid() then
+					self:roll_back_cell()
+					self:find_next_direction(target)
+					has_changed_direction = true
+					print("ghost cell rolled back!")
+				end
+			end
 		end
 
 		--on tile center, or close
-		local dist_grid_center = qpd.point.distance(self.x, self.y, Ghost._grid.cell_to_center_point(self._cell.x, self._cell.y, self._tilesize))
-		if (dist_grid_center < speed*dt) then
-			if ( self._direction == "up" or self._direction== "down") then
-				self:center_on_cell_x()
-			elseif ( self._direction == "left" or self._direction== "right") then
-				self:center_on_cell_y()
+		if not has_changed_direction then
+			local dist_grid_center = qpd.point.distance(self.x, self.y, Ghost._grid.cell_to_center_point(self._cell.x, self._cell.y, self._tilesize))
+			if (dist_grid_center < speed*dt) then
+				if ( self._direction == "up" or self._direction== "down") then
+					self:center_on_cell_x()
+				elseif ( self._direction == "left" or self._direction== "right") then
+					self:center_on_cell_y()
+				end
+				self:find_next_direction(target)
+				has_changed_direction = true
 			end
-			self:find_next_direction(target)
 		end
 
 		if self._direction ~= "idle" then

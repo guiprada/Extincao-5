@@ -90,7 +90,7 @@ function Ghost:reset(reset_table)
 end
 
 function Ghost:set_direction(direction)
-	self._next_direction = direction
+	self._direction = direction
 	self._debounce_get_next_direction = true
 	self:update_dynamic_front()
 end
@@ -241,47 +241,35 @@ function Ghost:update(dt, speed, targets)
 		self._has_collided = false
 		if(self:is_front_wall()) then
 			self:center_on_cell() -- it stops relayed cornering
+			self._debounce_get_next_direction = false
 			self:find_next_direction(target)
 			self._has_collided = true
-		end
-
-		--on change tile
-		self._changed_grid_cell = false
-		if  self._cell.x ~= self._last_cell.x then
-			self._changed_grid_cell = "x"
-		end
-		if self._cell.y ~= self._last_cell.y then
-			if self._changed_grid_cell then
-				self._changed_grid_cell = "xy"
-			else
-				self._changed_grid_cell = "y"
-			end
-		end
-		if self._changed_grid_cell then
-			self._debounce_get_next_direction = false
-		end
-
-		--on tile center, or close
-		local dist_grid_center = qpd.point.distance(self.x, self.y, Ghost._grid.cell_to_center_point(self._cell.x, self._cell.y, self._tilesize))
-		if (dist_grid_center < speed*dt) then
-			if ( self._direction == "up" or self._direction== "down") then
-				self:center_on_cell_x()
-			elseif ( self._direction == "left" or self._direction== "right") then
-				self:center_on_cell_y()
-			end
-			self:find_next_direction(target)
-		end
-
-		if self._direction ~= "idle" then
-			--print("X: ", self.x, "Y:", self.y)
-			local this_speed = dt * speed
-			if self._direction == "up" then self.y = self.y - this_speed
-			elseif self._direction == "down" then self.y = self.y + this_speed
-			elseif self._direction == "left" then self.x = self.x - this_speed
-			elseif self._direction == "right" then self.x = self.x +this_speed
-			end
 		else
-			self._direction = self._next_direction
+			if self._changed_grid_cell then
+				self._debounce_get_next_direction = false
+				self._already_centered = false
+			end
+
+			--on tile center, or close
+			local dist_grid_center = qpd.point.distance(self.x, self.y, Ghost._grid.cell_to_center_point(self._cell.x, self._cell.y, self._tilesize))
+			if (dist_grid_center < speed*dt) and not(self._already_centered) then
+				self._already_centered = true
+				if ( self._direction == "up" or self._direction== "down") then
+					self:center_on_cell_y()
+				elseif ( self._direction == "left" or self._direction== "right") then
+					self:center_on_cell_x()
+				end
+				self:find_next_direction(target)
+			end
+
+			if self._direction ~= "idle" then
+				local this_speed = dt * speed
+				if self._direction == "up" then self.y = self.y - this_speed
+				elseif self._direction == "down" then self.y = self.y + this_speed
+				elseif self._direction == "left" then self.x = self.x - this_speed
+				elseif self._direction == "right" then self.x = self.x +this_speed
+				end
+			end
 		end
 	end
 end
@@ -294,7 +282,8 @@ function Ghost:find_next_direction(target)
 
 		self.enabled_directions = self:get_enabled_directions()
 		if (#self.enabled_directions < 1) then
-			print("enabled_directions cant be empty")
+			-- print("enabled_directions cant be empty")
+			self._direction = "idle"
 		elseif not Ghost._grid:is_corridor(self._cell.x, self._cell.y) then
 		-- if 	(Ghost._grid.grid_types[self._cell.y][self._cell.x]~=3 and-- invertido
 		-- 	Ghost._grid.grid_types[self._cell.y][self._cell.x]~=12 ) then
@@ -330,7 +319,8 @@ function Ghost:find_next_direction(target)
 			end
 
 			if (#possible_next_moves == 0) then
-				print("possible_next_moves cant be empty")
+				-- print("possible_next_moves cant be empty")
+				self._direction = "idle"
 				return
 			end
 

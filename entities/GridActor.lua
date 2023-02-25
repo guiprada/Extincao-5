@@ -137,8 +137,8 @@ function GridActor:draw()
 end
 
 function GridActor:update(dt, speed)
-	if speed*dt > (GridActor._tilesize/2) then
-		print("physics sanity check failed, Actor traveled distance > tilesize/2")
+	if speed*dt > (GridActor._tilesize/4) then
+		print("physics sanity check failed, Actor traveled distance > tilesize/4")
 	end
 
 	self._lifetime = self._lifetime +  dt
@@ -284,12 +284,28 @@ function GridActor:update_dynamic_front()
 end
 
 function GridActor:update_cell()
-	self._last_cell.x, self._last_cell.y = self._cell.x, self._cell.y
+	local last_cell_x, last_cell_y = self._cell.x, self._cell.y
 	self._cell.x, self._cell.y = GridActor._grid.point_to_cell(self.x, self.y, self._tilesize)
+	if self._cell.x ~= last_cell_x or self._cell.y ~= last_cell_y then -- changed cell
+		self._last_cell.x, self._last_cell.y = last_cell_x, last_cell_y
+		self._changed_grid_cell = true
+	else
+		self._changed_grid_cell = false
+	end
 end
 
 function GridActor:get_cell_in_front()
-	return GridActor._grid.point_to_cell(self._front.x, self._front.y, self._tilesize)
+	if self._direction == "up" then
+		return self._cell.x, self._cell.y - 1
+	elseif self._direction == "down" then
+		return self._cell.x, self._cell.y + 1
+	elseif self._direction == "left" then
+		return self._cell.x - 1, self._cell.y
+	elseif self._direction == "right" then
+		return self._cell.x + 1, self._cell.y
+	else -- "idle"
+		return self._cell.x, self._cell.y
+	end
 end
 
 function GridActor:get_enabled_directions()
@@ -303,13 +319,6 @@ end
 
 function GridActor:is_cell_valid()
 	return GridActor._grid:is_valid_cell(self._cell.x, self._cell.y)
-end
-
-function GridActor:roll_back_cell()
-	self._cell_x = self._last_cell.x
-	self._cell_y = self._last_cell.y
-	self:center_on_cell()
-	self:update_dynamic_front()
 end
 
 function GridActor:get_id()

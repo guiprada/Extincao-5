@@ -12,6 +12,8 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 ghost_state_reset_on_autoplayer_capture = true
+ghost_ramdomize_home = true
+ghost_shuffle_try_order = true
 
 autoplayer_start_idle = true
 autoplayer_start_on_center = false
@@ -51,6 +53,8 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 ghost_state_reset_on_autoplayer_capture = true
+ghost_ramdomize_home = true
+ghost_shuffle_try_order = true
 
 autoplayer_start_idle = true
 autoplayer_start_on_center = false
@@ -90,6 +94,8 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 ghost_state_reset_on_autoplayer_capture = true
+ghost_ramdomize_home = true
+ghost_shuffle_try_order = true
 
 autoplayer_start_idle = true
 autoplayer_start_on_center = false
@@ -129,6 +135,8 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 ghost_state_reset_on_autoplayer_capture = true
+ghost_ramdomize_home = true
+ghost_shuffle_try_order = true
 
 autoplayer_start_idle = true
 autoplayer_start_on_center = false
@@ -168,6 +176,8 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 ghost_state_reset_on_autoplayer_capture = true
+ghost_ramdomize_home = true
+ghost_shuffle_try_order = true
 
 autoplayer_start_idle = true
 autoplayer_start_on_center = false
@@ -207,6 +217,8 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 ghost_state_reset_on_autoplayer_capture = true
+ghost_ramdomize_home = true
+ghost_shuffle_try_order = true
 
 autoplayer_start_idle = true
 autoplayer_start_on_center = false
@@ -246,6 +258,8 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 ghost_state_reset_on_autoplayer_capture = true
+ghost_ramdomize_home = true
+ghost_shuffle_try_order = true
 
 autoplayer_start_idle = true
 autoplayer_start_on_center = false
@@ -285,6 +299,8 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 ghost_state_reset_on_autoplayer_capture = true
+ghost_ramdomize_home = true
+ghost_shuffle_try_order = true
 
 autoplayer_start_idle = true
 autoplayer_start_on_center = false

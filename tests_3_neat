@@ -12,6 +12,8 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 ghost_state_reset_on_autoplayer_capture = true
+ghost_ramdomize_home = true
+ghost_shuffle_try_order = true
 
 autoplayer_neat_enable = true
 autoplayer_neat_speciate = true
@@ -68,6 +70,8 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 ghost_state_reset_on_autoplayer_capture = true
+ghost_ramdomize_home = true
+ghost_shuffle_try_order = true
 
 autoplayer_neat_enable = true
 autoplayer_neat_speciate = true
@@ -124,6 +128,8 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 ghost_state_reset_on_autoplayer_capture = true
+ghost_ramdomize_home = true
+ghost_shuffle_try_order = true
 
 autoplayer_neat_enable = true
 autoplayer_neat_speciate = true
@@ -181,6 +187,8 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 ghost_state_reset_on_autoplayer_capture = true
+ghost_ramdomize_home = true
+ghost_shuffle_try_order = true
 
 autoplayer_neat_enable = true
 autoplayer_neat_speciate = true
@@ -237,6 +245,8 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 ghost_state_reset_on_autoplayer_capture = true
+ghost_ramdomize_home = true
+ghost_shuffle_try_order = true
 
 autoplayer_neat_enable = true
 autoplayer_neat_speciate = true
@@ -293,6 +303,8 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 ghost_state_reset_on_autoplayer_capture = true
+ghost_ramdomize_home = true
+ghost_shuffle_try_order = true
 
 autoplayer_neat_enable = true
 autoplayer_neat_speciate = true
@@ -349,6 +361,8 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 ghost_state_reset_on_autoplayer_capture = true
+ghost_ramdomize_home = true
+ghost_shuffle_try_order = true
 
 autoplayer_neat_enable = true
 autoplayer_neat_speciate = true

@@ -12,9 +12,9 @@ Ghost._shuffle_try_order = false
 
 Ghost._ghost_homes = {
 	{x = 1, y = 1},
-	{x = 1, y = 28},
-	{x = 14, y = 1},
-	{x = 14, y = 28},
+	{x = 28, y = 14},
+	{x = 1, y = 14},
+	{x = 28, y = 1},
 }
 ---------------------------------------------------------------
 function Ghost.get_random_home_index()

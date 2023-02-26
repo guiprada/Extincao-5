@@ -54,22 +54,24 @@ local function reset_ghost_state()
 	set_ghost_state("scattering")
 end
 
+local ghost_start_positions = {
+	{x = 2, y = 2},
+	{x = 27, y = 13},
+	{x = 2, y = 13},
+	{x = 27, y = 2},
+}
+
+local function reposition_ghosts()
+	for i, ghost in ipairs(gs.GhostPopulation:get_population()) do
+		local target_offset = ghost:get_target_offset()
+		local pos = ghost_start_positions[i%4]
+		ghost:reset({pos = pos, target_offset = target_offset, home = i%4})
+	end
+end
+
 local function player_caught_callback()
 	set_ghost_state("chasing")
-	reset_ghost_state()
-	local ghost_population = gs.GhostPopulation:get_population()
-	for i, ghost in ipairs(ghost_population) do
-		local target_offset = ghost:get_target_offset()
-		local direction = "right"
-		local pos = {x = 2, y = 2}
-		if i%2 == 0 then
-			pos.y = 13
-			pos.x = 26
-			direction = "left"
-		end
-		ghost:reset({pos = pos, target_offset = target_offset, home = i})
-		ghost:set_direction(direction)
-	end
+	reposition_ghosts()
 end
 
 local function change_ghost_state_callback()
@@ -262,6 +264,7 @@ function gs.load(map_file_path)
 				gs.game_conf.ghost_population_history_size or 0
 			)
 		end
+		reposition_ghosts()
 
 		if gs.game_conf.ghost_state_reset_on_autoplayer_capture then
 			for i, ghost in ipairs(gs.GhostPopulation) do

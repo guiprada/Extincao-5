@@ -29,10 +29,6 @@ function Ghost.set_speed(new_speed)
 	Ghost._speed = new_speed
 end
 
-function Ghost.set_sequential_home(value)
-	Ghost._sequential_home = value or true
-end
-
 function Ghost.set_shuffle_try_order(value)
 	Ghost._shuffle_try_order = value or true
 end
@@ -112,15 +108,15 @@ function Ghost:set_target_offset(value)
 	self._target_offset = value
 end
 
-function Ghost:get_home()
-	local current_home = self._home
-	if self._sequential_home then
-		self._home = self._home + 1
-		if self._home > #Ghost._ghost_homes then
-			self._home = 1
-		end
+function Ghost:increase_home()
+	self._home = self._home + 1
+	if self._home > #Ghost._ghost_homes then
+		self._home = 1
 	end
-	return Ghost._ghost_homes[current_home]
+end
+
+function Ghost:get_home()
+	return Ghost._ghost_homes[self._home]
 end
 
 function Ghost:get_history()

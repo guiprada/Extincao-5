@@ -226,9 +226,8 @@ function gs.load(map_file_path)
 		gs.ghost_chase_time = gs.game_conf.ghost_chase_time
 		gs.ghost_scatter_time = gs.game_conf.ghost_scatter_time
 		gs.ghost_speed_factor = gs.game_conf.ghost_speed_factor
-		if gs.game_conf.ghost_sequential_home then
-			Ghost.set_sequential_home(true)
-		end
+		gs.ghost_sequential_home = gs.game_conf.ghost_sequential_home
+
 		if gs.game_conf.ghost_shuffle_try_order then
 			Ghost.set_shuffle_try_order(true)
 		end
@@ -466,6 +465,9 @@ function gs.update(dt)
 
 			local ghosts = gs.GhostPopulation:get_population()
 			for i=1, #ghosts, 1 do
+				if gs.ghost_sequential_home then
+					ghosts[i]:increase_home()
+				end
 				ghosts[i]:flip_direction()
 			end
 		elseif (gs.pill_is_in_effect == true) and (gs.got_pill == false) then

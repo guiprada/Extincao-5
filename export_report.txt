@@ -1,0 +1,3 @@
+xcopy /E .\*.png ..\..\reports\
+xcopy /E .\*.txt ..\..\reports\
+xcopy /E .\*.pd ..\..\reports\

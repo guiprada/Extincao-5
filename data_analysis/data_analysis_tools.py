@@ -169,6 +169,85 @@ def add_scatter_and_intervalar_means_plot_to_axis(axis, scatter_x, scatter_y, ti
 	plt.setp(axis.get_xticklabels(), rotation=30, horizontalalignment='right')
 	# axis.legend(fontsize = SMALL_LEGEND_FONTSIZE)
 
+def add_distribution_plot_to_axis(axis, data, title):
+	axis.set_title(title)
+	axis.hist(data, bins = 50)
+
+def mann_whitneyu_compare(A, B, label, alpha = 0.05):
+		text_analysis = label + ":"
+
+		##
+		mw_eq = stats.mannwhitneyu(A, B, use_continuity=True, alternative = "two-sided")
+		text_analysis += "\n" + "mannwhitneyu two-sided: " + str(mw_eq)
+		if mw_eq[1] < alpha:
+			text_analysis += "  --  reject equal"
+		else:
+			text_analysis += "  --  accept equal"
+
+		##
+		mw_less = stats.mannwhitneyu(A, B, use_continuity=True, alternative = "less")
+		text_analysis += "\n" + "mannwhitneyu less: "+ str(mw_less)
+
+		if mw_less[1] < (alpha/2):
+			text_analysis += "  --  A less than B"
+		else:
+			text_analysis += "  --  accept equal"
+
+		##
+		mw_more = stats.mannwhitneyu(A, B, use_continuity=True, alternative = "greater")
+		text_analysis += "\n" + "mannwhitneyu greater: "+ str(mw_more)
+
+		if mw_more[1] < (alpha/2):
+			text_analysis += "  --  A greater than B"
+		else:
+			text_analysis += "  --  accept equal"
+
+		return text_analysis
+
+def compare_run_dict_list_means(run_dict_A, run_dict_B):
+	player_df_A = run_dict_A["df"].loc[run_dict_A["df"]["actor_type"] == "player"]
+	player_df_B = run_dict_B["df"].loc[run_dict_B["df"]["actor_type"] == "player"]
+
+	ghost_df_A = run_dict_A["df"].loc[run_dict_A["df"]["actor_type"] == "ghost"]
+	ghost_df_B = run_dict_B["df"].loc[run_dict_B["df"]["actor_type"] == "ghost"]
+
+	pill_df_A = run_dict_A["df"].loc[run_dict_A["df"]["actor_type"] == "pill"]
+	pill_df_B = run_dict_B["df"].loc[run_dict_B["df"]["actor_type"] == "pill"]
+
+	# non_zero_lifetime_player_df = player_df.query("lifetime > 0")
+	# non_zero_updates_player_df = player_df.query("updates > 0")
+	# non_zero_pills_captured_player_df = player_df.query("pills_captured > 0")
+
+	text_analysis = ""
+	#updates per second
+	text_analysis += mann_whitneyu_compare(player_df_A["updates_per_second"].dropna(), player_df_B["updates_per_second"].dropna(), "updates/second") + "\n\n"
+
+	#updates
+	text_analysis += mann_whitneyu_compare(player_df_A["updates"].dropna(), player_df_B["updates"].dropna(), "updates") + "\n\n"
+
+	#lifetime
+	text_analysis += mann_whitneyu_compare(player_df_A["lifetime"].dropna(), player_df_B["lifetime"].dropna(), "lifetime") + "\n\n"
+
+	#ghost lifetime
+	text_analysis += mann_whitneyu_compare(ghost_df_A["lifetime"].dropna(), ghost_df_B["lifetime"].dropna(), "ghost lifetime") + "\n\n"
+
+	#pill lifetime
+	text_analysis += mann_whitneyu_compare(pill_df_A["lifetime"].dropna(), pill_df_B["lifetime"].dropna(), "pill lifetime") + "\n\n"
+
+	#pills_captured
+	text_analysis += mann_whitneyu_compare(player_df_A["pills_captured"].dropna(), player_df_B["pills_captured"].dropna(), "pills_captured") + "\n\n"
+
+	#ghosts_captured
+	text_analysis += mann_whitneyu_compare(player_df_A["pills_captured"].dropna(), player_df_B["pills_captured"].dropna(), "pills captured") + "\n\n"
+
+	#ghosts_caputred/pill_captured
+	#visited_count
+	#grid_cell_changes/updates
+	#collision_count/updates
+
+
+	print(text_analysis)
+
 def filter_low_performance(df, intervals = 10):
 	# performance_df = df["updates_per_second"]
 	# performance_df_intervals = create_array_of_interval_mean(performance_df, 100)
@@ -184,12 +263,7 @@ def filter_low_performance(df, intervals = 10):
 		print(df["df"].head())
 		print(df["df"].tail())
 
-def add_distribution_plot_to_axis(axis, data, title):
-	axis.set_title(title)
-	axis.hist(data, bins = 50)
-
-
-def generate_run_report_from_dict(run_dict, filter_low_performance = False):
+def generate_run_report_from_dict(run_dict, filter_low_performance = False, show = False):
 	if filter_low_performance:
 		filter_low_performance(run_dict["df"])
 
@@ -297,7 +371,8 @@ def generate_run_report_from_dict(run_dict, filter_low_performance = False):
 	plt.tight_layout()
 
 	plt.savefig(f"{run_dict['path']}{run_dict['run_id']}_plots.png", dpi = IMAGE_DPI)
-	plt.show()
+	if show:
+		plt.show()
 	plt.close()
 
 	## Analise textual
@@ -331,7 +406,6 @@ def generate_run_report_from_dict(run_dict, filter_low_performance = False):
 	text_analysis += '\n' + "pills lifetime: " + '\n' + str(pill_df["lifetime"].describe()) + '\n'
 
 	##
-	print("A taxa de atualizacao e as outras metricas")
 	text_analysis += '\n' + 30*'-' + "Correlacoes :)" + '\n'
 	text_analysis += '\n' + "A taxa de atualizacao e as outras metricas" + '\n'
 	desired_correlations = {
@@ -347,7 +421,6 @@ def generate_run_report_from_dict(run_dict, filter_low_performance = False):
 		text_analysis += print_correlations(series[0], series[1], label) + '\n'
 
 	##
-	print("updates e as outras metricas")
 	text_analysis += '\n' + "Updates e as outras metricas" + '\n'
 	desired_correlations = {
 		"updates lifetime": (player_df["updates"], player_df["lifetime"]),
@@ -361,7 +434,6 @@ def generate_run_report_from_dict(run_dict, filter_low_performance = False):
 		text_analysis += print_correlations(series[0], series[1], label) + '\n'
 
 	##
-	print("lifetime e as outras metricas")
 	text_analysis += '\n' + "Lifetime e as outras metricas" + '\n'
 	desired_correlations = {
 		"lifetime visited_count": (player_df["lifetime"], player_df["visited_count"]),
@@ -374,7 +446,6 @@ def generate_run_report_from_dict(run_dict, filter_low_performance = False):
 		text_analysis += print_correlations(series[0], series[1], label) + '\n'
 
 	##
-	print("Visited_count e outras metricas")
 	text_analysis += '\n' + "As metricas de movimentacao" + '\n'
 	desired_correlations = {
 		"visited_count grid_cell_changes": (player_df["visited_count"], player_df["grid_cell_changes"]),
@@ -387,7 +458,6 @@ def generate_run_report_from_dict(run_dict, filter_low_performance = False):
 
 
 	##
-	print("As metricas de movimentacao")
 	text_analysis += '\n' + "As metricas de movimentacao" + '\n'
 	desired_correlations = {
 		"visited_count grid_cell_changes": (player_df["visited_count"], player_df["grid_cell_changes"]),
@@ -398,7 +468,6 @@ def generate_run_report_from_dict(run_dict, filter_low_performance = False):
 		text_analysis += print_correlations(series[0], series[1], label) + '\n'
 
 	##
-	print("As metricas de captura")
 	text_analysis += '\n' + "As metricas de captura" + '\n'
 	desired_correlations = {
 		"ghosts_captured pills_captured": (player_df["ghosts_captured"], player_df["pills_captured"]),
@@ -406,8 +475,8 @@ def generate_run_report_from_dict(run_dict, filter_low_performance = False):
 	for label, series in desired_correlations.items():
 		text_analysis += print_correlations(series[0], series[1], label) + '\n'
 
-	# Conduct the Kruskal-Wallis Test
-	# result = stats.kruskal(data_group1, data_group2, data_group3)
+	if show:
+		print(text_analysis)
 
 	with open(f"{run_dict['path']}{run_dict['run_id']}_analysis.txt", 'w') as f:
 		f.write(text_analysis)

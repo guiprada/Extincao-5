@@ -67,7 +67,7 @@ local function player_caught_callback()
 			pos.x = 26
 			direction = "left"
 		end
-		ghost:reset({pos = pos, target_offset = target_offset})
+		ghost:reset({pos = pos, target_offset = target_offset, home = i})
 		ghost:set_direction(direction)
 	end
 end

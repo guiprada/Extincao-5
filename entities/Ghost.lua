@@ -7,8 +7,19 @@ local qpd = require "qpd.qpd"
 local ghost_type_name = "ghost"
 
 Ghost._state = "none"
-Ghost._randomize_home = false
+Ghost._sequential_home = false
 Ghost._shuffle_try_order = false
+
+Ghost._ghost_homes = {
+	{x = 1, y = 1},
+	{x = 1, y = 28},
+	{x = 14, y = 1},
+	{x = 14, y = 28},
+}
+---------------------------------------------------------------
+function Ghost.get_random_home_index()
+	return qpd.random.random(1, #Ghost._ghost_homes)
+end
 
 function Ghost.set_state(new_state)
 	Ghost._state = new_state
@@ -18,8 +29,8 @@ function Ghost.set_speed(new_speed)
 	Ghost._speed = new_speed
 end
 
-function Ghost.set_randomize_home(value)
-	Ghost._randomize_home = value or true
+function Ghost.set_sequential_home(value)
+	Ghost._sequential_home = value or true
 end
 
 function Ghost.set_shuffle_try_order(value)
@@ -40,7 +51,7 @@ function Ghost:new(o)
 	local o = GridActor:new(o or {})
 	setmetatable(o, self)
 
-	o._home = {} -- determined by pos_index, it is a phenotype
+	o._home = Ghost.get_random_home_index() -- determined by pos_index, it is a phenotype
 	o._try_order = {} -- gene
 
 	o._type = GridActor.get_type_by_name(ghost_type_name)
@@ -49,15 +60,16 @@ function Ghost:new(o)
 end
 
 function Ghost:reset(reset_table)
-	local home_cell, target_offset, try_order, pos, direction
+	local home, target_offset, try_order, pos, direction
 	if reset_table then
-		home_cell = reset_table.home_cell
+		home = reset_table.home
 		target_offset = reset_table.target_offset
 		try_order = reset_table.try_order
 		pos = reset_table.pos
 		direction = reset_table.direction
 	end
-	home_cell = home_cell or Ghost._grid:get_invalid_cell()
+
+	self._home = home or Ghost.get_random_home_index()
 
 	target_offset = target_offset or qpd.random.random(math.floor(-Ghost._target_spread), math.ceil(Ghost._target_spread))
 	try_order = try_order or nil
@@ -74,9 +86,6 @@ function Ghost:reset(reset_table)
 	self._try_order[2] = try_order[2]
 	self._try_order[3] = try_order[3]
 	self._try_order[4] = try_order[4]
-
-	self._home.x = home_cell.x
-	self._home.y = home_cell.y
 
 	GridActor.reset(self, pos or Ghost._grid:get_valid_cell())
 
@@ -101,6 +110,17 @@ end
 
 function Ghost:set_target_offset(value)
 	self._target_offset = value
+end
+
+function Ghost:get_home()
+	local current_home = self._home
+	if self._sequential_home then
+		self._home = self._home + 1
+		if self._home > #Ghost._ghost_homes then
+			self._home = 1
+		end
+	end
+	return Ghost._ghost_homes[current_home]
 end
 
 function Ghost:get_history()
@@ -428,13 +448,10 @@ function Ghost:wander(possible_next_moves)
 end
 
 function Ghost:go_home(possible_next_moves)
-	if self._randomize_home then
-		self._home = Ghost._grid:get_invalid_cell()
-	end
-
 	local destination = {}
-	destination.x = self._home.x
-	destination.y = self._home.y
+	local home = self:get_home()
+	destination.x = home.x
+	destination.y = home.y
 
 	self:get_closest(possible_next_moves, destination)
 end

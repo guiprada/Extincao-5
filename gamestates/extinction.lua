@@ -61,7 +61,7 @@ local function player_caught_callback()
 	for i, ghost in ipairs(ghost_population) do
 		local target_offset = ghost:get_target_offset()
 		local direction = "right"
-		local pos = {x = 1, y = 2}
+		local pos = {x = 2, y = 2}
 		if i%2 == 0 then
 			pos.y = 13
 			pos.x = 26
@@ -226,8 +226,8 @@ function gs.load(map_file_path)
 		gs.ghost_chase_time = gs.game_conf.ghost_chase_time
 		gs.ghost_scatter_time = gs.game_conf.ghost_scatter_time
 		gs.ghost_speed_factor = gs.game_conf.ghost_speed_factor
-		if gs.game_conf.ghost_ramdomize_home then
-			Ghost.set_randomize_home(true)
+		if gs.game_conf.ghost_sequential_home then
+			Ghost.set_sequential_home(true)
 		end
 		if gs.game_conf.ghost_shuffle_try_order then
 			Ghost.set_shuffle_try_order(true)

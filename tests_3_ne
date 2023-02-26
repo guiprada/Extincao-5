@@ -12,13 +12,13 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 ghost_state_reset_on_autoplayer_capture = true
-ghost_ramdomize_home = true
+ghost_sequential_home = true
 ghost_shuffle_try_order = true
 
 autoplayer_start_idle = true
 autoplayer_start_on_center = false
 autoplayer_ann_mode = b1
-autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {count = 3, activation_function_name = "tanh"}, {count = 1, activation_function_name = "binary_step"}}
+autoplayer_ann_layers = {{count = 12, activation_function_name = "identity"}, {count = 3, activation_function_name = "tanh"}, {count = 1, activation_function_name = "binary_step"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
@@ -53,13 +53,13 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 ghost_state_reset_on_autoplayer_capture = true
-ghost_ramdomize_home = true
+ghost_sequential_home = true
 ghost_shuffle_try_order = true
 
 autoplayer_start_idle = true
 autoplayer_start_on_center = false
 autoplayer_ann_mode = b1_path_grading_hack
-autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {count = 3, activation_function_name = "tanh"}, {count = 1, activation_function_name = "binary_step"}}
+autoplayer_ann_layers = {{count = 4, activation_function_name = "identity"}, {count = 3, activation_function_name = "tanh"}, {count = 1, activation_function_name = "binary_step"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
@@ -94,13 +94,13 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 ghost_state_reset_on_autoplayer_capture = true
-ghost_ramdomize_home = true
+ghost_sequential_home = true
 ghost_shuffle_try_order = true
 
 autoplayer_start_idle = true
 autoplayer_start_on_center = false
 autoplayer_ann_mode = nb4
-autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {count = 12, activation_function_name = "relu"}, {count = 4, activation_function_name = "identity"}}
+autoplayer_ann_layers = {{count = 12, activation_function_name = "identity"}, {count = 12, activation_function_name = "relu"}, {count = 4, activation_function_name = "identity"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
@@ -135,13 +135,13 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 ghost_state_reset_on_autoplayer_capture = true
-ghost_ramdomize_home = true
+ghost_sequential_home = true
 ghost_shuffle_try_order = true
 
 autoplayer_start_idle = true
 autoplayer_start_on_center = false
 autoplayer_ann_mode = nb4_path_grading
-autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {count = 3, activation_function_name = "relu"}, {count = 3, activation_function_name = "relu"}, {count = 1, activation_function_name = "identity"}}
+autoplayer_ann_layers = {{count = 4, activation_function_name = "identity"}, {count = 3, activation_function_name = "relu"}, {count = 3, activation_function_name = "relu"}, {count = 1, activation_function_name = "identity"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
@@ -176,13 +176,13 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 ghost_state_reset_on_autoplayer_capture = true
-ghost_ramdomize_home = true
+ghost_sequential_home = true
 ghost_shuffle_try_order = true
 
 autoplayer_start_idle = true
 autoplayer_start_on_center = false
 autoplayer_ann_mode = b1
-autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {count = 3, activation_function_name = "tanh"}, {count = 1, activation_function_name = "binary_step"}}
+autoplayer_ann_layers = {{count = 12, activation_function_name = "identity"}, {count = 3, activation_function_name = "tanh"}, {count = 1, activation_function_name = "binary_step"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
@@ -217,13 +217,13 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 ghost_state_reset_on_autoplayer_capture = true
-ghost_ramdomize_home = true
+ghost_sequential_home = true
 ghost_shuffle_try_order = true
 
 autoplayer_start_idle = true
 autoplayer_start_on_center = false
 autoplayer_ann_mode = b1_path_grading_hack
-autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {count = 3, activation_function_name = "tanh"}, {count = 1, activation_function_name = "binary_step"}}
+autoplayer_ann_layers = {{count = 4, activation_function_name = "identity"}, {count = 3, activation_function_name = "tanh"}, {count = 1, activation_function_name = "binary_step"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
@@ -258,13 +258,13 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 ghost_state_reset_on_autoplayer_capture = true
-ghost_ramdomize_home = true
+ghost_sequential_home = true
 ghost_shuffle_try_order = true
 
 autoplayer_start_idle = true
 autoplayer_start_on_center = false
 autoplayer_ann_mode = nb4
-autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {count = 12, activation_function_name = "relu"}, {count = 4, activation_function_name = "identity"}}
+autoplayer_ann_layers = {{count = 12, activation_function_name = "identity"}, {count = 12, activation_function_name = "relu"}, {count = 4, activation_function_name = "identity"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
@@ -299,13 +299,13 @@ __ghost_population_history_size = 0
 __ghost_active_population = 2
 ghost_population_target_offset_array = {4, -5}
 ghost_state_reset_on_autoplayer_capture = true
-ghost_ramdomize_home = true
+ghost_sequential_home = true
 ghost_shuffle_try_order = true
 
 autoplayer_start_idle = true
 autoplayer_start_on_center = false
 autoplayer_ann_mode = nb4_path_grading
-autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {count = 3, activation_function_name = "relu"}, {count = 3, activation_function_name = "relu"}, {count = 1, activation_function_name = "identity"}}
+autoplayer_ann_layers = {{count = 4, activation_function_name = "identity"}, {count = 3, activation_function_name = "relu"}, {count = 3, activation_function_name = "relu"}, {count = 1, activation_function_name = "identity"}}
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1

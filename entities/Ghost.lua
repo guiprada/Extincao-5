@@ -113,8 +113,6 @@ function Ghost:increase_home()
 	if self._home > #self._ghost_homes then
 		self._home = 1
 	end
-	print("---", #self._ghost_homes )
-	print("new home,", self._home)
 end
 
 function Ghost:get_home()

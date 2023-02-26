@@ -110,9 +110,11 @@ end
 
 function Ghost:increase_home()
 	self._home = self._home + 1
-	if self._home > #Ghost._ghost_homes then
+	if self._home > #self._ghost_homes then
 		self._home = 1
 	end
+	print("---", #self._ghost_homes )
+	print("new home,", self._home)
 end
 
 function Ghost:get_home()
@@ -135,7 +137,7 @@ function Ghost:crossover(mom, dad, reset_table)
 	-- 	target_offset = target_offset + math.floor(qpd.random.random(-2, 2))
 	-- end
 
-	self:reset({target_offset = self._target_offset})
+	self:reset({target_offset = self._target_offset, home = self._home})
 end
 
 function Ghost:is_type(type_name)

@@ -1,6 +1,5 @@
 -----------1
 game_speed = 150
-seed = 1665499567
 headless = true
 default_zoom = 3
 
@@ -25,7 +24,6 @@ pill_effect_time = 3
 
 -----------2
 game_speed = 150
-seed = 1665499585
 headless = true
 default_zoom = 3
 
@@ -50,7 +48,6 @@ pill_effect_time = 3
 
 -----------3
 game_speed = 150
-seed = 1665499608
 headless = true
 default_zoom = 3
 
@@ -75,7 +72,6 @@ pill_effect_time = 3
 
 -----------4
 game_speed = 150
-seed = 1665499628
 headless = true
 default_zoom = 3
 
@@ -100,7 +96,6 @@ pill_effect_time = 3
 
 -----------5
 game_speed = 150
-seed = 1665529647
 headless = true
 default_zoom = 3
 
@@ -125,7 +120,6 @@ pill_effect_time = 3
 
 -----------6
 game_speed = 150
-seed = 1665852809
 headless = true
 default_zoom = 3
 
@@ -150,7 +144,6 @@ pill_effect_time = 3
 
 -----------7
 game_speed = 150
-seed = 1665852831
 headless = true
 default_zoom = 3
 
@@ -175,7 +168,6 @@ pill_effect_time = 3
 
 -----------8
 game_speed = 150
-seed = 1665852850
 headless = true
 default_zoom = 3
 

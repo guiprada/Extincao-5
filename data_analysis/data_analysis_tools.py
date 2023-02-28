@@ -16,6 +16,7 @@ SMALL_LEGEND_FONTSIZE = 10
 
 ANN_MODE_STRING = "autoplayer_ann_mode = "
 ANN_LAYERS_STRING = "autoplayer_ann_layers = "
+ANN_FITNESS_STRING = "autoplayer_fitness_mode = "
 
 OVERRIDE_OLD_DATAFRAME = False
 
@@ -329,11 +330,11 @@ def generate_run_report_from_dict(run_dict, cut_to_1000_results = False, show = 
 	add_heatmap_to_axis(subplots["G"], pill_df["cell_x"], pill_df["cell_y"], bins = (28, 14), title = "Capture heatmap for pill")
 	add_scatter_plot_to_axis(subplots["H"], pill_df["index"], pill_df["lifetime"], "lifetime x pill iteration", "lifetime", alpha = 1, scale = 1)
 
-	## pills captured x autoplayer generation
-	add_scatter_plot_to_axis(subplots["I"], player_df["index"], player_df["pills_captured"], "pills_captured x player iteration", "pills_captured")
+	## pills_captured/lifetime x autoplayer generation
+	add_scatter_plot_to_axis(subplots["I"], non_zero_lifetime_player_df["index"], non_zero_lifetime_player_df["pills_captured"]/non_zero_lifetime_player_df["lifetime"], "pills_captured/lifetime x player iteration", "pills_captured/lifetime")
 
-	## Ghosts captured x autoplayer generation
-	add_scatter_plot_to_axis(subplots["J"], player_df["index"], player_df["ghosts_captured"], "ghosts_captured x player iteration", "ghosts_captured")
+	## Ghosts captured/lifetime x autoplayer generation
+	add_scatter_plot_to_axis(subplots["J"], non_zero_lifetime_player_df["index"], non_zero_lifetime_player_df["ghosts_captured"]/non_zero_lifetime_player_df["lifetime"], "ghosts_captured/lifetime x player iteration", "ghosts_captured/lifetime")
 
 	## Ghosts/pill x autoplayer generation
 	add_scatter_plot_to_axis(subplots["K"], non_zero_pills_captured_player_df["index"], non_zero_pills_captured_player_df["ghosts_captured"]/non_zero_pills_captured_player_df["pills_captured"], "ghosts_captured/pills_captured x player iteration", "ghosts_captured/pills_captured")
@@ -341,30 +342,12 @@ def generate_run_report_from_dict(run_dict, cut_to_1000_results = False, show = 
 	## Visited_count x autoplayer generation
 	add_scatter_plot_to_axis(subplots["L"], player_df["index"], player_df["visited_count"], "visited_count x player iteration", "visited_count")
 
-	## grid_cell_changes/updates x autoplayer generation
-	add_scatter_plot_to_axis(subplots["M"], non_zero_updates_player_df["index"], non_zero_updates_player_df["grid_cell_changes"]/non_zero_updates_player_df["updates"], "grid_cell_changes/updates  x player iteration", "grid_cell_changes/updates")
+	## grid_cell_changes/lifetime x autoplayer generation
+	add_scatter_plot_to_axis(subplots["M"], non_zero_lifetime_player_df["index"], non_zero_lifetime_player_df["grid_cell_changes"]/non_zero_lifetime_player_df["lifetime"], "grid_cell_changes/lifetime x player iteration", "grid_cell_changes/lifetime")
 
-	## collision_count/updates x autoplayer generation
-	add_scatter_plot_to_axis(subplots["N"], non_zero_updates_player_df["index"], non_zero_updates_player_df["collision_count"]/non_zero_updates_player_df["updates"], "collision_count/updates x player iteration", "collision_count/updates")
+	## collision_count/lifetime x autoplayer generation
+	add_scatter_plot_to_axis(subplots["N"], non_zero_lifetime_player_df["index"], non_zero_lifetime_player_df["collision_count"]/non_zero_lifetime_player_df["lifetime"], "collision_count/lifetime x player iteration", "collision_count/lifetime")
 
-	# distributions
-	# add_distribution_plot_to_axis(subplots[0][2], player_df["updates"], "updates distribution for players")
-	# add_distribution_plot_to_axis(subplots[1][2], player_df["lifetime"], "lifetime distribution for players")
-	# add_distribution_plot_to_axis(subplots[2][2], non_zero_lifetime_player_df["lifetime"], "non_zero lifetime distribution for players")
-	# add_distribution_plot_to_axis(subplots[3][2], player_df["updates_per_second"].replace([np.inf, -np.inf], np.nan).dropna(), "updates/lifetime distribution for players")
-	# add_distribution_plot_to_axis(subplots[4][2], player_df["visited_count"], "cells visited distribution for players")
-	# add_distribution_plot_to_axis(subplots[5][2], player_df["grid_cell_changes"], "cell changes distribution for players")
-
-
-	#Plot and save
-	# plt.subplots_adjust(
-	# 	# left=0.1,
-	# 	# bottom=0.1,
-	# 	# right=0.9,
-	# 	# top=0.9,
-	# 	# wspace=0.2,
-	# 	hspace=0.4
-	# )
 	plt.tight_layout()
 
 	plt.savefig(f"{run_dict['path']}{run_dict['run_id']}_plots.png", dpi = IMAGE_DPI)
@@ -393,11 +376,13 @@ def generate_run_report_from_dict(run_dict, cut_to_1000_results = False, show = 
 	text_analysis += '\n' + "lifetime for pills: " + '\n' + str(pill_df["lifetime"].describe()) + '\n'
 	text_analysis += '\n' + "visited_count: " + '\n' + str(player_df["visited_count"].describe()) + '\n'
 	text_analysis += '\n' + "grid_cell_changes: " + '\n' + str(player_df["grid_cell_changes"].describe()) + '\n'
-	text_analysis += '\n' + "grid_cell_changes/updates: " + '\n' + str((non_zero_updates_player_df["grid_cell_changes"]/non_zero_updates_player_df["updates"]).describe()) + '\n'
+	text_analysis += '\n' + "grid_cell_changes/lifetime: " + '\n' + str((non_zero_lifetime_player_df["grid_cell_changes"]/non_zero_lifetime_player_df["lifetime"]).describe()) + '\n'
 	text_analysis += '\n' + "collision_count: " + '\n' + str(player_df["collision_count"].describe()) + '\n'
-	text_analysis += '\n' + "collision_count/updates: " + '\n' + str((non_zero_updates_player_df["collision_count"]/non_zero_updates_player_df["updates"]).describe()) + '\n'
+	text_analysis += '\n' + "collision_count/lifetime: " + '\n' + str((non_zero_lifetime_player_df["collision_count"]/non_zero_lifetime_player_df["lifetime"]).describe()) + '\n'
 	text_analysis += '\n' + "ghosts_captured: " + '\n' + str(player_df["ghosts_captured"].describe()) + '\n'
+	text_analysis += '\n' + "ghosts_captured/lifetime: " + '\n' + str((non_zero_lifetime_player_df["ghosts_captured"]/non_zero_lifetime_player_df["lifetime"]).describe()) + '\n'
 	text_analysis += '\n' + "pills_captured: " + '\n' + str(player_df["pills_captured"].describe()) + '\n'
+	text_analysis += '\n' + "pills_captured/lifetime: " + '\n' + str((non_zero_lifetime_player_df["pills_captured"]/non_zero_lifetime_player_df["lifetime"]).describe()) + '\n'
 	text_analysis += '\n' + "ghosts_captured/pills_captured: " + '\n' + str((non_zero_pills_captured_player_df["ghosts_captured"]/non_zero_pills_captured_player_df["pills_captured"]).describe()) + '\n'
 	# text_analysis += '\n' + "ghosts lifetime: " + '\n' + str(ghost_df["lifetime"].describe()) + '\n'
 	# text_analysis += '\n' + "pills lifetime: " + '\n' + str(pill_df["lifetime"].describe()) + '\n'
@@ -549,14 +534,14 @@ def generate_run_report_from_dict_internal_lifetime(run_dict, cut_to_1000_result
 	add_heatmap_to_axis(subplots["G"], pill_df["cell_x"], pill_df["cell_y"], bins = (28, 14), title = "Capture heatmap for pill")
 	add_scatter_plot_to_axis(subplots["H"], pill_df["index"], pill_df["internal_lifetime"], "internal_lifetime x pill iteration", "internal_lifetime", alpha = 1, scale = 1)
 
-	## pills captured x autoplayer generation
-	add_scatter_plot_to_axis(subplots["I"], player_df["index"], player_df["pills_captured"], "pills_captured x player iteration", "pills_captured")
+	## pills captured/internal_lifetime x autoplayer generation
+	add_scatter_plot_to_axis(subplots["I"], non_zero_internal_lifetime_player_df["index"], non_zero_internal_lifetime_player_df["pills_captured"]/non_zero_internal_lifetime_player_df["internal_lifetime"], "pills_captured/internal_lifetime x\nplayer iteration", "pills_captured/internal_lifetime")
 
-	## Ghosts captured x autoplayer generation
-	add_scatter_plot_to_axis(subplots["J"], player_df["index"], player_df["ghosts_captured"], "ghosts_captured x player iteration", "ghosts_captured")
+	## Ghosts captured/internal_lifetime x autoplayer generation
+	add_scatter_plot_to_axis(subplots["J"], non_zero_internal_lifetime_player_df["index"], non_zero_internal_lifetime_player_df["ghosts_captured"]/non_zero_internal_lifetime_player_df["internal_lifetime"], "ghosts_captured/internal_lifetime x\nplayer iteration", "ghosts_captured/internal_lifetime")
 
 	## Ghosts/pill x autoplayer generation
-	add_scatter_plot_to_axis(subplots["K"], non_zero_pills_captured_player_df["index"], non_zero_pills_captured_player_df["ghosts_captured"]/non_zero_pills_captured_player_df["pills_captured"], "ghosts_captured/pills_captured x player iteration", "ghosts_captured/pills_captured")
+	add_scatter_plot_to_axis(subplots["K"], non_zero_pills_captured_player_df["index"], non_zero_pills_captured_player_df["ghosts_captured"]/non_zero_pills_captured_player_df["pills_captured"], "ghosts_captured/pills_captured x\nplayer iteration", "ghosts_captured/pills_captured")
 
 	## Visited_count x autoplayer generation
 	add_scatter_plot_to_axis(subplots["L"], player_df["index"], player_df["visited_count"], "visited_count x player iteration", "visited_count")
@@ -567,24 +552,6 @@ def generate_run_report_from_dict_internal_lifetime(run_dict, cut_to_1000_result
 	## collision_count/internal_lifetime x autoplayer generation
 	add_scatter_plot_to_axis(subplots["N"], non_zero_internal_lifetime_player_df["index"], non_zero_internal_lifetime_player_df["collision_count"]/non_zero_internal_lifetime_player_df["internal_lifetime"], "collision_count/internal_lifetime x\n player iteration", "collision_count/internal_lifetime")
 
-	# distributions
-	# add_distribution_plot_to_axis(subplots[0][2], player_df["updates"], "updates distribution for players")
-	# add_distribution_plot_to_axis(subplots[1][2], player_df["internal_lifetime"], "internal_lifetime distribution for players")
-	# add_distribution_plot_to_axis(subplots[2][2], non_zero_internal_lifetime_player_df["internal_lifetime"], "non_zero internal_lifetime distribution for players")
-	# add_distribution_plot_to_axis(subplots[3][2], player_df["updates_per_second"].replace([np.inf, -np.inf], np.nan).dropna(), "updates/internal_lifetime distribution for players")
-	# add_distribution_plot_to_axis(subplots[4][2], player_df["visited_count"], "cells visited distribution for players")
-	# add_distribution_plot_to_axis(subplots[5][2], player_df["grid_cell_changes"], "cell changes distribution for players")
-
-
-	#Plot and save
-	# plt.subplots_adjust(
-	# 	# left=0.1,
-	# 	# bottom=0.1,
-	# 	# right=0.9,
-	# 	# top=0.9,
-	# 	# wspace=0.2,
-	# 	hspace=0.4
-	# )
 	plt.tight_layout()
 
 	plt.savefig(f"{run_dict['path']}{run_dict['run_id']}_plots.png", dpi = IMAGE_DPI)
@@ -617,10 +584,10 @@ def generate_run_report_from_dict_internal_lifetime(run_dict, cut_to_1000_result
 	text_analysis += '\n' + "collision_count: " + '\n' + str(player_df["collision_count"].describe()) + '\n'
 	text_analysis += '\n' + "collision_count/internal_lifetime: " + '\n' + str((non_zero_internal_lifetime_player_df["collision_count"]/non_zero_internal_lifetime_player_df["internal_lifetime"]).describe()) + '\n'
 	text_analysis += '\n' + "ghosts_captured: " + '\n' + str(player_df["ghosts_captured"].describe()) + '\n'
+	text_analysis += '\n' + "ghosts_captured/internal_lifetime: " + '\n' + str((non_zero_internal_lifetime_player_df["ghosts_captured"]/non_zero_internal_lifetime_player_df["internal_lifetime"]).describe()) + '\n'
 	text_analysis += '\n' + "pills_captured: " + '\n' + str(player_df["pills_captured"].describe()) + '\n'
+	text_analysis += '\n' + "pills_captured/internal_lifetime: " + '\n' + str((non_zero_internal_lifetime_player_df["pills_captured"]/non_zero_internal_lifetime_player_df["internal_lifetime"]).describe()) + '\n'
 	text_analysis += '\n' + "ghosts_captured/pills_captured: " + '\n' + str((non_zero_pills_captured_player_df["ghosts_captured"]/non_zero_pills_captured_player_df["pills_captured"]).describe()) + '\n'
-	# text_analysis += '\n' + "ghosts internal_lifetime: " + '\n' + str(ghost_df["internal_lifetime"].describe()) + '\n'
-	# text_analysis += '\n' + "pills internal_lifetime: " + '\n' + str(pill_df["internal_lifetime"].describe()) + '\n'
 
 	##
 	text_analysis += '\n' + 30*'-' + "Correlacoes :)" + '\n'

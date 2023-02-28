@@ -133,6 +133,20 @@ min         0.000000
 max        12.000000
 Name: ghosts_captured, dtype: float64
 
+ghosts_captured/internal_lifetime: 
+0       NaN
+1       NaN
+2       NaN
+3       NaN
+4       NaN
+         ..
+count   NaN
+max     NaN
+mean    NaN
+min     NaN
+std     NaN
+Length: 1170, dtype: float64
+
 pills_captured: 
 count    1176.000000
 mean        0.059524
@@ -143,6 +157,20 @@ min         0.000000
 75%         0.000000
 max         3.000000
 Name: pills_captured, dtype: float64
+
+pills_captured/internal_lifetime: 
+0       NaN
+1       NaN
+2       NaN
+3       NaN
+4       NaN
+         ..
+count   NaN
+max     NaN
+mean    NaN
+min     NaN
+std     NaN
+Length: 1170, dtype: float64
 
 ghosts_captured/pills_captured: 
 count    60.000000
@@ -155,38 +183,16 @@ min       0.000000
 max       9.000000
 dtype: float64
 
-ghosts internal_lifetime: 
-count    205.000000
-mean       1.209030
-std        1.415261
-min        0.004041
-25%        0.316173
-50%        0.758332
-75%        1.600300
-max        8.524842
-Name: internal_lifetime, dtype: float64
-
-pills internal_lifetime: 
-count     71.000000
-mean      19.790166
-std       21.801995
-min        0.000000
-25%        5.466182
-50%       13.754625
-75%       27.668990
-max      121.009542
-Name: internal_lifetime, dtype: float64
-
 ------------------------------Correlacoes :)
 
 A taxa de atualizacao e as outras metricas
-fps internal_lifetime r: -0.042998153513153656 rs: -0.015578446923159857 T: -0.010045984351869498
-fps updates r: -0.015609440022570401 rs: 0.0583704923220705 T: 0.03971437578463827
-fps visited_count r: -0.09797730090839361 rs: -0.11353770064811856 T: -0.08242873387568915
-fps grid_cell_changes r: -0.01560183381706721 rs: 0.05844191392352083 T: 0.039768425346209335
+fps internal_lifetime r: -0.04147560029339278 rs: -0.009497524548062885 T: -0.005951055358192058
+fps updates r: -0.014276942780201592 rs: 0.06271881541682023 T: 0.04264183229197202
+fps visited_count r: -0.09347783576003545 rs: -0.10489529331779786 T: -0.07602887851949654
+fps grid_cell_changes r: -0.014269405195475132 rs: 0.06278870378888825 T: 0.042694607323510055
 fps collision_count r: nan rs: nan T: nan
-fps ghosts_captured r: -0.05063043796779217 rs: -0.012271493844762015 T: -0.010057418973774674
-fps pills_captured r: -0.013697973801553198 rs: -0.008764423390646018 T: -0.007223397471939415
+fps ghosts_captured r: -0.04990494682628121 rs: -0.01141500034497755 T: -0.009359680688495946
+fps pills_captured r: -0.01306759807297008 rs: -0.007876677527012653 T: -0.006494373863419454
 
 Updates e as outras metricas
 updates internal_lifetime r: 0.9975477873659053 rs: 0.9904192278146565 T: 0.9243521531661582

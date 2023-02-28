@@ -448,7 +448,7 @@ function gs.update(dt)
 		if gs.game_fixed_speed then
 			dt = gs.max_dt
 		else
-			if (dt > gs.max_dt ) then
+			if (dt > gs.max_dt) then
 				-- print("ops, dt too high, physics wont work, limiting dt too:", gs.max_dt)
 				dt = gs.max_dt
 			end

@@ -651,20 +651,11 @@ def generate_run_report_from_dict_internal_lifetime(run_dict, cut_to_1000_result
 		"visited_count collision_count": (player_df["visited_count"], player_df["collision_count"]),
 		"visited_count ghosts_captured": (player_df["visited_count"], player_df["ghosts_captured"]),
 		"visited_count pills_captured": (player_df["visited_count"], player_df["pills_captured"]),
-	}
-	for label, series in desired_correlations.items():
-		text_analysis += pp_correlations(series[0], series[1], label) + '\n'
-
-
-	##
-	text_analysis += '\n' + "As metricas de movimentacao" + '\n'
-	desired_correlations = {
-		"visited_count ghosts_captured": (player_df["visited_count"], player_df["ghosts_captured"]),
-		"visited_count pills_captured": (player_df["visited_count"], player_df["pills_captured"]),
 		"visited_count ghost_captured/pills_captured": (non_zero_pills_captured_player_df["visited_count"], non_zero_pills_captured_player_df["ghosts_captured"]/non_zero_pills_captured_player_df["pills_captured"]),
 	}
 	for label, series in desired_correlations.items():
 		text_analysis += pp_correlations(series[0], series[1], label) + '\n'
+
 
 	##
 	text_analysis += '\n' + "As metricas de captura" + '\n'

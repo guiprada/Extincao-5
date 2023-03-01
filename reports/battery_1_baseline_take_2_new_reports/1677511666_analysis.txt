@@ -217,10 +217,6 @@ visited_count grid_cell_changes r: 0.8693234297147892 rs: 0.8010589604397224 T: 
 visited_count collision_count r: nan rs: nan T: nan
 visited_count ghosts_captured r: 0.5792420836503244 rs: 0.32122222048291094 T: 0.2776429683219388
 visited_count pills_captured r: 0.6698715790387161 rs: 0.3466825426248602 T: 0.3012769888243147
-
-As metricas de movimentacao
-visited_count ghosts_captured r: 0.5792420836503244 rs: 0.32122222048291094 T: 0.2776429683219388
-visited_count pills_captured r: 0.6698715790387161 rs: 0.3466825426248602 T: 0.3012769888243147
 visited_count ghost_captured/pills_captured r: 0.10346843835898127 rs: 0.10060759660410448 T: 0.07344696762616074
 
 As metricas de captura

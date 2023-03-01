@@ -259,7 +259,6 @@ def cut_to_1000(df):
 
 def generate_run_report_from_dict(run_dict, cut_to_1000_results = False, show = False, disable_new_report = False):
 	if (not disable_new_report) and "internal_lifetime" in run_dict["df"]:
-		print("--------------------------------------------------------------------------------------------------------")
 		return generate_run_report_from_dict_internal_lifetime(run_dict, cut_to_1000_results = cut_to_1000_results, show = show)
 
 	if cut_to_1000_results:
@@ -384,8 +383,6 @@ def generate_run_report_from_dict(run_dict, cut_to_1000_results = False, show = 
 	text_analysis += '\n' + "pills_captured: " + '\n' + str(player_df["pills_captured"].describe()) + '\n'
 	text_analysis += '\n' + "pills_captured/lifetime: " + '\n' + str((non_zero_lifetime_player_df["pills_captured"]/non_zero_lifetime_player_df["lifetime"]).describe()) + '\n'
 	text_analysis += '\n' + "ghosts_captured/pills_captured: " + '\n' + str((non_zero_pills_captured_player_df["ghosts_captured"]/non_zero_pills_captured_player_df["pills_captured"]).describe()) + '\n'
-	# text_analysis += '\n' + "ghosts lifetime: " + '\n' + str(ghost_df["lifetime"].describe()) + '\n'
-	# text_analysis += '\n' + "pills lifetime: " + '\n' + str(pill_df["lifetime"].describe()) + '\n'
 
 	##
 	text_analysis += '\n' + 30*'-' + "Correlacoes :)" + '\n'
@@ -470,6 +467,7 @@ def generate_run_report_from_dict_internal_lifetime(run_dict, cut_to_1000_result
 		cut_to_1000(run_dict)
 
 	player_df = run_dict["df"].loc[run_dict["df"]["actor_type"] == "player"]
+	non_zero_lifetime_player_df = player_df.query("lifetime > 0")
 	non_zero_internal_lifetime_player_df = player_df.query("internal_lifetime > 0")
 	non_zero_updates_player_df = player_df.query("updates > 0")
 	non_zero_pills_captured_player_df = player_df.query("pills_captured > 0")
@@ -478,6 +476,8 @@ def generate_run_report_from_dict_internal_lifetime(run_dict, cut_to_1000_result
 	player_df.reset_index(drop = True, inplace=True)
 	player_df.reset_index(inplace=True)
 
+	non_zero_lifetime_player_df.reset_index(drop = True, inplace=True)
+	non_zero_lifetime_player_df.reset_index(inplace=True)
 	non_zero_internal_lifetime_player_df.reset_index(drop = True, inplace=True)
 	non_zero_internal_lifetime_player_df.reset_index(inplace=True)
 	non_zero_updates_player_df.reset_index(drop = True, inplace=True)
@@ -600,6 +600,8 @@ def generate_run_report_from_dict_internal_lifetime(run_dict, cut_to_1000_result
 		"fps collision_count": (player_df["fps"], player_df["collision_count"]),
 		"fps ghosts_captured": (player_df["fps"], player_df["ghosts_captured"]),
 		"fps pills_captured": (player_df["fps"], player_df["pills_captured"]),
+		"fps grid_cell_changes/lifetime": (non_zero_lifetime_player_df["fps"], non_zero_lifetime_player_df["grid_cell_changes"]/non_zero_lifetime_player_df["lifetime"]),
+		"fps grid_cell_changes/internal_lifetime": (non_zero_internal_lifetime_player_df["fps"], non_zero_internal_lifetime_player_df["grid_cell_changes"]/non_zero_internal_lifetime_player_df["internal_lifetime"]),
 	}
 	for label, series in desired_correlations.items():
 		text_analysis += pp_correlations(series[0], series[1], label) + '\n'

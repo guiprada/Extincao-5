@@ -134,18 +134,15 @@ max        16.000000
 Name: ghosts_captured, dtype: float64
 
 ghosts_captured/internal_lifetime: 
-0       NaN
-1       NaN
-2       NaN
-3       NaN
-4       NaN
-         ..
-count   NaN
-max     NaN
-mean    NaN
-min     NaN
-std     NaN
-Length: 1008, dtype: float64
+count    1000.000000
+mean        0.058617
+std         0.254613
+min         0.000000
+25%         0.000000
+50%         0.000000
+75%         0.000000
+max         2.591745
+dtype: float64
 
 pills_captured: 
 count    1014.000000
@@ -159,18 +156,15 @@ max         3.000000
 Name: pills_captured, dtype: float64
 
 pills_captured/internal_lifetime: 
-0       NaN
-1       NaN
-2       NaN
-3       NaN
-4       NaN
-         ..
-count   NaN
-max     NaN
-mean    NaN
-min     NaN
-std     NaN
-Length: 1008, dtype: float64
+count    1000.000000
+mean        0.020022
+std         0.070159
+min         0.000000
+25%         0.000000
+50%         0.000000
+75%         0.000000
+max         0.333324
+dtype: float64
 
 ghosts_captured/pills_captured: 
 count    82.000000

@@ -187,8 +187,14 @@ fps grid_cell_changes r: -0.03659712743769948 rs: 0.025488276851246404 T: 0.0174
 fps collision_count r: nan rs: nan T: nan
 fps ghosts_captured r: 0.0021355255332237808 rs: 0.016487038326110367 T: 0.012114092617161181
 fps pills_captured r: 0.002638117180409429 rs: 0.01701133237732056 T: 0.012690318285789714
+fps collision_count/internal_lifetime r: nan rs: nan T: nan
+fps pills_captured/internal_lifetime r: 0.01489081130560495 rs: 0.02040946385278938 T: 0.014698876900021945
+fps ghosts_captured/internal_lifetime r: 0.010750297606328578 rs: 0.01549155290062675 T: 0.011193579191640298
 fps grid_cell_changes/lifetime r: 0.506921300517136 rs: 0.5565021219597373 T: 0.40886655861311966
 fps grid_cell_changes/internal_lifetime r: -0.16743932809796888 rs: 0.29272315808123767 T: 0.25536883548738054
+updates/lifetime collision_count/lifetime r: nan rs: nan T: nan
+updates/lifetime pills_captured/lifetime r: 0.3819528562345837 rs: 0.3703472280325026 T: 0.27395772013220726
+updates/lifetime ghosts_captured/lifetime r: 0.3173339916040603 rs: 0.33329993881525855 T: 0.24009269086113988
 
 Updates e as outras metricas
 updates internal_lifetime r: 0.9820014897799393 rs: 0.995441579946687 T: 0.9442585777056342

@@ -395,6 +395,10 @@ def generate_run_report_from_dict(run_dict, cut_to_1000_results = False, show = 
 		"updates/lifetime collision_count": (player_df["updates_per_second"], player_df["collision_count"]),
 		"updates/lifetime ghosts_captured": (player_df["updates_per_second"], player_df["ghosts_captured"]),
 		"updates/lifetime pills_captured": (player_df["updates_per_second"], player_df["pills_captured"]),
+		"updates/lifetime collision_count/lifetime": (non_zero_lifetime_player_df["updates_per_second"], non_zero_lifetime_player_df["collision_count"]/non_zero_lifetime_player_df["lifetime"]),
+		"updates/lifetime pills_captured/lifetime": (non_zero_lifetime_player_df["updates_per_second"], non_zero_lifetime_player_df["pills_captured"]/non_zero_lifetime_player_df["lifetime"]),
+		"updates/lifetime ghosts_captured/lifetime": (non_zero_lifetime_player_df["updates_per_second"], non_zero_lifetime_player_df["ghosts_captured"]/non_zero_lifetime_player_df["lifetime"]),
+		"updates/lifetime grid_cell_changes/lifetime": (non_zero_lifetime_player_df["updates_per_second"], non_zero_lifetime_player_df["grid_cell_changes"]/non_zero_lifetime_player_df["lifetime"]),
 	}
 	for label, series in desired_correlations.items():
 		text_analysis += pp_correlations(series[0], series[1], label) + '\n'
@@ -600,8 +604,16 @@ def generate_run_report_from_dict_internal_lifetime(run_dict, cut_to_1000_result
 		"fps collision_count": (player_df["fps"], player_df["collision_count"]),
 		"fps ghosts_captured": (player_df["fps"], player_df["ghosts_captured"]),
 		"fps pills_captured": (player_df["fps"], player_df["pills_captured"]),
+		"fps ghosts_captured": (player_df["fps"], player_df["ghosts_captured"]),
+		"fps pills_captured": (player_df["fps"], player_df["pills_captured"]),
+		"fps collision_count/internal_lifetime": (non_zero_internal_lifetime_player_df["fps"], non_zero_internal_lifetime_player_df["collision_count"]/non_zero_internal_lifetime_player_df["internal_lifetime"]),
+		"fps pills_captured/internal_lifetime": (non_zero_internal_lifetime_player_df["fps"], non_zero_internal_lifetime_player_df["pills_captured"]/non_zero_internal_lifetime_player_df["internal_lifetime"]),
+		"fps ghosts_captured/internal_lifetime": (non_zero_internal_lifetime_player_df["fps"], non_zero_internal_lifetime_player_df["ghosts_captured"]/non_zero_internal_lifetime_player_df["internal_lifetime"]),
 		"fps grid_cell_changes/lifetime": (non_zero_lifetime_player_df["fps"], non_zero_lifetime_player_df["grid_cell_changes"]/non_zero_lifetime_player_df["lifetime"]),
 		"fps grid_cell_changes/internal_lifetime": (non_zero_internal_lifetime_player_df["fps"], non_zero_internal_lifetime_player_df["grid_cell_changes"]/non_zero_internal_lifetime_player_df["internal_lifetime"]),
+		"updates/lifetime collision_count/lifetime": (non_zero_lifetime_player_df["updates_per_second"], non_zero_lifetime_player_df["collision_count"]/non_zero_lifetime_player_df["lifetime"]),
+		"updates/lifetime pills_captured/lifetime": (non_zero_lifetime_player_df["updates_per_second"], non_zero_lifetime_player_df["pills_captured"]/non_zero_lifetime_player_df["lifetime"]),
+		"updates/lifetime ghosts_captured/lifetime": (non_zero_lifetime_player_df["updates_per_second"], non_zero_lifetime_player_df["ghosts_captured"]/non_zero_lifetime_player_df["lifetime"]),
 	}
 	for label, series in desired_correlations.items():
 		text_analysis += pp_correlations(series[0], series[1], label) + '\n'
@@ -627,6 +639,7 @@ def generate_run_report_from_dict_internal_lifetime(run_dict, cut_to_1000_result
 		"internal_lifetime collision_count": (player_df["internal_lifetime"], player_df["collision_count"]),
 		"internal_lifetime ghosts_captured": (player_df["internal_lifetime"], player_df["ghosts_captured"]),
 		"internal_lifetime pills_captured": (player_df["internal_lifetime"], player_df["pills_captured"]),
+		"internal_lifetime ghost_captured/pills_captured": (non_zero_pills_captured_player_df["internal_lifetime"], non_zero_pills_captured_player_df["ghosts_captured"]/non_zero_pills_captured_player_df["pills_captured"]),
 	}
 	for label, series in desired_correlations.items():
 		text_analysis += pp_correlations(series[0], series[1], label) + '\n'
@@ -646,9 +659,9 @@ def generate_run_report_from_dict_internal_lifetime(run_dict, cut_to_1000_result
 	##
 	text_analysis += '\n' + "As metricas de movimentacao" + '\n'
 	desired_correlations = {
-		"visited_count grid_cell_changes": (player_df["visited_count"], player_df["grid_cell_changes"]),
-		"visited_count collision_count": (player_df["visited_count"], player_df["collision_count"]),
-		"grid_cell_changes collision_count": (player_df["grid_cell_changes"], player_df["collision_count"]),
+		"visited_count ghosts_captured": (player_df["visited_count"], player_df["ghosts_captured"]),
+		"visited_count pills_captured": (player_df["visited_count"], player_df["pills_captured"]),
+		"visited_count ghost_captured/pills_captured": (non_zero_pills_captured_player_df["visited_count"], non_zero_pills_captured_player_df["ghosts_captured"]/non_zero_pills_captured_player_df["pills_captured"]),
 	}
 	for label, series in desired_correlations.items():
 		text_analysis += pp_correlations(series[0], series[1], label) + '\n'

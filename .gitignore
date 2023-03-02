@@ -2,4 +2,4 @@ logs/
 logs_good/
 data_analysis/__pycache__/
 .vscode/
-/reports/tests/
+*.data*

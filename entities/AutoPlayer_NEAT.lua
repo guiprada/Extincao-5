@@ -303,7 +303,7 @@ function AutoPlayer_NEAT:get_history()
 	if ann then
 		local specie = ann._specie
 		local genome = ann:get_genome()
-		return {_fitness = self:get_fitness(), _genome = genome, _specie_id = specie:get_id()}
+		return {_fitness = self:get_fitness(), _genome = genome, _specie_id = specie and specie:get_id() or "no species"}
 	else
 		print("ERROR - AutoPlayer_NEAT - Invalid ANN!")
 		qpd.gamestate.switch("menu")

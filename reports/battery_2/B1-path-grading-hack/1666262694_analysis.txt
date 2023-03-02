@@ -136,18 +136,15 @@ max          22.000000
 Name: ghosts_captured, dtype: float64
 
 ghosts_captured/lifetime: 
-0       NaN
-1       NaN
-2       NaN
-3       NaN
-4       NaN
-         ..
-count   NaN
-max     NaN
-mean    NaN
-min     NaN
-std     NaN
-Length: 87402, dtype: float64
+count    87394.000000
+mean         0.026389
+std          0.111804
+min          0.000000
+25%          0.000000
+50%          0.000000
+75%          0.000000
+max          3.000000
+dtype: float64
 
 pills_captured: 
 count    122355.000000
@@ -161,18 +158,15 @@ max          19.000000
 Name: pills_captured, dtype: float64
 
 pills_captured/lifetime: 
-0       NaN
-1       NaN
-2       NaN
-3       NaN
-4       NaN
-         ..
-count   NaN
-max     NaN
-mean    NaN
-min     NaN
-std     NaN
-Length: 87402, dtype: float64
+count    87394.000000
+mean         0.030718
+std          0.069445
+min          0.000000
+25%          0.000000
+50%          0.000000
+75%          0.000000
+max          1.000000
+dtype: float64
 
 ghosts_captured/pills_captured: 
 count    16814.000000
@@ -195,6 +189,10 @@ updates/lifetime grid_cell_changes r: nan rs: -0.18661817088339858 T: -0.1116107
 updates/lifetime collision_count r: nan rs: 0.045690493070962984 T: 0.03833161522117863
 updates/lifetime ghosts_captured r: nan rs: -0.03854610661938726 T: -0.03170247719453934
 updates/lifetime pills_captured r: nan rs: -0.04931428047026662 T: -0.041287124235967004
+updates/lifetime collision_count/lifetime r: -0.39032033361084983 rs: -0.289487469450897 T: -0.2282571845104211
+updates/lifetime pills_captured/lifetime r: 0.19198384673053367 rs: 0.22690554639333585 T: 0.1791517815295327
+updates/lifetime ghosts_captured/lifetime r: 0.1091505985545889 rs: 0.1703831272064917 T: 0.13620956972249762
+updates/lifetime grid_cell_changes/lifetime r: 0.3994044462858891 rs: 0.650099064926192 T: 0.549688423622956
 
 Updates e as outras metricas
 updates lifetime r: 0.9958407449240216 rs: 0.9363215843500162 T: 0.8525855892238073

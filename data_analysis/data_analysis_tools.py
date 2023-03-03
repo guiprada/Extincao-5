@@ -252,17 +252,17 @@ def compare_run_dict_list_means(run_dict_A, run_dict_B):
 
 	print(text_analysis)
 
-def cut_to_1000(df):
-	df["df"] = df["df"][:1000]
+def cut_to(df, cut_point):
+	df["df"] = df["df"][:cut_point]
 	print(df["df"].head())
 	print(df["df"].tail())
 
-def generate_run_report_from_dict(run_dict, cut_to_1000_results = False, show = False, disable_new_report = False):
+def generate_run_report_from_dict(run_dict, CUT_RESULTS_TO = None, show = False, disable_new_report = False):
 	if (not disable_new_report) and "internal_lifetime" in run_dict["df"]:
-		return generate_run_report_from_dict_internal_lifetime(run_dict, cut_to_1000_results = cut_to_1000_results, show = show)
+		return generate_run_report_from_dict_internal_lifetime(run_dict, CUT_RESULTS_TO = CUT_RESULTS_TO, show = show)
 
-	if cut_to_1000_results:
-		cut_to_1000(run_dict)
+	if CUT_RESULTS_TO is not None:
+		cut_to(run_dict, cut_point = CUT_RESULTS_TO)
 
 	player_df = run_dict["df"].loc[run_dict["df"]["actor_type"] == "player"]
 	non_zero_lifetime_player_df = player_df.query("lifetime > 0")
@@ -466,9 +466,9 @@ def generate_run_report_from_dict(run_dict, cut_to_1000_results = False, show = 
 
 	return errors
 
-def generate_run_report_from_dict_internal_lifetime(run_dict, cut_to_1000_results = False, show = False):
-	if cut_to_1000_results:
-		cut_to_1000(run_dict)
+def generate_run_report_from_dict_internal_lifetime(run_dict, CUT_RESULTS_TO = None, show = False):
+	if CUT_RESULTS_TO:
+		cut_to(run_dict, cut_point = CUT_RESULTS_TO)
 
 	player_df = run_dict["df"].loc[run_dict["df"]["actor_type"] == "player"]
 	non_zero_lifetime_player_df = player_df.query("lifetime > 0")

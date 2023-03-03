@@ -39,7 +39,7 @@ autoplayer_ann_layers = {{count = 12, activation_function_name = "identity"}, {a
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
-autoplayer_fitness_mode = movement_captures_hack_26_old
+autoplayer_fitness_mode = movement_captures_hack_26
 __autoplayer_collision_purge = false
 __autoplayer_rotate_purge = false
 autoplayer_initial_random_population_size = 3000
@@ -97,7 +97,7 @@ autoplayer_ann_layers = {{count = 4, activation_function_name = "identity"}, {ac
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
-autoplayer_fitness_mode = movement_captures_hack_26_old
+autoplayer_fitness_mode = movement_captures_hack_26
 __autoplayer_collision_purge = false
 __autoplayer_rotate_purge = false
 autoplayer_initial_random_population_size = 3000
@@ -155,7 +155,7 @@ autoplayer_ann_layers = {{count = 12, activation_function_name = "identity"}, {a
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
-autoplayer_fitness_mode = movement_captures_hack_26_old
+autoplayer_fitness_mode = movement_captures_hack_26
 __autoplayer_collision_purge = false
 __autoplayer_rotate_purge = false
 autoplayer_initial_random_population_size = 3000
@@ -214,7 +214,7 @@ autoplayer_ann_layers = {{count = 4, activation_function_name = "identity"}, {ac
 __autoplayer_ann_initial_bias = 0
 __autoplayer_ann_initial_weights = 0
 __autoplayer_ann_random_spread = 1
-autoplayer_fitness_mode = movement_captures_hack_26_old
+autoplayer_fitness_mode = movement_captures_hack_26
 __autoplayer_collision_purge = false
 __autoplayer_rotate_purge = false
 autoplayer_initial_random_population_size = 3000

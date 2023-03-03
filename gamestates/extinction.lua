@@ -143,6 +143,8 @@ function gs.load(map_file_path)
 			GridActor:enablePreciseTime()
 		end
 
+		gs.game_fixed_distance_per_update = gs.game_conf.game_fixed_distance_per_update
+
 		gs.fps = qpd.fps.new()
 
 		-- paused
@@ -393,7 +395,7 @@ function gs.load(map_file_path)
 			end
 		gs.actions_keyup['f'] =
 			function ()
-				gs.game_fixed_speed = not gs.game_fixed_speed
+				gs.game_fixed_distance_per_update = not gs.game_fixed_distance_per_update
 			end
 		gs.actions_keyup['h'] =
 			function ()
@@ -445,10 +447,11 @@ function gs.update(dt)
 	-- gs.tilemap_view:follow(dt, gs.player.speed_factor, gs.player:get_center())
 	if not gs.paused then
 		-- dt should not be to high
-		if gs.game_fixed_speed then
+		if gs.game_fixed_distance_per_update then
+			-- print("fixed speed")
 			dt = gs.max_dt
 		else
-			if (dt > gs.max_dt ) then
+			if (dt > gs.max_dt) then
 				-- print("ops, dt too high, physics wont work, limiting dt too:", gs.max_dt)
 				dt = gs.max_dt
 			end

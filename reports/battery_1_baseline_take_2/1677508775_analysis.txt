@@ -1,0 +1,218 @@
+run: 1677508775 | ann_mode: baseline_valid_random
+
+Total player entries: 1008
+Total non_zero_lifetime player entries: 731
+Total non_zero_pills_captured player entries: 144
+Total non_zero_updates player entries: 985
+Total zero_lifetime player entries: 277
+Total zero_updates player entries: 23
+Total zero_updates player entries with lifetime > 0: 0
+Total zero_pill player entries: 864
+Total pill entries: 240
+Total ghost entries: 531
+------------------------------Describes :)
+
+updates/lifetime: 
+count    731.000000
+mean     174.175539
+std       58.488956
+min        3.000000
+25%      135.000000
+50%      180.000000
+75%      209.193182
+max      437.000000
+Name: updates_per_second, dtype: float64
+
+updates: 
+count    1008.000000
+mean      499.398810
+std       862.704593
+min         0.000000
+25%        94.750000
+50%       180.000000
+75%       468.250000
+max      9957.000000
+Name: updates, dtype: float64
+
+lifetime for player: 
+count    1008.000000
+mean        2.639881
+std         4.914793
+min         0.000000
+25%         0.000000
+50%         1.000000
+75%         3.000000
+max        73.000000
+Name: lifetime, dtype: float64
+
+lifetime for ghosts: 
+count    531.000000
+mean      10.013183
+std       17.934099
+min        0.000000
+25%        1.000000
+50%        4.000000
+75%       12.000000
+max      170.000000
+Name: lifetime, dtype: float64
+
+lifetime for pills: 
+count    240.000000
+mean      18.412500
+std       37.769293
+min        0.000000
+25%        2.000000
+50%        6.000000
+75%       15.250000
+max      343.000000
+Name: lifetime, dtype: float64
+
+visited_count: 
+count    1008.000000
+mean       32.801587
+std        27.304352
+min         0.000000
+25%        14.000000
+50%        24.000000
+75%        44.000000
+max       119.000000
+Name: visited_count, dtype: float64
+
+grid_cell_changes: 
+count    1008.000000
+mean      499.398810
+std       862.704593
+min         0.000000
+25%        94.750000
+50%       180.000000
+75%       468.250000
+max      9957.000000
+Name: grid_cell_changes, dtype: float64
+
+grid_cell_changes/lifetime: 
+count    731.000000
+mean     174.175539
+std       58.488956
+min        3.000000
+25%      135.000000
+50%      180.000000
+75%      209.193182
+max      437.000000
+dtype: float64
+
+collision_count: 
+count    1008.0
+mean        0.0
+std         0.0
+min         0.0
+25%         0.0
+50%         0.0
+75%         0.0
+max         0.0
+Name: collision_count, dtype: float64
+
+collision_count/lifetime: 
+count    731.0
+mean       0.0
+std        0.0
+min        0.0
+25%        0.0
+50%        0.0
+75%        0.0
+max        0.0
+dtype: float64
+
+ghosts_captured: 
+count    1008.000000
+mean        0.526786
+std         1.722933
+min         0.000000
+25%         0.000000
+50%         0.000000
+75%         0.000000
+max        16.000000
+Name: ghosts_captured, dtype: float64
+
+ghosts_captured/lifetime: 
+count    731.000000
+mean       0.071022
+std        0.177258
+min        0.000000
+25%        0.000000
+50%        0.000000
+75%        0.000000
+max        1.333333
+dtype: float64
+
+pills_captured: 
+count    1008.000000
+mean        0.238095
+std         0.699594
+min         0.000000
+25%         0.000000
+50%         0.000000
+75%         0.000000
+max         5.000000
+Name: pills_captured, dtype: float64
+
+pills_captured/lifetime: 
+count    731.000000
+mean       0.033731
+std        0.072711
+min        0.000000
+25%        0.000000
+50%        0.000000
+75%        0.000000
+max        0.333333
+dtype: float64
+
+ghosts_captured/pills_captured: 
+count    144.000000
+mean       2.171181
+std        1.332378
+min        0.000000
+25%        1.000000
+50%        2.000000
+75%        3.000000
+max        7.000000
+dtype: float64
+
+------------------------------Correlacoes :)
+
+A taxa de atualizacao e as outras metricas
+updates/lifetime lifetime r: nan rs: -0.5010596453183902 T: -0.3473136599412057
+updates/lifetime updates r: nan rs: -0.20009874781139309 T: -0.06740029363470314
+updates/lifetime visited_count r: nan rs: -0.1795997688906535 T: -0.09222917591585184
+updates/lifetime grid_cell_changes r: nan rs: -0.20009874781139309 T: -0.06740029363470314
+updates/lifetime collision_count r: nan rs: nan T: nan
+updates/lifetime ghosts_captured r: nan rs: -0.004504075355313378 T: -0.004586733247498823
+updates/lifetime pills_captured r: nan rs: -0.00514363477068921 T: -0.0060434123739957065
+
+Updates e as outras metricas
+updates lifetime r: 0.9675363553309316 rs: 0.9040046926810322 T: 0.8006965338806205
+updates visited_count r: 0.8030648929820925 rs: 0.9322075015145925 T: 0.79027367195102
+updates grid_cell_changes r: 0.9999999999999999 rs: 1.0 T: 1.0
+updates collision_count r: nan rs: nan T: nan
+updates ghosts_captured r: 0.8115105823579821 rs: 0.5684051531386052 T: 0.4647144755682453
+updates pills_captured r: 0.9037591047332378 rs: 0.5972754185139006 T: 0.494583373748861
+
+Lifetime e as outras metricas
+lifetime visited_count r: 0.7435473457691071 rs: 0.8367756003199264 T: 0.7045262717462349
+lifetime grid_cell_changes r: 0.9675363553309315 rs: 0.9040046926810321 T: 0.8006965338806205
+lifetime collision_count r: nan rs: nan T: nan
+lifetime ghosts_captured r: 0.7319251698079078 rs: 0.5819178241663567 T: 0.5206469765144977
+lifetime pills_captured r: 0.837397998187841 rs: 0.6109182407391291 T: 0.5535256134067984
+
+As metricas de movimentacao
+visited_count grid_cell_changes r: 0.8030648929820926 rs: 0.9322075015145926 T: 0.79027367195102
+visited_count collision_count r: nan rs: nan T: nan
+visited_count ghosts_captured r: 0.6588868068032122 rs: 0.5510659870347135 T: 0.44955072045233285
+visited_count pills_captured r: 0.717293701057983 rs: 0.5780534266274021 T: 0.4764677142116755
+
+As metricas de movimentacao
+visited_count grid_cell_changes r: 0.8030648929820926 rs: 0.9322075015145926 T: 0.79027367195102
+visited_count collision_count r: nan rs: nan T: nan
+grid_cell_changes collision_count r: nan rs: nan T: nan
+
+As metricas de captura
+ghosts_captured pills_captured r: 0.9124900797956216 rs: 0.9504359498092179 T: 0.9319378996912411

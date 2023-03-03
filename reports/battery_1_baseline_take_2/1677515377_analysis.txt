@@ -1,0 +1,218 @@
+run: 1677515377 | ann_mode: baseline
+
+Total player entries: 1019
+Total non_zero_lifetime player entries: 757
+Total non_zero_pills_captured player entries: 143
+Total non_zero_updates player entries: 996
+Total zero_lifetime player entries: 262
+Total zero_updates player entries: 23
+Total zero_updates player entries with lifetime > 0: 0
+Total zero_pill player entries: 876
+Total pill entries: 266
+Total ghost entries: 680
+------------------------------Describes :)
+
+updates/lifetime: 
+count    757.000000
+mean     187.091184
+std       60.017606
+min        4.000000
+25%      152.000000
+50%      195.000000
+75%      220.266667
+max      415.000000
+Name: updates_per_second, dtype: float64
+
+updates: 
+count     1019.000000
+mean       547.684004
+std        977.125332
+min          0.000000
+25%        103.000000
+50%        196.000000
+75%        473.000000
+max      10650.000000
+Name: updates, dtype: float64
+
+lifetime for player: 
+count    1019.000000
+mean        2.629048
+std         4.663930
+min         0.000000
+25%         0.000000
+50%         1.000000
+75%         2.000000
+max        52.000000
+Name: lifetime, dtype: float64
+
+lifetime for ghosts: 
+count    680.000000
+mean       7.839706
+std       12.923904
+min        0.000000
+25%        1.000000
+50%        3.000000
+75%       10.000000
+max      119.000000
+Name: lifetime, dtype: float64
+
+lifetime for pills: 
+count    266.000000
+mean      16.530075
+std       41.567688
+min        0.000000
+25%        1.000000
+50%        4.000000
+75%       10.000000
+max      355.000000
+Name: lifetime, dtype: float64
+
+visited_count: 
+count    1019.000000
+mean       40.815505
+std        30.841144
+min         0.000000
+25%        18.000000
+50%        32.000000
+75%        58.000000
+max       129.000000
+Name: visited_count, dtype: float64
+
+grid_cell_changes: 
+count     1019.000000
+mean       547.684004
+std        977.125332
+min          0.000000
+25%        103.000000
+50%        196.000000
+75%        473.000000
+max      10650.000000
+Name: grid_cell_changes, dtype: float64
+
+grid_cell_changes/lifetime: 
+count    757.000000
+mean     187.091184
+std       60.017606
+min        4.000000
+25%      152.000000
+50%      195.000000
+75%      220.266667
+max      415.000000
+dtype: float64
+
+collision_count: 
+count    1019.0
+mean        0.0
+std         0.0
+min         0.0
+25%         0.0
+50%         0.0
+75%         0.0
+max         0.0
+Name: collision_count, dtype: float64
+
+collision_count/lifetime: 
+count    757.0
+mean       0.0
+std        0.0
+min        0.0
+25%        0.0
+50%        0.0
+75%        0.0
+max        0.0
+dtype: float64
+
+ghosts_captured: 
+count    1019.000000
+mean        0.667321
+std         2.321892
+min         0.000000
+25%         0.000000
+50%         0.000000
+75%         0.000000
+max        26.000000
+Name: ghosts_captured, dtype: float64
+
+ghosts_captured/lifetime: 
+count    757.000000
+mean       0.080255
+std        0.209478
+min        0.000000
+25%        0.000000
+50%        0.000000
+75%        0.000000
+max        1.625000
+dtype: float64
+
+pills_captured: 
+count    1019.000000
+mean        0.261040
+std         0.794482
+min         0.000000
+25%         0.000000
+50%         0.000000
+75%         0.000000
+max         7.000000
+Name: pills_captured, dtype: float64
+
+pills_captured/lifetime: 
+count    757.000000
+mean       0.033179
+std        0.073339
+min        0.000000
+25%        0.000000
+50%        0.000000
+75%        0.000000
+max        0.333333
+dtype: float64
+
+ghosts_captured/pills_captured: 
+count    143.000000
+mean       2.427156
+std        1.432112
+min        0.000000
+25%        1.000000
+50%        2.500000
+75%        3.000000
+max        8.000000
+dtype: float64
+
+------------------------------Correlacoes :)
+
+A taxa de atualizacao e as outras metricas
+updates/lifetime lifetime r: nan rs: -0.4627399067554166 T: -0.3136422053337028
+updates/lifetime updates r: nan rs: -0.14258397012142626 T: -0.021129554616999002
+updates/lifetime visited_count r: nan rs: -0.15288086760953998 T: -0.07077904167825534
+updates/lifetime grid_cell_changes r: nan rs: -0.14258397012142626 T: -0.021129554616999002
+updates/lifetime collision_count r: nan rs: nan T: nan
+updates/lifetime ghosts_captured r: nan rs: -0.029617808474588413 T: -0.022087651959881143
+updates/lifetime pills_captured r: nan rs: -0.02500626218474181 T: -0.017910682887834112
+
+Updates e as outras metricas
+updates lifetime r: 0.9939017078144124 rs: 0.900129351269798 T: 0.8022175548340131
+updates visited_count r: 0.7705406129264689 rs: 0.9597566154783759 T: 0.840064991616095
+updates grid_cell_changes r: 1.0 rs: 1.0 T: 0.9999999999999999
+updates collision_count r: nan rs: nan T: nan
+updates ghosts_captured r: 0.8307562623508602 rs: 0.5663414866732919 T: 0.4633997100757612
+updates pills_captured r: 0.9273841569482497 rs: 0.5882428597569498 T: 0.4884151527765375
+
+Lifetime e as outras metricas
+lifetime visited_count r: 0.7719539276236752 rs: 0.8653974761890191 T: 0.7384607065021511
+lifetime grid_cell_changes r: 0.9939017078144124 rs: 0.9001293512697981 T: 0.8022175548340131
+lifetime collision_count r: nan rs: nan T: nan
+lifetime ghosts_captured r: 0.8288456677962108 rs: 0.5912998990091414 T: 0.5312138552779336
+lifetime pills_captured r: 0.9240656570768471 rs: 0.6137272597508104 T: 0.5594453600238805
+
+As metricas de movimentacao
+visited_count grid_cell_changes r: 0.7705406129264689 rs: 0.9597566154783759 T: 0.8400649916160949
+visited_count collision_count r: nan rs: nan T: nan
+visited_count ghosts_captured r: 0.5767101051247244 rs: 0.5415779191306305 T: 0.4413424131519269
+visited_count pills_captured r: 0.6475792183076399 rs: 0.558283117338076 T: 0.4602137559663407
+
+As metricas de movimentacao
+visited_count grid_cell_changes r: 0.7705406129264689 rs: 0.9597566154783759 T: 0.8400649916160949
+visited_count collision_count r: nan rs: nan T: nan
+grid_cell_changes collision_count r: nan rs: nan T: nan
+
+As metricas de captura
+ghosts_captured pills_captured r: 0.9092536558430826 rs: 0.9629448658211031 T: 0.9458240662641239

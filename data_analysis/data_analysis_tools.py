@@ -159,13 +159,13 @@ def add_scatter_and_intervalar_means_plot_to_axis(axis, scatter_x, scatter_y, ti
 	scatter_y_10 = create_array_of_interval_mean(scatter_y, 10)
 
 	axis.set_title(title)
-	# clip_max = scatter_y_100.max()
-	# clip_min = scatter_y_100.min()
-	# scatter_zip = zip(scatter_x, scatter_y)
-	# scatter_zip_clipped = [p for p in scatter_zip if p[1] <= clip_max and p[1]>= clip_min]
-	# if len(scatter_zip_clipped) > 0:
-	# 	scatter_x_clipped, scatter_y_clipped = zip(*scatter_zip_clipped)
-	# 	axis.scatter(scatter_x_clipped, scatter_y_clipped, label = label, alpha = alpha, color = "orange", edgecolors='none', s = scale)
+	clip_max = scatter_y_100.max()
+	clip_min = scatter_y_100.min()
+	scatter_zip = zip(scatter_x, scatter_y)
+	scatter_zip_clipped = [p for p in scatter_zip if p[1] <= clip_max and p[1]>= clip_min]
+	if len(scatter_zip_clipped) > 0:
+		scatter_x_clipped, scatter_y_clipped = zip(*scatter_zip_clipped)
+		axis.scatter(scatter_x_clipped, scatter_y_clipped, label = label, alpha = alpha, color = "orange", edgecolors='none', s = scale)
 	axis.plot(scatter_x, scatter_y_100, label = "intervalar mean 100 blocks", color = "green", alpha = alpha)
 	axis.plot(scatter_x, scatter_y_10, label = "intervalar mean 10 blocks", color = "purple", alpha = alpha)
 	axis.hlines(scatter_y.mean(), 0, scatter_x.max(), label = "mean", colors = "red", linestyles = "dotted", alpha = alpha)
@@ -257,12 +257,16 @@ def cut_to(df, cut_point):
 	print(df["df"].head())
 	print(df["df"].tail())
 
-def generate_run_report_from_dict(run_dict, CUT_RESULTS_TO = None, show = False, disable_new_report = False):
+def generate_run_report_from_dict(run_dict, CUT_RESULTS_TO = None, show = False, disable_new_report = False, intervalar_plot = False):
 	if (not disable_new_report) and "internal_lifetime" in run_dict["df"]:
-		return generate_run_report_from_dict_internal_lifetime(run_dict, CUT_RESULTS_TO = CUT_RESULTS_TO, show = show)
+		return generate_run_report_from_dict_internal_lifetime(run_dict, CUT_RESULTS_TO = CUT_RESULTS_TO, show = show, intervalar_plot = intervalar_plot)
 
 	if CUT_RESULTS_TO is not None:
 		cut_to(run_dict, cut_point = CUT_RESULTS_TO)
+
+	plot_fn = add_scatter_plot_to_axis
+	if intervalar_plot:
+		plot_fn = add_scatter_and_intervalar_means_plot_to_axis
 
 	player_df = run_dict["df"].loc[run_dict["df"]["actor_type"] == "player"]
 	non_zero_lifetime_player_df = player_df.query("lifetime > 0")
@@ -312,40 +316,40 @@ def generate_run_report_from_dict(run_dict, CUT_RESULTS_TO = None, show = False,
 	fig.suptitle(config_string, size = 20, y = 0)
 
 	## Updates/second
-	add_scatter_plot_to_axis(subplots["A"], non_zero_lifetime_player_df["index"], non_zero_lifetime_player_df["updates_per_second"], "updates/lifetime x player iteration(lifetime>0)", "updates/lifetime", alpha = 1, scale = 1)
+	plot_fn(subplots["A"], non_zero_lifetime_player_df["index"], non_zero_lifetime_player_df["updates_per_second"], "updates/lifetime x player iteration(lifetime>0)", "updates/lifetime", alpha = 1, scale = 1)
 
 	## Updates per player
-	add_scatter_plot_to_axis(subplots["B"], player_df["index"], player_df["updates"], "updates x player iteration", "updates", alpha = 1, scale = 1)
+	plot_fn(subplots["B"], player_df["index"], player_df["updates"], "updates x player iteration", "updates", alpha = 1, scale = 1)
 
 	## Player
 	add_heatmap_to_axis(subplots["C"], player_df["cell_x"], player_df["cell_y"], bins = (28, 14), title = "Capture heatmap for player")
-	add_scatter_plot_to_axis(subplots["D"], player_df["index"], player_df["lifetime"], "lifetime x player iteration", "lifetime", alpha = 1, scale = 1)
+	plot_fn(subplots["D"], player_df["index"], player_df["lifetime"], "lifetime x player iteration", "lifetime", alpha = 1, scale = 1)
 
 	## Ghost
 	add_heatmap_to_axis(subplots["E"], ghost_df["cell_x"], ghost_df["cell_y"], bins = (28, 14), title = "Capture heatmap for ghost")
-	add_scatter_plot_to_axis(subplots["F"], ghost_df["index"], ghost_df["lifetime"], "lifetime x ghost iteration", "lifetime", alpha = 1, scale = 1)
+	plot_fn(subplots["F"], ghost_df["index"], ghost_df["lifetime"], "lifetime x ghost iteration", "lifetime", alpha = 1, scale = 1)
 
 	## Pills
 	add_heatmap_to_axis(subplots["G"], pill_df["cell_x"], pill_df["cell_y"], bins = (28, 14), title = "Capture heatmap for pill")
-	add_scatter_plot_to_axis(subplots["H"], pill_df["index"], pill_df["lifetime"], "lifetime x pill iteration", "lifetime", alpha = 1, scale = 1)
+	plot_fn(subplots["H"], pill_df["index"], pill_df["lifetime"], "lifetime x pill iteration", "lifetime", alpha = 1, scale = 1)
 
 	## pills_captured/lifetime x autoplayer generation
-	add_scatter_plot_to_axis(subplots["I"], non_zero_lifetime_player_df["index"], non_zero_lifetime_player_df["pills_captured"]/non_zero_lifetime_player_df["lifetime"], "pills_captured/lifetime x player iteration", "pills_captured/lifetime")
+	plot_fn(subplots["I"], non_zero_lifetime_player_df["index"], non_zero_lifetime_player_df["pills_captured"]/non_zero_lifetime_player_df["lifetime"], "pills_captured/lifetime x player iteration", "pills_captured/lifetime")
 
 	## Ghosts captured/lifetime x autoplayer generation
-	add_scatter_plot_to_axis(subplots["J"], non_zero_lifetime_player_df["index"], non_zero_lifetime_player_df["ghosts_captured"]/non_zero_lifetime_player_df["lifetime"], "ghosts_captured/lifetime x player iteration", "ghosts_captured/lifetime")
+	plot_fn(subplots["J"], non_zero_lifetime_player_df["index"], non_zero_lifetime_player_df["ghosts_captured"]/non_zero_lifetime_player_df["lifetime"], "ghosts_captured/lifetime x player iteration", "ghosts_captured/lifetime")
 
 	## Ghosts/pill x autoplayer generation
-	add_scatter_plot_to_axis(subplots["K"], non_zero_pills_captured_player_df["index"], non_zero_pills_captured_player_df["ghosts_captured"]/non_zero_pills_captured_player_df["pills_captured"], "ghosts_captured/pills_captured x player iteration", "ghosts_captured/pills_captured")
+	plot_fn(subplots["K"], non_zero_pills_captured_player_df["index"], non_zero_pills_captured_player_df["ghosts_captured"]/non_zero_pills_captured_player_df["pills_captured"], "ghosts_captured/pills_captured x player iteration", "ghosts_captured/pills_captured")
 
 	## Visited_count x autoplayer generation
-	add_scatter_plot_to_axis(subplots["L"], player_df["index"], player_df["visited_count"], "visited_count x player iteration", "visited_count")
+	plot_fn(subplots["L"], player_df["index"], player_df["visited_count"], "visited_count x player iteration", "visited_count")
 
 	## grid_cell_changes/lifetime x autoplayer generation
-	add_scatter_plot_to_axis(subplots["M"], non_zero_lifetime_player_df["index"], non_zero_lifetime_player_df["grid_cell_changes"]/non_zero_lifetime_player_df["lifetime"], "grid_cell_changes/lifetime x player iteration", "grid_cell_changes/lifetime")
+	plot_fn(subplots["M"], non_zero_lifetime_player_df["index"], non_zero_lifetime_player_df["grid_cell_changes"]/non_zero_lifetime_player_df["lifetime"], "grid_cell_changes/lifetime x player iteration", "grid_cell_changes/lifetime")
 
 	## collision_count/lifetime x autoplayer generation
-	add_scatter_plot_to_axis(subplots["N"], non_zero_lifetime_player_df["index"], non_zero_lifetime_player_df["collision_count"]/non_zero_lifetime_player_df["lifetime"], "collision_count/lifetime x player iteration", "collision_count/lifetime")
+	plot_fn(subplots["N"], non_zero_lifetime_player_df["index"], non_zero_lifetime_player_df["collision_count"]/non_zero_lifetime_player_df["lifetime"], "collision_count/lifetime x player iteration", "collision_count/lifetime")
 
 	plt.tight_layout()
 
@@ -466,9 +470,13 @@ def generate_run_report_from_dict(run_dict, CUT_RESULTS_TO = None, show = False,
 
 	return errors
 
-def generate_run_report_from_dict_internal_lifetime(run_dict, CUT_RESULTS_TO = None, show = False):
+def generate_run_report_from_dict_internal_lifetime(run_dict, CUT_RESULTS_TO = None, show = False, intervalar_plot = False):
 	if CUT_RESULTS_TO:
 		cut_to(run_dict, cut_point = CUT_RESULTS_TO)
+
+	plot_fn = add_scatter_plot_to_axis
+	if intervalar_plot:
+		plot_fn = add_scatter_and_intervalar_means_plot_to_axis
 
 	player_df = run_dict["df"].loc[run_dict["df"]["actor_type"] == "player"]
 	non_zero_lifetime_player_df = player_df.query("lifetime > 0")
@@ -521,40 +529,40 @@ def generate_run_report_from_dict_internal_lifetime(run_dict, CUT_RESULTS_TO = N
 	fig.suptitle(config_string, size = 20, y = 0)
 
 	## Updates/second
-	add_scatter_plot_to_axis(subplots["A"], player_df["index"], player_df["fps"], "fps x player iteration", "fps", alpha = 1, scale = 1)
+	plot_fn(subplots["A"], player_df["index"], player_df["fps"], "fps x player iteration", "fps", alpha = 1, scale = 1)
 
 	## Updates per player
-	add_scatter_plot_to_axis(subplots["B"], player_df["index"], player_df["updates"], "updates x player iteration", "updates", alpha = 1, scale = 1)
+	plot_fn(subplots["B"], player_df["index"], player_df["updates"], "updates x player iteration", "updates", alpha = 1, scale = 1)
 
 	## Player
 	add_heatmap_to_axis(subplots["C"], player_df["cell_x"], player_df["cell_y"], bins = (28, 14), title = "Capture heatmap for player")
-	add_scatter_plot_to_axis(subplots["D"], player_df["index"], player_df["internal_lifetime"], "internal_lifetime x player iteration", "internal_lifetime", alpha = 1, scale = 1)
+	plot_fn(subplots["D"], player_df["index"], player_df["internal_lifetime"], "internal_lifetime x player iteration", "internal_lifetime", alpha = 1, scale = 1)
 
 	## Ghost
 	add_heatmap_to_axis(subplots["E"], ghost_df["cell_x"], ghost_df["cell_y"], bins = (28, 14), title = "Capture heatmap for ghost")
-	add_scatter_plot_to_axis(subplots["F"], ghost_df["index"], ghost_df["internal_lifetime"], "internal_lifetime x ghost iteration", "internal_lifetime", alpha = 1, scale = 1)
+	plot_fn(subplots["F"], ghost_df["index"], ghost_df["internal_lifetime"], "internal_lifetime x ghost iteration", "internal_lifetime", alpha = 1, scale = 1)
 
 	## Pills
 	add_heatmap_to_axis(subplots["G"], pill_df["cell_x"], pill_df["cell_y"], bins = (28, 14), title = "Capture heatmap for pill")
-	add_scatter_plot_to_axis(subplots["H"], pill_df["index"], pill_df["internal_lifetime"], "internal_lifetime x pill iteration", "internal_lifetime", alpha = 1, scale = 1)
+	plot_fn(subplots["H"], pill_df["index"], pill_df["internal_lifetime"], "internal_lifetime x pill iteration", "internal_lifetime", alpha = 1, scale = 1)
 
 	## pills captured/internal_lifetime x autoplayer generation
-	add_scatter_plot_to_axis(subplots["I"], non_zero_internal_lifetime_player_df["index"], non_zero_internal_lifetime_player_df["pills_captured"]/non_zero_internal_lifetime_player_df["internal_lifetime"], "pills_captured/internal_lifetime x\nplayer iteration", "pills_captured/internal_lifetime")
+	plot_fn(subplots["I"], non_zero_internal_lifetime_player_df["index"], non_zero_internal_lifetime_player_df["pills_captured"]/non_zero_internal_lifetime_player_df["internal_lifetime"], "pills_captured/internal_lifetime x\nplayer iteration", "pills_captured/internal_lifetime")
 
 	## Ghosts captured/internal_lifetime x autoplayer generation
-	add_scatter_plot_to_axis(subplots["J"], non_zero_internal_lifetime_player_df["index"], non_zero_internal_lifetime_player_df["ghosts_captured"]/non_zero_internal_lifetime_player_df["internal_lifetime"], "ghosts_captured/internal_lifetime x\nplayer iteration", "ghosts_captured/internal_lifetime")
+	plot_fn(subplots["J"], non_zero_internal_lifetime_player_df["index"], non_zero_internal_lifetime_player_df["ghosts_captured"]/non_zero_internal_lifetime_player_df["internal_lifetime"], "ghosts_captured/internal_lifetime x\nplayer iteration", "ghosts_captured/internal_lifetime")
 
 	## Ghosts/pill x autoplayer generation
-	add_scatter_plot_to_axis(subplots["K"], non_zero_pills_captured_player_df["index"], non_zero_pills_captured_player_df["ghosts_captured"]/non_zero_pills_captured_player_df["pills_captured"], "ghosts_captured/pills_captured x\nplayer iteration", "ghosts_captured/pills_captured")
+	plot_fn(subplots["K"], non_zero_pills_captured_player_df["index"], non_zero_pills_captured_player_df["ghosts_captured"]/non_zero_pills_captured_player_df["pills_captured"], "ghosts_captured/pills_captured x\nplayer iteration", "ghosts_captured/pills_captured")
 
 	## Visited_count x autoplayer generation
-	add_scatter_plot_to_axis(subplots["L"], player_df["index"], player_df["visited_count"], "visited_count x player iteration", "visited_count")
+	plot_fn(subplots["L"], player_df["index"], player_df["visited_count"], "visited_count x player iteration", "visited_count")
 
 	## grid_cell_changes/internal_lifetime x autoplayer generation
-	add_scatter_plot_to_axis(subplots["M"], non_zero_internal_lifetime_player_df["index"], non_zero_internal_lifetime_player_df["grid_cell_changes"]/non_zero_internal_lifetime_player_df["internal_lifetime"], "grid_cell_changes/internal_lifetime  x\n player iteration", "grid_cell_changes/internal_lifetime")
+	plot_fn(subplots["M"], non_zero_internal_lifetime_player_df["index"], non_zero_internal_lifetime_player_df["grid_cell_changes"]/non_zero_internal_lifetime_player_df["internal_lifetime"], "grid_cell_changes/internal_lifetime  x\n player iteration", "grid_cell_changes/internal_lifetime")
 
 	## collision_count/internal_lifetime x autoplayer generation
-	add_scatter_plot_to_axis(subplots["N"], non_zero_internal_lifetime_player_df["index"], non_zero_internal_lifetime_player_df["collision_count"]/non_zero_internal_lifetime_player_df["internal_lifetime"], "collision_count/internal_lifetime x\n player iteration", "collision_count/internal_lifetime")
+	plot_fn(subplots["N"], non_zero_internal_lifetime_player_df["index"], non_zero_internal_lifetime_player_df["collision_count"]/non_zero_internal_lifetime_player_df["internal_lifetime"], "collision_count/internal_lifetime x\n player iteration", "collision_count/internal_lifetime")
 
 	plt.tight_layout()
 

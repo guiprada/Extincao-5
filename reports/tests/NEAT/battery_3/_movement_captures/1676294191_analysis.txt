@@ -191,7 +191,7 @@ updates/lifetime collision_count r: nan rs: -0.35426501600888677 T: -0.294174522
 updates/lifetime ghosts_captured r: nan rs: -0.035298488191502705 T: -0.029056765385999602
 updates/lifetime pills_captured r: nan rs: -0.042259359331512265 T: -0.034981064912759104
 updates/lifetime collision_count/lifetime r: -0.031275377244077356 rs: 0.22924372208272417 T: 0.2089081922783008
-updates/lifetime pills_captured/lifetime r: 0.08593085259620675 rs: 0.07336528370301007 T: 0.06043100085017717
+updates/lifetime pills_captured/lifetime r: 0.08593085259620677 rs: 0.07336528370301007 T: 0.06043100085017717
 updates/lifetime ghosts_captured/lifetime r: 0.05917365867577043 rs: 0.059371261889125254 T: 0.04813578341207293
 updates/lifetime grid_cell_changes/lifetime r: -0.12019347216512512 rs: -0.059663071281201 T: -0.03394480371729705
 

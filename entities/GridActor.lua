@@ -121,6 +121,33 @@ function GridActor:reset(cell)
 	self:log("created")
 end
 
+function GridActor:reposition(cell)
+	self._changed_grid_cell = false
+	self._has_collided = false
+	self._direction = "idle"
+	self._next_direction = "idle"
+
+	self._cell.x = cell.x
+	self._cell.y = cell.y
+
+	self._tilesize = GridActor._tilesize
+	self.x, self.y = GridActor._grid.cell_to_center_point(self._cell.x, self._cell.y, self._tilesize)
+
+	-- we set it negative so it enters the first on tile change
+	self._last_cell.x = -1
+	self._last_cell.y = -1
+
+	self._relay_x_counter = 0
+	self._relay_y_counter = 0
+	self._relay_x = 0
+	self._relay_y = 0
+	self._relay_loop_counter = 3 -- controls how many gameloops it takes to relay
+
+	self._front.x = self.x
+	self._front.y = self.y
+end
+
+
 function GridActor:is_type(type_name)
 	if type_name == registered_types_list[self._type] then
 		return true
@@ -329,6 +356,10 @@ function GridActor:get_update_count()
 	return self._update_count
 end
 
+function GridActor:get_lifetime()
+	return self._lifetime
+end
+
 function GridActor:get_no_pill_update_count()
 	return nil
 end
@@ -373,7 +404,7 @@ function GridActor:log(event_type, other)
 	event_table["grid_cell_changes"] = self:get_grid_cell_changes()
 	event_table["collision_count"] = self:get_collision_count()
 	event_table["fps"] = tostring(love.timer.getFPS())
-	event_table["lifetime"] = self._lifetime
+	event_table["lifetime"] = self:get_lifetime()
 	event_table["genes"] = self:get_genes()
 
 	GridActor._event_logger:log(event_table)

@@ -91,11 +91,21 @@ function Ghost:reset(reset_table)
 	self._target_offset = target_offset
 
 	-- set a valid direction
-	self:set_direction(direction or self:get_random_valid_direction())
+	self:set_direction(direction)
+end
+
+function Ghost:reposition(pos, target_offset, home)
+	if pos then
+		GridActor.reposition(self, pos)
+		self:set_direction()
+	end
+
+	self._target_offset = target_offset or self._target_offset
+	self._home = home or self._home
 end
 
 function Ghost:set_direction(direction)
-	self._direction = direction
+	self._direction = direction or self:get_random_valid_direction()
 	self._debounce_get_next_direction = true
 	self:update_dynamic_front()
 end

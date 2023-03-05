@@ -200,8 +200,14 @@ function GeneticPopulation:replace(i)
 			local mom
 			local dad
 			if self._specie_mule_start then
-				mom = specie:roulette()
-				dad = self:_roulette(self._history)
+				if #self._specie_niche < (self._specie_initial_population_size/3) then
+					mom = specie:roulette()
+					local dad_species = qpd.random.choose_list(self._species)
+						dad = dad_species:_roulette(self._history)
+				else
+					mom = specie:roulette()
+					dad = specie:roulette()
+				end
 			elseif self._specie_all_roulette_start then
 				mom = specie:roulette()
 				dad = specie:roulette()

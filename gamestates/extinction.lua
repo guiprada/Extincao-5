@@ -63,9 +63,8 @@ local ghost_start_positions = {
 
 local function reposition_ghosts()
 	for i, ghost in ipairs(gs.GhostPopulation:get_population()) do
-		local target_offset = ghost:get_target_offset()
 		local pos = ghost_start_positions[i%4]
-		ghost:reset({pos = pos, target_offset = target_offset, home = i%4})
+		ghost:reposition(pos, nil, i%4)
 	end
 end
 
@@ -266,7 +265,6 @@ function gs.load(map_file_path)
 				gs.game_conf.ghost_population_history_size or 0
 			)
 		end
-		reposition_ghosts()
 
 		if gs.game_conf.ghost_state_reset_on_autoplayer_capture then
 			for i, ghost in ipairs(gs.GhostPopulation) do
@@ -277,10 +275,10 @@ function gs.load(map_file_path)
 					pos.x = 26
 					direction = "left"
 				end
-				ghost:reset({pos = pos, target_offset = target_offset})
-				ghost:set_direction(direction)
 			end
 		end
+
+		reposition_ghosts()
 
 		-- Initalize Autoplayer
 		gs.autoplayer_speed_factor = gs.game_conf.autoplayer_speed_factor

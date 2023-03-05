@@ -17,7 +17,7 @@ fitness_modes.updates = function (self)
 end
 
 fitness_modes.lifetime = function (self)
-	self._fitness = self._lifetime
+	self._fitness = self:get_lifetime()
 end
 
 fitness_modes.no_pill_updates = function (self)

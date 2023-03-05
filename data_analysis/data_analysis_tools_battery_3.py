@@ -17,6 +17,9 @@ SMALL_LEGEND_FONTSIZE = 10
 ANN_MODE_STRING = "autoplayer_ann_mode = "
 ANN_LAYERS_STRING = "autoplayer_ann_layers = "
 ANN_FITNESS_STRING = "autoplayer_fitness_mode = "
+ANN_NEAT_ENABLED_STRING = "autoplayer_neat_enable = "
+
+NEAT_GENE_SPECIE_STRING = "species: "
 
 OVERRIDE_OLD_DATAFRAME = False
 
@@ -35,7 +38,17 @@ IMAGE_DPI = 100
 # def json_quote_properties(str):
 # 	return re.sub(r"([A-z]+)", r'"\1"', str)
 
-def gene_parser(data):
+def neat_gene_parser(data):
+	data = data.replace("{", "")
+	data = data.replace("}", "")
+	str_list = data.split(", ")
+	if len(str_list) == 3:
+		return int(str_list[2].replace(NEAT_GENE_SPECIE_STRING, ""))
+	else:
+		return None
+
+
+def null_gene_parser(data):
 	return data
 
 def quote_gene(path):
@@ -106,6 +119,8 @@ def create_lifetime_dict(df):
 		this_entry["collision_count"] = row["collision_count"]
 		this_entry["cell_x"] = row["cell_x"]
 		this_entry["cell_y"] = row["cell_y"]
+		this_entry["species"] = row["genes"]
+
 		if "lifetime" in row:
 			this_entry["internal_lifetime"] = row["lifetime"]
 			this_entry["fps"] = row["fps"]
@@ -124,10 +139,11 @@ def create_lifetime_dict(df):
 
 	return lifetimes_dict
 
-def add_scatter_plot_to_axis(axis, scatter_x, scatter_y, title, label, alpha = 1, scale = 1, linewidth = None, interval_min = None, interval_max = None):
+def add_scatter_plot_to_axis(axis, scatter_x, scatter_y, title, label, alpha = 1, scale = 1, linewidth = None, interval_min = None, interval_max = None, show_average = True):
 	axis.set_title(title)
 	axis.scatter(scatter_x, scatter_y, label = label, alpha = alpha, edgecolors='none', s = scale)
-	axis.hlines(scatter_y.mean(), 0, len(scatter_x), label = "mean", colors = "red", linestyles = "dotted", alpha = 1)
+	if show_average == True:
+		axis.hlines(scatter_y.mean(), 0, len(scatter_x), label = "mean", colors = "red", linestyles = "dotted", alpha = 1)
 	plt.setp(axis.get_xticklabels(), rotation=30, horizontalalignment='right')
 	# axis.legend(fontsize = SMALL_LEGEND_FONTSIZE)
 
@@ -584,8 +600,12 @@ def generate_run_report_from_dict_internal_lifetime(run_dict, CUT_RESULTS_TO = N
 	## Visited_count x autoplayer generation
 	plot_fn(subplots["L"], player_df["index"], player_df["visited_count"], "visited_count x player iteration", "visited_count")
 
-	## grid_cell_changes/internal_lifetime x autoplayer generation
-	plot_fn(subplots["M"], non_zero_internal_lifetime_player_df["index"], non_zero_internal_lifetime_player_df["grid_cell_changes"]/non_zero_internal_lifetime_player_df["internal_lifetime"], "grid_cell_changes/internal_lifetime  x\n player iteration", "grid_cell_changes/internal_lifetime")
+	if run_dict["neat_enabled"] == True:
+		# neat species
+		add_scatter_plot_to_axis(subplots["M"], player_df["index"], player_df["species"], "species x player iteration", "species", show_average = False)
+	else:
+		## grid_cell_changes/internal_lifetime x autoplayer generation
+		plot_fn(subplots["M"], non_zero_internal_lifetime_player_df["index"], non_zero_internal_lifetime_player_df["grid_cell_changes"]/non_zero_internal_lifetime_player_df["internal_lifetime"], "grid_cell_changes/internal_lifetime  x\n player iteration", "grid_cell_changes/internal_lifetime")
 
 	## collision_count/internal_lifetime x autoplayer generation
 	plot_fn(subplots["N"], non_zero_internal_lifetime_player_df["index"], non_zero_internal_lifetime_player_df["collision_count"]/non_zero_internal_lifetime_player_df["internal_lifetime"], "collision_count/internal_lifetime x\n player iteration", "collision_count/internal_lifetime")
@@ -727,12 +747,16 @@ def count_captured(row, df):
 	else:
 		return None
 
-def load_dataframe(path, run):
+def load_dataframe(path, run, neat_enabled = False):
 	actors_df = None
 	errors = list()
 	if (OVERRIDE_OLD_DATAFRAME) or (not os.path.exists(f"{path}{run}.pd")):
-		data = pd.read_csv(f"{path}{run}.data_fixed", skipinitialspace = True, converters = {"genes":gene_parser}, quotechar="'")
-		data = data.drop(["genes"], axis = 1)
+
+		if neat_enabled == True:
+			data = pd.read_csv(f"{path}{run}.data_fixed", skipinitialspace = True, converters = {"genes":neat_gene_parser}, quotechar="'")
+		else:
+			data = pd.read_csv(f"{path}{run}.data_fixed", skipinitialspace = True, converters = {"genes":null_gene_parser}, quotechar="'")
+
 
 		actors_dict = create_lifetime_dict(data)
 		actors_df = pd.DataFrame.from_dict(actors_dict, orient="index")

@@ -279,7 +279,6 @@ function GeneticPopulation:add_active()
 end
 
 local function new_specie_new(self, new_specie)
-	print("---------------new")
 	if new_specie then
 		local new_specie_id = new_specie:get_id()
 		self._specie_history_count[new_specie_id] = 0
@@ -303,7 +302,6 @@ local function new_specie_new(self, new_specie)
 end
 
 local function new_specie_old(self, new_specie)
-	print("------------------old")
 	if new_specie then
 		local new_specie_id = new_specie:get_id()
 		self._specie_history_count[new_specie_id] = 0

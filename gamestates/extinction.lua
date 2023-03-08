@@ -142,6 +142,10 @@ function gs.load(map_file_path)
 			GridActor:enablePreciseTime()
 		end
 
+		if gs.game_conf.enable_new_speciation == true then
+			GeneticPopulation:set_new_speciation(true)
+		end
+
 		gs.game_fixed_distance_per_update = gs.game_conf.game_fixed_distance_per_update
 
 		gs.fps = qpd.fps.new()

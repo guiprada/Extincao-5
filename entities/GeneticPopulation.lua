@@ -5,6 +5,9 @@ local GeneticPopulation = {}
 GeneticPopulation.__index = GeneticPopulation
 qpd.table.assign_methods(GeneticPopulation, Population)
 
+local MAX_NICHE_COUNT = 3000
+local NEW_SPECIATION = false
+
 function GeneticPopulation:new(class, active_size, initial_random_population_size, population_history_size, specie_niche_initial_population_size, specie_niche_population_history_size, specie_mule_start, specie_all_roulette_start, specie_threshold, player_caugh_callback, reset_table, o)
 	local o = o or {}
 	setmetatable(o, self)
@@ -68,6 +71,10 @@ end
 
 function GeneticPopulation:set_neat_selection(value)
 	self._neat_selection = value or true
+end
+
+function GeneticPopulation:set_new_speciation(value)
+	NEW_SPECIATION = value or true
 end
 
 function GeneticPopulation:add_to_history(actor)
@@ -194,16 +201,25 @@ function GeneticPopulation:replace(i)
 		if self._random_init > 0 then
 			self._random_init = self._random_init - 1
 			this_actor:reset(self:get_reset_table())
-		elseif self._speciatable and #self._specie_niche > 0 then
-			local specie = self._specie_niche[#self._specie_niche]
+		elseif	(NEW_SPECIATION and self._speciatable and #self._specie_niche > 0 and (qpd.random.random() > 0.5)) or
+				(self._speciatable and #self._specie_niche > 0) then
+			local niche_count = #self._specie_niche
+			print("niche total: ", niche_count)
+
+			local specie = self._specie_niche[niche_count]
+			self._specie_niche[niche_count] = nil
 			local specie_id = specie:get_id()
+			self._specie_niche_count[specie_id] = self._specie_niche_count[specie_id] - 1
+
 			local mom
 			local dad
 			if self._specie_mule_start then
-				if #self._specie_niche < (self._specie_initial_population_size/3) then
+				if self._specie_niche_count[specie_id] > (self._specie_initial_population_size/3) then
 					mom = specie:roulette()
-					local dad_species = qpd.random.choose_list(self._species)
-						dad = dad_species:_roulette(self._history)
+					local dad_specie_index = self._specie_niche_count[specie_id]%(#self._species) + 1
+					print("mule crossing with: ", dad_specie_index, #self._specie)
+					local dad_species = self._species[dad_specie_index]
+					dad = dad_species:roulette(self._history)
 				else
 					mom = specie:roulette()
 					dad = specie:roulette()
@@ -216,8 +232,6 @@ function GeneticPopulation:replace(i)
 				dad = specie:roulette()
 			end
 			this_actor:crossover(mom, dad, self:get_reset_table())
-			self._specie_niche[#self._specie_niche] = nil
-			self._specie_niche_count[specie_id] = self._specie_niche_count[specie_id] - 1
 			self:check_extinct(specie_id)
 
 			-- speciate
@@ -264,7 +278,32 @@ function GeneticPopulation:add_active()
 	end
 end
 
-function GeneticPopulation:new_specie(new_specie)
+local function new_specie_new(self, new_specie)
+	print("---------------new")
+	if new_specie then
+		local new_specie_id = new_specie:get_id()
+		self._specie_history_count[new_specie_id] = 0
+		self._specie_niche_count[new_specie_id] = 0
+		for _ = 1, self._specie_initial_population_size do
+			self._specie_niche[#self._specie_niche + 1] = new_specie
+			self._specie_niche_count[new_specie_id] = self._specie_niche_count[new_specie:get_id()] + 1
+		end
+
+		qpd.array.shuffle(self._specie_niche)
+		local niche_size = #self._specie_niche
+		if niche_size > MAX_NICHE_COUNT then
+			print("[WARN] - Niche count above limit, cutting down!", MAX_NICHE_COUNT)
+			for i = niche_size, niche_size - 100, -1 do
+				local specie_id = self._specie_niche[i]:get_id()
+				self._specie_niche_count[specie_id] = self._specie_niche_count[specie_id] - 1
+				self._specie_niche[i] = nil
+			end
+		end
+	end
+end
+
+local function new_specie_old(self, new_specie)
+	print("------------------old")
 	if new_specie then
 		local new_specie_id = new_specie:get_id()
 		self._specie_history_count[new_specie_id] = 0
@@ -277,6 +316,14 @@ function GeneticPopulation:new_specie(new_specie)
 
 		qpd.array.extend(new_specie_niche, self._specie_niche)
 		self._specie_niche = new_specie_niche
+	end
+end
+
+function GeneticPopulation:new_specie(new_specie)
+	if NEW_SPECIATION then
+		new_specie_new(self, new_specie)
+	else
+		new_specie_old(self, new_specie)
 	end
 end
 

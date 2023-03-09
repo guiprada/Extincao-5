@@ -217,7 +217,7 @@ function GeneticPopulation:replace(i)
 				if self._specie_niche_count[specie_id] > (self._specie_initial_population_size/3) then
 					mom = specie:roulette()
 					local dad_specie_index = self._specie_niche_count[specie_id]%(#self._species) + 1
-					print("mule crossing with: ", dad_specie_index, #self._specie)
+					print("mule crossing with: ", dad_specie_index)
 					local dad_species = self._species[dad_specie_index]
 					dad = dad_species:roulette(self._history)
 				else
@@ -244,7 +244,7 @@ function GeneticPopulation:replace(i)
 			return
 		else
 			if self._speciatable then
-				print("general population", #self._specie)
+				print("general population", #self._specie_niche)
 			end
 			-- find parents
 			local mom, dad = self:_selection()

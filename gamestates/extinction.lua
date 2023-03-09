@@ -422,16 +422,6 @@ function gs.draw()
 		gs.AutoPlayerPopulation:get_count(),
 		200,
 		0)
-	love.graphics.print(
-		gs.game_conf.autoplayer_ann_mode,
-		600,
-		0)
-	if gs.game_conf.autoplayer_fitness_mode then
-		love.graphics.print(
-			gs.game_conf.autoplayer_fitness_mode,
-			400,
-			0)
-	end
 
 	if gs.game_conf.autoplayer_neat_enable then
 		love.graphics.print(
@@ -439,6 +429,25 @@ function gs.draw()
 			300,
 			0)
 	end
+
+	if gs.game_conf.autoplayer_fitness_mode then
+		love.graphics.print(
+			gs.game_conf.autoplayer_fitness_mode,
+			400,
+			0)
+	end
+
+	love.graphics.print(
+		gs.game_conf.autoplayer_ann_mode,
+		600,
+		0)
+
+	love.graphics.print(
+		gs.game_conf.seed,
+		750,
+		0)
+
+
 	if gs.paused then
 		gs.paused_text:draw()
 	end

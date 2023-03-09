@@ -204,7 +204,7 @@ function GeneticPopulation:replace(i)
 		elseif	(NEW_SPECIATION and self._speciatable and #self._specie_niche > 0 and (qpd.random.random() > 0.5)) or
 				(self._speciatable and #self._specie_niche > 0) then
 			local niche_count = #self._specie_niche
-			print("niche total: ", niche_count)
+			print("niche total: ", niche_count, #self._specie_niche_count)
 
 			local specie = self._specie_niche[niche_count]
 			self._specie_niche[niche_count] = nil
@@ -243,6 +243,7 @@ function GeneticPopulation:replace(i)
 
 			return
 		else
+			print("general population", #self._specie)
 			-- find parents
 			local mom, dad = self:_selection()
 

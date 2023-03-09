@@ -243,7 +243,9 @@ function GeneticPopulation:replace(i)
 
 			return
 		else
-			print("general population", #self._specie)
+			if self._speciatable then
+				print("general population", #self._specie)
+			end
 			-- find parents
 			local mom, dad = self:_selection()
 

@@ -299,16 +299,16 @@ def cut_to(df, cut_point):
 	print(df["df"].head())
 	print(df["df"].tail())
 
-def generate_run_report_from_dict(run_dict, CUT_RESULTS_TO = None, show = False, disable_new_report = False, intervalar_plot = False):
+def generate_run_report_from_dict(run_dict, CUT_RESULTS_TO = None, show = False, disable_new_report = False, moving_average_plot = False):
 	if (not disable_new_report) and "internal_lifetime" in run_dict["df"]:
-		return generate_run_report_from_dict_internal_lifetime(run_dict, CUT_RESULTS_TO = CUT_RESULTS_TO, show = show, intervalar_plot = intervalar_plot)
+		return generate_run_report_from_dict_internal_lifetime(run_dict, CUT_RESULTS_TO = CUT_RESULTS_TO, show = show, moving_average_plot = moving_average_plot)
 
 	if CUT_RESULTS_TO is not None:
 		cut_to(run_dict, cut_point = CUT_RESULTS_TO)
 
 	plot_fn = add_scatter_plot_to_axis
-	if intervalar_plot:
-		plot_fn = add_scatter_and_moving_average_plot_to_axis
+	if moving_average_plot:
+		plot_fn = add_moving_average_plot_to_axis
 
 	player_df = run_dict["df"].loc[run_dict["df"]["actor_type"] == "player"]
 	non_zero_lifetime_player_df = player_df.query("lifetime > 0")
@@ -512,12 +512,12 @@ def generate_run_report_from_dict(run_dict, CUT_RESULTS_TO = None, show = False,
 
 	return errors
 
-def generate_run_report_from_dict_internal_lifetime(run_dict, CUT_RESULTS_TO = None, show = False, intervalar_plot = False):
+def generate_run_report_from_dict_internal_lifetime(run_dict, CUT_RESULTS_TO = None, show = False, moving_average_plot = False):
 	if CUT_RESULTS_TO:
 		cut_to(run_dict, cut_point = CUT_RESULTS_TO)
 
 	plot_fn = add_scatter_plot_to_axis
-	if intervalar_plot:
+	if moving_average_plot:
 		plot_fn = add_moving_average_plot_to_axis
 
 	player_df = run_dict["df"].loc[run_dict["df"]["actor_type"] == "player"]

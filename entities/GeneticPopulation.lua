@@ -202,7 +202,7 @@ function GeneticPopulation:replace(i)
 			self._random_init = self._random_init - 1
 			this_actor:reset(self:get_reset_table())
 		elseif	(NEW_SPECIATION and self._speciatable and #self._specie_niche > 0 and (qpd.random.random() > 0.5)) or
-				(self._speciatable and #self._specie_niche > 0) then
+				((not NEW_SPECIATION) and self._speciatable and #self._specie_niche > 0) then
 			local niche_count = #self._specie_niche
 			print("niche total: ", niche_count, #self._specie_niche_count)
 

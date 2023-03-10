@@ -1,45 +1,20 @@
 ----------------- TODO
-- TESTAR ORDEM DA FILA DA ESPECIACAO - ALEATORIA E INVERSA(COMO ERA)
-- pesquisar bug ipairs x #self._layers
-	https://stackoverflow.com/questions/23590885/why-does-luas-length-operator-return-unexpected-values
-	Background: Tables in Lua are internally divided into array part and hash part. That's an optimization. Lua tries to avoid allocating memory often, so it pre allocates for the next power of two. That's another optimization.
+- implementar NEAT
+	- option to add aumentating neurons and links with fixed(0.5 or 1) weight(disturb less the genome's functionality)
+	- should links be reactivate on crossover?
+	- speciation
+	- remove unused neurons from fenotype
 
-	When the last item in the array part is nil, the result of # is the length of the shortest valid sequence found by binsearching the array part for the first nil-followed key.
-	When the last item in the array part is not nil AND the hash part is empty, the result of # is the physical length of the array part.
-	When the last item in the array part is not nil AND the hash part is NOT empty, the result of # is the length of the shortest valid sequence found by binsearching the hash part for for the first nil-followed key (that is such positive integer i that t[i] ~= nil and t[i+1] == nil), assuming that the array part is full of non-nils(!).
-	So the result of # is almost always the (desired) length of the shortest valid sequence, unless the last element in the array part representing a non-sequence is non-nil. Then, the result is bigger than desired.
-- melhorar resolucao de tempo
-- adicionar velocidade constante como opcao
-- Adicionar servidor de populacao
-	- Adicionar suporte a headless
-- todas as configuracoes em lua
-- remove unused neurons from NEAT fenotype
 - implementar funcoes que nao usam "self" para AutoplayerAnnModes.lua
 - implementar gameplay data capture and offline learning
 - implementar teste com o dataset mnist
+
 - NEAT para fantasmas
+
 - implementar load and save population
+- adicionar suporte a elitismo
 - Add map and population loading
-- add the pheromone thingy :) -- WTF?
-- tecnicas para aumentar diversidade.
-	-(modificar totalmente um gene no crossover)
-	- Valor de corte para especiacao diminui com o tempo(proporcional a geracao, ou a contagem de geracoes sem especiacao, ou a quantidade de especies ativas)
-		- taxa de mutacao e adicionar neuronios e links dinamica.
-- visualizador de topologia do neat(funcionamento em tempo real?)
-- serializar ANN neat
-
-
-- Fantasmas capturados tem um delay para voltarem(pressao para captura)
-- Player spawnan em um linha onde nao ha spawn de pilulas nem fantasmas
-- Melhorar robustez do sistema de log
-- Object pools
-
-	- Testar cooevolucao
-	- Testar adaptabilidade da populacao uma vez convergida
-
-
-
-	- layout em uma configuracao lua
+- add the pheromone thingy :)
 
 ----------------- DONE
 - implementar NEAT
@@ -53,26 +28,365 @@
 1667082412 NB4
 
 
+----------------- TESTS
+1-----------------------------------------
+ghost_chase_time = 5
+ghost_scatter_time = 2
+ghost_speed_factor = 10
+
+headless = false
+__ghost_target_spread = 5
+__ghost_population = 0
+__ghost_active_population = 2
+ghost_population_target_offset_array = {4, -5}
+
+autoplayer_neat_enable = true
+autoplayer_neat_speciate = true
+autoplayer_neat_initial_links  = false
+autoplayer_neat_fully_connected = true
+autoplayer_neat_mule_chance = 0
+autoplayer_add_neuron_chance = 0.05
+autoplayer_add_link_chance = 0.05
+autoplayer_loopback_chance = 0.05
+
+autoplayer_ann_mode = b1
+autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
+__autoplayer_ann_initial_bias = 0
+__autoplayer_ann_initial_weights = 0
+__autoplayer_ann_random_spread = 1
+autoplayer_fitness_mode = updates
+__autoplayer_collision_purge = false
+__autoplayer_rotate_purge = false
+autoplayer_population = 5000
+autoplayer_active_population = 1
+autoplayer_genetic_population = 100
+__autoplayer_ann_backpropagation = false
+__autoplayer_ann_learning_rate = 0.1
+autoplayer_crossover = true
+autoplayer_mutate_chance = 0.05
+autoplayer_mutate_percentage = 0.05
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+
+pill_effect_time = 3
+pill_active_population = 2
+
+2-----------------------------------------
+ghost_chase_time = 5
+ghost_scatter_time = 2
+ghost_speed_factor = 10
+
+headless = false
+__ghost_target_spread = 5
+__ghost_population = 0
+__ghost_active_population = 2
+ghost_population_target_offset_array = {4, -5}
+
+autoplayer_neat_enable = true
+autoplayer_neat_speciate = true
+autoplayer_neat_initial_links  = false
+autoplayer_neat_fully_connected = true
+autoplayer_neat_mule_chance = 0
+autoplayer_add_neuron_chance = 0.05
+autoplayer_add_link_chance = 0.05
+autoplayer_loopback_chance = 0.05
+
+autoplayer_ann_mode = b1_path_grading_hack
+autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
+__autoplayer_ann_initial_bias = 0
+__autoplayer_ann_initial_weights = 0
+__autoplayer_ann_random_spread = 1
+autoplayer_fitness_mode = updates
+__autoplayer_collision_purge = false
+__autoplayer_rotate_purge = false
+autoplayer_population = 5000
+autoplayer_active_population = 1
+autoplayer_genetic_population = 100
+__autoplayer_ann_backpropagation = false
+__autoplayer_ann_learning_rate = 0.1
+autoplayer_crossover = true
+autoplayer_mutate_chance = 0.05
+autoplayer_mutate_percentage = 0.05
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+
+pill_effect_time = 3
+pill_active_population = 2
+
+3-----------------------------------------
+ghost_chase_time = 5
+ghost_scatter_time = 2
+ghost_speed_factor = 10
+
+headless = false
+__ghost_target_spread = 5
+__ghost_population = 0
+__ghost_active_population = 2
+ghost_population_target_offset_array = {4, -5}
+
+autoplayer_neat_enable = true
+autoplayer_neat_speciate = true
+autoplayer_neat_initial_links  = false
+autoplayer_neat_fully_connected = true
+autoplayer_neat_mule_chance = 0
+autoplayer_add_neuron_chance = 0.05
+autoplayer_add_link_chance = 0.05
+autoplayer_loopback_chance = 0.05
+
+autoplayer_ann_mode = b1_path_grading_simple
+autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
+__autoplayer_ann_initial_bias = 0
+__autoplayer_ann_initial_weights = 0
+__autoplayer_ann_random_spread = 1
+autoplayer_fitness_mode = updates
+__autoplayer_collision_purge = false
+__autoplayer_rotate_purge = false
+autoplayer_population = 5000
+autoplayer_active_population = 1
+autoplayer_genetic_population = 100
+__autoplayer_ann_backpropagation = false
+__autoplayer_ann_learning_rate = 0.1
+autoplayer_crossover = true
+autoplayer_mutate_chance = 0.05
+autoplayer_mutate_percentage = 0.05
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+
+pill_effect_time = 3
+pill_active_population = 2
+
+4-----------------------------------------
+ghost_chase_time = 5
+ghost_scatter_time = 2
+ghost_speed_factor = 10
+
+headless = false
+__ghost_target_spread = 5
+__ghost_population = 0
+__ghost_active_population = 2
+ghost_population_target_offset_array = {4, -5}
+
+autoplayer_neat_enable = true
+autoplayer_neat_speciate = true
+autoplayer_neat_initial_links  = false
+autoplayer_neat_fully_connected = true
+autoplayer_neat_mule_chance = 0
+autoplayer_add_neuron_chance = 0.05
+autoplayer_add_link_chance = 0.05
+autoplayer_loopback_chance = 0.05
+
+autoplayer_ann_mode = b2
+autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 2, activation_function_name = "binary_step"}}
+__autoplayer_ann_initial_bias = 0
+__autoplayer_ann_initial_weights = 0
+__autoplayer_ann_random_spread = 1
+autoplayer_fitness_mode = updates
+__autoplayer_collision_purge = false
+__autoplayer_rotate_purge = false
+autoplayer_population = 5000
+autoplayer_active_population = 1
+autoplayer_genetic_population = 100
+__autoplayer_ann_backpropagation = false
+__autoplayer_ann_learning_rate = 0.1
+autoplayer_crossover = true
+autoplayer_mutate_chance = 0.05
+autoplayer_mutate_percentage = 0.05
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+
+pill_effect_time = 3
+pill_active_population = 2
+
+5-----------------------------------------
+ghost_chase_time = 5
+ghost_scatter_time = 2
+ghost_speed_factor = 10
+
+headless = false
+__ghost_target_spread = 5
+__ghost_population = 0
+__ghost_active_population = 2
+ghost_population_target_offset_array = {4, -5}
+
+autoplayer_neat_enable = true
+autoplayer_neat_speciate = true
+autoplayer_neat_initial_links  = false
+autoplayer_neat_fully_connected = true
+autoplayer_neat_mule_chance = 0
+autoplayer_add_neuron_chance = 0.05
+autoplayer_add_link_chance = 0.05
+autoplayer_loopback_chance = 0.05
+
+autoplayer_ann_mode = b3
+autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
+__autoplayer_ann_initial_bias = 0
+__autoplayer_ann_initial_weights = 0
+__autoplayer_ann_random_spread = 1
+autoplayer_fitness_mode = updates
+__autoplayer_collision_purge = false
+__autoplayer_rotate_purge = false
+autoplayer_population = 5000
+autoplayer_active_population = 1
+autoplayer_genetic_population = 100
+__autoplayer_ann_backpropagation = false
+__autoplayer_ann_learning_rate = 0.1
+autoplayer_crossover = true
+autoplayer_mutate_chance = 0.05
+autoplayer_mutate_percentage = 0.05
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+
+pill_effect_time = 3
+pill_active_population = 2
+
+6-----------------------------------------
+ghost_chase_time = 5
+ghost_scatter_time = 2
+ghost_speed_factor = 10
+
+headless = false
+__ghost_target_spread = 5
+__ghost_population = 0
+__ghost_active_population = 2
+ghost_population_target_offset_array = {4, -5}
+
+autoplayer_neat_enable = true
+autoplayer_neat_speciate = true
+autoplayer_neat_initial_links  = false
+autoplayer_neat_fully_connected = true
+autoplayer_neat_mule_chance = 0
+autoplayer_add_neuron_chance = 0.05
+autoplayer_add_link_chance = 0.05
+autoplayer_loopback_chance = 0.05
+
+autoplayer_ann_mode = nb4
+autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 4, activation_function_name = "identity"}}
+__autoplayer_ann_initial_bias = 0
+__autoplayer_ann_initial_weights = 0
+__autoplayer_ann_random_spread = 1
+autoplayer_fitness_mode = updates
+__autoplayer_collision_purge = false
+__autoplayer_rotate_purge = false
+autoplayer_population = 5000
+autoplayer_active_population = 1
+autoplayer_genetic_population = 100
+__autoplayer_ann_backpropagation = false
+__autoplayer_ann_learning_rate = 0.1
+autoplayer_crossover = true
+autoplayer_mutate_chance = 0.05
+autoplayer_mutate_percentage = 0.05
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+
+pill_effect_time = 3
+pill_active_population = 2
+
+
+7-----------------------------------------
+ghost_chase_time = 5
+ghost_scatter_time = 2
+ghost_speed_factor = 10
+
+headless = false
+__ghost_target_spread = 5
+__ghost_population = 0
+__ghost_active_population = 2
+ghost_population_target_offset_array = {4, -5}
+
+autoplayer_neat_enable = true
+autoplayer_neat_speciate = true
+autoplayer_neat_initial_links  = false
+autoplayer_neat_fully_connected = true
+autoplayer_neat_mule_chance = 0
+autoplayer_add_neuron_chance = 0.05
+autoplayer_add_link_chance = 0.05
+autoplayer_loopback_chance = 0.05
+
+autoplayer_ann_mode = nb4_path_grading
+autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 1, activation_function_name = "identity"}}
+__autoplayer_ann_initial_bias = 0
+__autoplayer_ann_initial_weights = 0
+__autoplayer_ann_random_spread = 1
+autoplayer_fitness_mode = updates
+__autoplayer_collision_purge = false
+__autoplayer_rotate_purge = false
+autoplayer_population = 5000
+autoplayer_active_population = 1
+autoplayer_genetic_population = 100
+__autoplayer_ann_backpropagation = false
+__autoplayer_ann_learning_rate = 0.1
+autoplayer_crossover = true
+autoplayer_mutate_chance = 0.05
+autoplayer_mutate_percentage = 0.05
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+
+pill_effect_time = 3
+pill_active_population = 2
+
+8-----------------------------------------
+
+
 -----------------------------------------
 ----------------- NOTES
 ** to adapt this to ghosts we could get a next position only when out of corridors **
 ** should mutation be only  for greater amplitude?(since crossover always diminishes it) **
 
-*- BASELINE, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, mas não sai da rota para procurar pilulas ou fantasmas.
-*- BASELINE_PILL, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, desvia da rota para procurar pilulas mas não para fantasmas.
-*- BASELINE_PILL_GHOST, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, desvia da rota para procurar pilulas e capturar fantasmas.
-*- BASELINE_RANDOM, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, caso a rota atual seja ruim, assume uma outra rota aleatoriamente.
-*- BASELINE_COLLIDE_RANDOM, um algoritmo especialista caso tenha ocorrido uma colisão, assume uma outra rota aleatoriamente.
-*- BASELINE_FULL_RANDOM, um algoritmo especialista que, assume uma outra rota aleatoriamente.
-*- BASELINE_VALID_RANDOM, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, caso a rota atual seja ruim, assume uma outra rota válida aleatoriamente.
-*- BASELINE_VALID_FULL_RANDOM, um algoritmo especialista que, assume uma outra rota válida aleatoriamente.
+- BASELINE, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, mas não sai da rota para procurar pilulas ou fantasmas.
+- BASELINE_PILL, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, desvia da rota para procurar pilulas mas não para fantasmas.
+- BASELINE_PILL_GHOST, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, desvia da rota para procurar pilulas e capturar fantasmas.
+- BASELINE_RANDOM, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, caso a rota atual seja ruim, assume uma outra rota aleatoriamente.
+- BASELINE_COLLIDE_RANDOM, um algoritmo especialista caso tenha ocorrido uma colisão, assume uma outra rota aleatoriamente.
+- BASELINE_FULL_RANDOM, um algoritmo especialista que, assume uma outra rota aleatoriamente.
+- BASELINE_VALID_RANDOM, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, caso a rota atual seja ruim, assume uma outra rota válida aleatoriamente.
+- BASELINE_VALID_FULL_RANDOM, um algoritmo especialista que, assume uma outra rota válida aleatoriamente.
 
-- em ordem de capacidades
-*9- BASELINE_FULL_RANDOM. (nenhuma capacidade)
-*10- BASELINE_VALID_FULL_RANDOM. (capacidade de escolher uma rota valida)
-*11- BASELINE_COLLIDE_RANDOM. (detecta colisão)
-*12- BASELINE_RANDOM. (capacidade de fugir e atacar)
-*13- BASELINE_VALID_RANDOM. (capacidade de fugir e ataque oportuno e escolher rotas validas)
-*14- BASELINE. (capacidade de fugir e ataque oportuno, nao desvia rota para capturar)
-*15- BASELINE_PILL. (capacidade de fugir e ataque oportuno, desvia rota para capturar pilulas)
-*16- BASELINE_PILL_GHOST. (capacidade de fugir e ataque oportuno, desvia rota para capturar)
+---
+ghost_chase_time = 5
+ghost_scatter_time = 2
+ghost_speed_factor = 10
+
+headless = false
+ghost_target_spread = 0
+ghost_population = 0
+ghost_active_population = 0
+
+autoplayer_ann_mode = ...
+autoplayer_ann_layers = ...
+__autoplayer_ann_initial_weights = 0
+autoplayer_fitness_mode = no_pill_updates
+autoplayer_collision_purge = true
+autoplayer_rotate_purge = true
+autoplayer_population = 100
+autoplayer_active_population = 1
+autoplayer_ann_backpropagation = false
+__autoplayer_ann_learning_rate = 0.1
+autoplayer_crossover = true
+autoplayer_mutate_chance = 0.1
+autoplayer_mutate_percentage = 0.05
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+
+pill_effect_time = 3
+pill_active_population = 0
+
+---base test
+ghost_chase_time = 5
+ghost_scatter_time = 2
+ghost_speed_factor = 10
+
+headless = true
+ghost_target_spread = 0
+ghost_population = 0
+ghost_active_population = 2
+
+autoplayer_ann_mode = baseline_valid_full_random
+autoplayer_fitness_mode = movement
+autoplayer_population = 0
+autoplayer_active_population = 1
+autoplayer_speed_factor = 10
+autoplayer_search_path_length = 5
+
+pill_effect_time = 3
+pill_active_population = 2
+--

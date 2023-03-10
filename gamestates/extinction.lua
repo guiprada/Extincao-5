@@ -305,7 +305,7 @@ function gs.load(map_file_path)
 				AutoPlayer_NEAT,
 				gs.game_conf.autoplayer_active_population,
 				gs.game_conf.autoplayer_initial_random_population_size,
-				gs.game_conf.autoplayer_population_history_size,
+				gs.game_conf.autoplayer_initial_random_population_size_history_size,
 				gs.game_conf.autoplayer_neat_specie_threshold,
 				gs.game_conf.ghost_state_reset_on_autoplayer_capture and player_caught_callback or nil
 			)
@@ -328,7 +328,7 @@ function gs.load(map_file_path)
 				AutoPlayer,
 				gs.game_conf.autoplayer_active_population,
 				gs.game_conf.autoplayer_initial_random_population_size,
-				gs.game_conf.autoplayer_population_history_size,
+				gs.game_conf.autoplayer_initial_random_population_size_history_size,
 				nil,
 				gs.game_conf.ghost_state_reset_on_autoplayer_capture and player_caught_callback or nil
 			)

@@ -253,9 +253,7 @@ function AutoPlayer:update(dt, speed, ghost_state, ...)
 		self:update_pill_update_count(ghost_state)
 
 		-- fitness reward
-		if AutoPlayer._autoplayer_fitness_mode then
-			fitness_modes[AutoPlayer._autoplayer_fitness_mode](self)
-		end
+		fitness_modes[AutoPlayer._autoplayer_fitness_mode](self)
 	end
 end
 

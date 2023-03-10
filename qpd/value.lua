@@ -11,30 +11,27 @@ function qpd_value.clamp(value, min_value, max_value)
 	return value
 end
 
-qpd_value.max = math.max
-qpd_value.min = math.min
+function qpd_value.max(x, y)
+	-- Returns the greatest value amongst x and y.
+	if x and y then
+		return x > y and x or y
+	elseif x then
+		return x
+	else
+		return y
+	end
+end
 
--- function qpd_value.max(x, y)
--- 	-- Returns the greatest value amongst x and y.
--- 	if x and y then
--- 		return x > y and x or y
--- 	elseif x then
--- 		return x
--- 	else
--- 		return y
--- 	end
--- end
-
--- function qpd_value.min(x, y)
--- 	-- Returns the smallest value amongst x and y.
--- 	if x and y then
--- 		return x < y and x or y
--- 	elseif x then
--- 		return x
--- 	else
--- 		return y
--- 	end
--- end
+function qpd_value.min(x, y)
+	-- Returns the smallest value amongst x and y.
+	if x and y then
+		return x < y and x or y
+	elseif x then
+		return x
+	else
+		return y
+	end
+end
 
 function qpd_value.round(x)
 	if x>0 then

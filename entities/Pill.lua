@@ -32,6 +32,8 @@ function Pill:new(new_table, o)
 
 	o._type = GridActor.get_type_by_name(pill_type_name)
 
+	o:reset()
+
 	return o
 end
 

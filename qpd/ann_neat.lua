@@ -3,7 +3,6 @@ local ANN = {}
 ANN.__index = ANN
 
 local qpd_gamestate = require "qpd.gamestate"
-local qpd_array = require "qpd.array"
 local qpd_table = require "qpd.table"
 local qpd_random = require "qpd.random"
 local ann_activation_functions = require "qpd.ann_activation_functions"
@@ -11,8 +10,6 @@ local ann_activation_functions = require "qpd.ann_activation_functions"
 local MAX_LOOPBACK_LINK_TRIES = 5
 local MAX_LINK_TRIES = 10
 local MAX_NEURON_TRIES = 5
-local NEGATIVE_WEIGHT_AND_ACTIVATION = false
-local INPUT_PROPORTIONAL_ACTIVATION = false
 
 local Innovation_manager -- create singleton instance, will be initialized after _Innovation_manager implementation
 
@@ -46,14 +43,12 @@ local _ann_run_types = {
 -- internal functions
 local function _get_random_link_weight(scale)
 	scale = scale or 1
-	scale = NEGATIVE_WEIGHT_AND_ACTIVATION and (qpd_random.choose(1, -1) * scale) or scale
-	return  qpd_random.random() * scale
+	return qpd_random.random() * scale
 end
 
-local function _get_random_activation_response(scale)
-	scale = scale or 1
-	scale = NEGATIVE_WEIGHT_AND_ACTIVATION and (qpd_random.choose(1, -1) * scale) or scale
-	return  qpd_random.random() * scale
+local function _get_random_activation_response(input_count)
+	input_count = input_count or 1
+	return qpd_random.random() * input_count
 end
 
 local function _innovation_sorter(a, b)
@@ -66,13 +61,13 @@ end
 local _Link_Gene = {}
 _Link_Gene.__index = _Link_Gene
 
-function _Link_Gene:new(input_neuron_gene, output_neuron_gene, innovation_id, weight, o)
+function _Link_Gene:new(input_neuron_gene, output_neuron_gene, weight, innovation_id, o)
 	local o = o or {}
 	setmetatable(o, self)
 
 	o._input_neuron = input_neuron_gene
 	o._output_neuron = output_neuron_gene
-	o._weight = weight or _get_random_link_weight()
+	o._weight = weight
 	o._enabled = true
 	o._innovation_id = innovation_id
 
@@ -85,17 +80,13 @@ function _Link_Gene:new(input_neuron_gene, output_neuron_gene, innovation_id, we
 end
 
 function _Link_Gene:mutate(mutate_chance, mutate_percentage)
-	self:set_weight(self._weight * (qpd_random.toss(mutate_chance) and (qpd_random.choose(-mutate_percentage, mutate_percentage) + 1) or 1))
+	self._weight = self._weight * (qpd_random.toss(mutate_chance) and (qpd_random.choose(-mutate_percentage, mutate_percentage) + 1) or 1)
 end
 
 function _Link_Gene:inherit(mutate_chance, mutate_percentage)
 	local clone = qpd_table.clone(self)
 	clone:mutate(mutate_chance, mutate_percentage)
 	return clone
-end
-
-function _Link_Gene:set_weight(value)
-	self._weight = value
 end
 
 function _Link_Gene:get_weight()
@@ -155,17 +146,20 @@ function _Link:new(input_neuron, output_neuron, weight, recurrent, o)
 	setmetatable(o, self)
 
 	o._input_neuron = input_neuron
-	o._input_neuron:add_output_link(o)
 	o._output_neuron = output_neuron
-	o._output_neuron:add_input_link(o)
-
 	o._weight = weight
 	o._recurrent = recurrent
 
 	return o
 end
 
-function _Link:new_from_gene(link_gene, input_neuron, output_neuron)
+function _Link:new_from_gene(link_gene, layers, neuron_id_to_position)
+	local input_neuron_position  = neuron_id_to_position[link_gene:get_input_neuron():get_id()]
+	local output_neuron_position = neuron_id_to_position[link_gene:get_output_neuron():get_id()]
+
+	local input_neuron = layers[input_neuron_position.x][input_neuron_position.y]
+	local output_neuron = layers[output_neuron_position.x][output_neuron_position.y]
+
 	return _Link:new(input_neuron, output_neuron, link_gene:get_weight(), link_gene:is_recurrent())
 end
 
@@ -190,13 +184,13 @@ end
 local _Neuron_Gene = {}
 _Neuron_Gene.__index = _Neuron_Gene
 
-function _Neuron_Gene:new(type, recurrent, activation_function_name, activation_function_parameters, innovation_id, x, y, activation_response, o)
+function _Neuron_Gene:new(type, recurrent, activation_response, activation_function_name, activation_function_parameters, innovation_id, x, y, o)
 	local o = o or {}
 	setmetatable(o, self)
 
 	o._type = type
 	o._recurrent = recurrent
-	o._activation_response = activation_response or _get_random_activation_response()
+	o._activation_response = activation_response
 	o._activation_function_name = activation_function_name
 	o._activation_function_parameters = activation_function_parameters
 	o._innovation_id = innovation_id
@@ -277,7 +271,7 @@ end
 local _Neuron = {}
 _Neuron.__index = _Neuron
 
-function _Neuron:new(type, input_links, output_links, activation_response, activation_function, activation_function_parameters, innovation_id, x, y, o)
+function _Neuron:new(type, innovation_id, input_links, output_links, activation_response, activation_function, activation_function_parameters, x, y, o)
 	local o = o or {}
 	setmetatable(o, self)
 
@@ -308,12 +302,12 @@ end
 function _Neuron:new_from_gene(neuron_gene)
 	return _Neuron:new(
 		neuron_gene:get_neuron_type(),
+		neuron_gene:get_id(),
 		nil,
 		nil,
 		neuron_gene:get_activation_response(),
 		neuron_gene:get_activation_function(),
 		neuron_gene:get_activation_function_parameters(),
-		neuron_gene:get_id(),
 		neuron_gene:get_x(),
 		neuron_gene:get_y())
 end
@@ -330,20 +324,15 @@ end
 function _Neuron:update(input)
 	if input then
 		self._activation_sum = input
-		self._activation_output = self:get_activation_function()(self:get_activation_sum(), self:get_activation_response_value(), self:get_activation_function_parameters())
+		self._activation_output = self:get_activation_function()(self:get_activation_sum(), self:get_activation_response(), self:get_activation_function_parameters())
 	else
 		self._activation_sum = 0
 		for i = 1, #self._input_links do
 			local this_link = self._input_links[i]
 			self._activation_sum = self._activation_sum + this_link:get_output()
 		end
-		self._activation_output = self:get_activation_function()(self:get_activation_sum(), self:get_activation_response_value(), self:get_activation_function_parameters())
+		self._activation_output = self:get_activation_function()(self:get_activation_sum(), self:get_activation_response(), self:get_activation_function_parameters())
 	end
-end
-
-function _Neuron:get_activation_response_value()
-	local factor = INPUT_PROPORTIONAL_ACTIVATION and #(self._input_links) or 1
-	return self:get_activation_response() * factor
 end
 
 function _Neuron:get_activation_response()
@@ -590,16 +579,14 @@ function _Genome:new(neurons, links, hidden_layers_activation_function_name, hid
 
 	o._neurons = neurons
 	o._links = links
+	o:_sort_genes()
 
+	o:reset_layer_config()
 
 	o._hidden_layers_activation_function_name = hidden_layers_activation_function_name
 
 	o._hidden_layers_activation_function_parameters = hidden_layers_activation_function_parameters
 
-	o:_sort_genes()
-	o:_init_n_inputs()
-	o:_init_n_outputs()
-	o:_reset_unique_layers()
 	-- o._amount_to_spawn = 0
 	return o
 end
@@ -626,7 +613,7 @@ function _Genome:_init_n_outputs()
 	self._n_outputs = n_outputs
 end
 
-function _Genome:_reset_unique_layers()
+function _Genome:_init_unique_layers()
 	local unique_layer_dict = {}
 	for i = 1, #self._neurons do
 		local this_layer = self._neurons[i]:get_x()
@@ -641,9 +628,15 @@ function _Genome:_reset_unique_layers()
 		unique_layers[#unique_layers + 1] = layer
 	end
 
-	table.sort(unique_layers)
+	-- table.sort(unique_layers)
 
 	self._unique_layers = unique_layers
+end
+
+function _Genome:reset_layer_config()
+	self:_init_n_inputs()
+	self:_init_n_outputs()
+	self:_init_unique_layers()
 end
 
 function _Genome:crossover(dad, mutate_chance, mutate_percentage, chance_add_neuron, chance_add_link, chance_loopback, crossover)
@@ -679,6 +672,11 @@ function _Genome:crossover(dad, mutate_chance, mutate_percentage, chance_add_neu
 			local new_neuron = mom_neuron_gene:inherit(mutate_chance, mutate_percentage)
 			table.insert(neurons, new_neuron)
 			mom_index = mom_index + 1
+		-- elseif dad_neuron_gene then
+		-- 	local new_neuron = dad_neuron_gene:inherit(mutate_chance, mutate_percentage)
+		-- 	table.insert(neurons, new_neuron)
+		-- 	dad_index = dad_index + 1
+		-- 	if not new_neuron then print("Try to insert nil neuron 4") end
 		end
 
 		mom_neuron_gene = mom._neurons[mom_index]
@@ -711,6 +709,10 @@ function _Genome:crossover(dad, mutate_chance, mutate_percentage, chance_add_neu
 			local new_link = mom_link_gene:inherit(mutate_chance, mutate_percentage)
 			table.insert(links, new_link)
 			mom_index = mom_index + 1
+		-- elseif dad_link_gene then
+		-- 	local new_link = dad_link_gene:inherit(mutate_chance, mutate_percentage)
+		-- 	table.insert(links, new_link)
+		-- 	dad_index = dad_index + 1
 		end
 
 		mom_link_gene = mom._links[mom_index]
@@ -733,8 +735,8 @@ function _Genome:crossover(dad, mutate_chance, mutate_percentage, chance_add_neu
 			print("Link is enabled: ", this_link:is_enabled())
 		end
 	end
-	-- print("neurons ", new_genome:get_neuron_count())
-	-- print("links ", new_genome:get_link_count())
+	print("neurons ", new_genome:get_neuron_count())
+	print("links ", new_genome:get_link_count())
 
 	return new_genome
 end
@@ -819,6 +821,7 @@ function _Genome:create_link(input_neuron, output_neuron, innovation_id)
 		local new_link = _Link_Gene:new(
 			input_neuron,
 			output_neuron,
+			_get_random_link_weight(),
 			innovation_id
 		)
 		if not self:_has_link(new_link:get_id()) then
@@ -879,7 +882,6 @@ function _Genome:add_link(chance_loopback)
 	end
 
 	self:create_link(selected_input_neuron, selected_output_neuron, innovation_id)
-	self:_sort_links()
 end
 
 function _Genome:add_neuron()
@@ -939,6 +941,7 @@ function _Genome:add_neuron()
 		local new_neuron = _Neuron_Gene:new(
 			"hidden",
 			false,
+			_get_random_activation_response(1),
 			self._hidden_layers_activation_function_name,
 			self._hidden_layers_activation_function_parameters,
 			new_neuron_innovation_id,
@@ -952,6 +955,7 @@ function _Genome:add_neuron()
 		local new_link_input = _Link_Gene:new(
 			chosen_link:get_input_neuron(),
 			new_neuron,
+			_get_random_link_weight(),
 			new_link_input_innovation_id
 		)
 		table.insert(self._links, new_link_input)
@@ -960,12 +964,13 @@ function _Genome:add_neuron()
 		local new_link_output = _Link_Gene:new(
 			new_neuron,
 			chosen_link:get_output_neuron(),
+			_get_random_link_weight(),
 			new_link_output_innovation_id
 		)
 		table.insert(self._links, new_link_output)
 
 		self:_sort_genes()
-		self:_reset_unique_layers()
+		self:_init_unique_layers()
 	end
 end
 
@@ -1107,7 +1112,7 @@ function ANN:new_genome(
 	local increment = 1/(n_inputs - 1)
 	for i = 1, n_inputs do
 		local innovation_id = Innovation_manager:get_neuron_innovation_id(x, y)
-		local new_neuron = _Neuron_Gene:new("input", false, input_layer_activation_function_name, input_layer_activation_function_parameters, innovation_id, x, y)
+		local new_neuron = _Neuron_Gene:new("input", false, 1, input_layer_activation_function_name, input_layer_activation_function_parameters, innovation_id, x, y)
 		table.insert(neurons, new_neuron)
 		table.insert(input_neurons, new_neuron)
 		y = y + increment
@@ -1119,7 +1124,8 @@ function ANN:new_genome(
 	increment = 1/(n_outputs - 1)
 	for i = 1, n_outputs do
 		local innovation_id = Innovation_manager:get_neuron_innovation_id(x, y)
-		local new_neuron = _Neuron_Gene:new("output", false, output_layer_activation_function_name, output_layer_activation_function_parameters, innovation_id, x, y)
+
+		local new_neuron = _Neuron_Gene:new("output", false, 1, output_layer_activation_function_name, output_layer_activation_function_parameters, innovation_id, x, y)
 		table.insert(neurons, new_neuron)
 		table.insert(output_neurons, new_neuron)
 		y = y + increment
@@ -1164,20 +1170,19 @@ function ANN:new(genome, o)
 	o._genome = genome
 	o._specie = false
 
-	-- fill in layer_to_layer_position_dict_x and start layers array.
+	-- fill in layer_to_layer_position_dict and start layers array.
 	o._layers = {}
-	local layer_to_layer_position_dict_x = {}
+	local layer_to_layer_position_dict = {}
 	for i = 1, #genome._unique_layers do
 		local this_layer = genome._unique_layers[i]
-		layer_to_layer_position_dict_x[this_layer] = i
-
+		layer_to_layer_position_dict[this_layer] = i
 		o._layers[i] = {}
 	end
 
 	-- fill in layers
 	for i = 1, #genome._neurons do
 		local this_neuron_gene = genome._neurons[i]
-		local this_layer = layer_to_layer_position_dict_x[this_neuron_gene:get_x()]
+		local this_layer = layer_to_layer_position_dict[this_neuron_gene:get_x()]
 		local this_neuron = _Neuron:new_from_gene(this_neuron_gene)
 
 		if not this_neuron then
@@ -1189,23 +1194,13 @@ function ANN:new(genome, o)
 	end
 
 	-- sort layer and fill neuron_id_to_position
-	local id_to_neuron = {}
+	local neuron_id_to_position = {}
 	for i = 1, #o._layers do
-		local sorted_layer = qpd_table.clone(o._layers[i])
-		local length_before = #sorted_layer
 		table.sort(o._layers[i], function (a, b) return a:get_y() < b:get_y() end)
-		local length_after = #sorted_layer
-		if length_before ~= length_after then
-			print("sorting messed up the length")
-			o._layers[i] = qpd_array.clone(sorted_layer)
-			print("fixed?",length_before, #o._layers[i])
-		else
-			o._layers[i] = sorted_layer
-		end
 
 		for j = 1, #o._layers[i] do
 			local this_neuron = o._layers[i][j]
-			id_to_neuron[this_neuron:get_id()] = this_neuron
+			neuron_id_to_position[this_neuron:get_id()] = {x = i, y = j}
 		end
 	end
 
@@ -1214,12 +1209,14 @@ function ANN:new(genome, o)
 		local this_link_gene = genome._links[i]
 		if this_link_gene:is_enabled() then
 			-- check neurons exist in this genome
-			local input_neuron = id_to_neuron[this_link_gene:get_input_neuron():get_id()]
-			local output_neuron = id_to_neuron[this_link_gene:get_output_neuron():get_id()]
-			if input_neuron and output_neuron then
-				_Link:new_from_gene(this_link_gene, input_neuron, output_neuron)
+			if 	neuron_id_to_position[this_link_gene:get_input_neuron():get_id()] and
+				neuron_id_to_position[this_link_gene:get_output_neuron():get_id()] then
+
+				local this_link = _Link:new_from_gene(this_link_gene, o._layers, neuron_id_to_position)
+				this_link:get_input_neuron():add_output_link(this_link)
+				this_link:get_output_neuron():add_input_link(this_link)
 			else
-				print("ERROR - _ANN:new() - Invalid Link - Neuron not registered in id_to_neuron!")
+				print("ERROR - _ANN:new() - Invalid Link - Neuron not registered in neuron_id_to_position!")
 				qpd_gamestate.switch("menu")
 			end
 		end
@@ -1251,7 +1248,8 @@ function ANN:speciate(species, threshold)
 	end
 
 	if closest_compatibility then
-		-- print("closest_compatibility: ", closest_compatibility, closest_specie:get_id())
+		threshold = threshold or 3
+		print("closest_compatibility: ", closest_compatibility, closest_specie:get_id())
 		if closest_compatibility < threshold then
 			ann_specie = closest_specie
 		end
@@ -1278,32 +1276,22 @@ function ANN:get_gene_count()
 end
 
 function ANN:get_outputs(inputs, run_type)
-	-- -- update input layer
-	-- -- print(#self._layers[1])
+	-- update input layer
+	-- print(#self._layers[1])
 	-- for i = 1, #(self._layers[1]) do
 	-- 	local this_neuron = self._layers[1][i]
-
-	-- 	if not this_neuron then
-	-- 		print(i)
-	-- 		print(#self._layers[1])
-	-- 		print(":")
-	-- 		print(self)
-	-- 		print(self._layers)
-	-- 		-- print(self._layers[1][i])
-	-- 		-- print(this_neuron:type())
-	-- 		print("\n--")
-	-- 		for key, value in pairs(self._layers[1]) do
-	-- 			print(key, value)
-	-- 		end
-	-- 		for index, value in ipairs(self._layers[1]) do
-	-- 			print(index, value)
-	-- 		end
-	-- 	end
-
+	-- 	-- if not this_neuron then
+	-- 	-- 	print(i)
+	-- 	-- 	print(#self._layers[1])
+	-- 	-- 	print(":")
+	-- 	-- 	print(self)
+	-- 	-- 	print(self._layers)
+	-- 	-- 	print(self._layers[1][i])
+	-- 	-- 	print(this_neuron:type())
+	-- 	-- end
 	-- 	this_neuron:update(inputs[i])
 	-- end
 
-	-- update input layer
 	for index, value in ipairs(self._layers[1]) do
 		value:update(inputs[index])
 	end
@@ -1326,11 +1314,11 @@ function ANN:get_outputs(inputs, run_type)
 end
 
 function ANN:set_negative_weight_and_activation_initialization(value)
-	NEGATIVE_WEIGHT_AND_ACTIVATION = value
+	print("set negative weight and activation not backported!")
 end
 
 function ANN:set_input_proportional_activation(value)
-	INPUT_PROPORTIONAL_ACTIVATION = value
+	print("set input proportional activation not backported!")
 end
 
 function ANN:to_string()

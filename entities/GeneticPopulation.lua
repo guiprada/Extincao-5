@@ -32,7 +32,7 @@ function GeneticPopulation:new(class, active_size, initial_random_population_siz
 	o._active_size = active_size
 	o._initial_random_population_size = initial_random_population_size
 	o._random_init = initial_random_population_size
-	o._population_history_size = population_history_size
+	o._genetic_population_size = population_history_size
 	o._genetics_enabled = population_history_size and true or false
 	o._new_table = o._new_table
 	o._reset_table = reset_table
@@ -70,16 +70,20 @@ function GeneticPopulation:set_neat_selection(value)
 	self._neat_selection = value or true
 end
 
+function GeneticPopulation:set_new_speciation(value)
+	print("new speciation still not backported")
+end
+
 function GeneticPopulation:add_to_history(actor)
 	local actor_history = actor:get_history()
 
 	-- history count
 	if self._speciatable then
 		local added_species_id = actor_history._specie_id -- we add first to not extinguish if species are the same
-		self._species_history_count[added_species_id] = self._species_history_count[added_species_id] + 1
+		self._specie_history_count[added_species_id] = self._specie_history_count[added_species_id] + 1
 
 		local this_ann = actor:get_ann()
-		this_ann._specie:add_to_history(actor, self._species_size)
+		this_ann._specie:add_to_history(actor, self._specie_population_history_size)
 	end
 
 	if #self._history > self._genetic_population_size then
@@ -89,7 +93,7 @@ function GeneticPopulation:add_to_history(actor)
 			-- history count
 			if self._speciatable then
 				local removed_species_id = lowest._specie_id
-				self._species_history_count[removed_species_id] = self._species_history_count[removed_species_id] - 1
+				self._specie_history_count[removed_species_id] = self._specie_history_count[removed_species_id] - 1
 				self:check_extinct(removed_species_id)
 			end
 
@@ -204,7 +208,7 @@ function GeneticPopulation:replace(i)
 		self:check_extinct(specie_id)
 
 		-- speciate
-		local new_specie = this_actor:get_ann():speciate(self:get_species())
+		local new_specie = this_actor:get_ann():speciate(self:get_species(), self._specie_threshold)
 		self:new_specie(new_specie)
 		if new_specie then
 			print("[WARN] - Speciating in speciation niche!")
@@ -219,7 +223,7 @@ function GeneticPopulation:replace(i)
 
 	-- speciate
 	if self._speciatable then
-		local new_specie = this_actor:get_ann():speciate(self:get_species())
+		local new_specie = this_actor:get_ann():speciate(self:get_species(), self._specie_threshold)
 		self:new_specie(new_specie)
 	end
 end
@@ -245,9 +249,9 @@ end
 function GeneticPopulation:new_specie(new_specie)
 	if new_specie then
 		local new_specie_id = new_specie:get_id()
-		self._species_history_count[new_specie_id] = 0
+		self._specie_history_count[new_specie_id] = 0
 		self._specie_niche_count[new_specie_id] = 0
-		for _ = 1, self._species_size do
+		for _ = 1, self._specie_initial_population_size do
 			self._specie_niche[#self._specie_niche + 1] = new_specie
 			self._specie_niche_count[new_specie_id] = self._specie_niche_count[new_specie:get_id()] + 1
 		end
@@ -256,7 +260,7 @@ end
 
 function GeneticPopulation:check_extinct(specie_id)
 	if self._specie_niche_count[specie_id] == 0 then
-		if self._species_history_count[specie_id] <= 0 then
+		if self._specie_history_count[specie_id] <= 0 then
 			self._species[specie_id]:purge()
 			self._species[specie_id] = false
 		end

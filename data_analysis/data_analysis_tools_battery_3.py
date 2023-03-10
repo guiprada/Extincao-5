@@ -17,6 +17,9 @@ SMALL_LEGEND_FONTSIZE = 10
 ANN_MODE_STRING = "autoplayer_ann_mode = "
 ANN_LAYERS_STRING = "autoplayer_ann_layers = "
 ANN_FITNESS_STRING = "autoplayer_fitness_mode = "
+ANN_NEAT_ENABLED_STRING = "autoplayer_neat_enable = "
+
+NEAT_GENE_SPECIE_STRING = "species: "
 
 OVERRIDE_OLD_DATAFRAME = False
 
@@ -35,7 +38,17 @@ IMAGE_DPI = 100
 # def json_quote_properties(str):
 # 	return re.sub(r"([A-z]+)", r'"\1"', str)
 
-def gene_parser(data):
+def neat_gene_parser(data):
+	data = data.replace("{", "")
+	data = data.replace("}", "")
+	str_list = data.split(", ")
+	if len(str_list) == 3:
+		return int(str_list[2].replace(NEAT_GENE_SPECIE_STRING, ""))
+	else:
+		return None
+
+
+def null_gene_parser(data):
 	return data
 
 def quote_gene(path):
@@ -63,11 +76,21 @@ def join_data(path):
 						outfile.write(line)
 
 ########################################################################## Analysis
-def create_array_of_interval_mean(array, interval_count):
+def create_array_of_moving_average(array, interval_count):
 	interval_arrays_list = np.array_split(array.tolist(), interval_count)
 	interval_avg_list = []
 	for subarray in interval_arrays_list:
 		avg = subarray.mean()
+		new_avg = np.full(len(subarray), avg)
+		interval_avg_list.extend(new_avg.tolist())
+
+	return np.asarray(interval_avg_list)
+
+def create_array_of_moving_std(array, interval_count):
+	interval_arrays_list = np.array_split(array.tolist(), interval_count)
+	interval_avg_list = []
+	for subarray in interval_arrays_list:
+		avg = subarray.std()
 		new_avg = np.full(len(subarray), avg)
 		interval_avg_list.extend(new_avg.tolist())
 
@@ -96,6 +119,8 @@ def create_lifetime_dict(df):
 		this_entry["collision_count"] = row["collision_count"]
 		this_entry["cell_x"] = row["cell_x"]
 		this_entry["cell_y"] = row["cell_y"]
+		this_entry["species"] = row["genes"]
+
 		if "lifetime" in row:
 			this_entry["internal_lifetime"] = row["lifetime"]
 			this_entry["fps"] = row["fps"]
@@ -114,10 +139,11 @@ def create_lifetime_dict(df):
 
 	return lifetimes_dict
 
-def add_scatter_plot_to_axis(axis, scatter_x, scatter_y, title, label, alpha = 1, scale = 1):
+def add_scatter_plot_to_axis(axis, scatter_x, scatter_y, title, label, alpha = 1, scale = 1, linewidth = None, interval_min = None, interval_max = None, show_average = True):
 	axis.set_title(title)
 	axis.scatter(scatter_x, scatter_y, label = label, alpha = alpha, edgecolors='none', s = scale)
-	axis.hlines(scatter_y.mean(), 0, len(scatter_x), label = "mean", colors = "red", linestyles = "dotted", alpha = 1)
+	if show_average == True:
+		axis.hlines(scatter_y.mean(), 0, len(scatter_x), label = "mean", colors = "red", linestyles = "dotted", alpha = 1)
 	plt.setp(axis.get_xticklabels(), rotation=30, horizontalalignment='right')
 	# axis.legend(fontsize = SMALL_LEGEND_FONTSIZE)
 
@@ -143,32 +169,48 @@ def add_heatmap_to_axis(axis, x, y, bins, title):
 	# plt.setp(axis.get_xticklabels(), rotation=30, horizontalalignment='right')
 	plt.colorbar(img, ax = axis, location = "left")
 
-def add_moving_average_plot_to_axis(axis, scatter_x, scatter_y, title, alpha = 1):
-		scatter_y_100 = create_array_of_interval_mean(scatter_y, 100)
-		scatter_y_10 = create_array_of_interval_mean(scatter_y, 10)
+def add_moving_average_plot_to_axis(axis, scatter_x, scatter_y, title, label, scale = 1, alpha = 1, linewidth = None, interval_min = None, interval_max = None):
+		scatter_y_100 = create_array_of_moving_average(scatter_y, 100)
+		scatter_y_30 = create_array_of_moving_average(scatter_y, 30)
+		scatter_y_30_std = create_array_of_moving_std(scatter_y, 30)
 
+		thin_linewidth = None
+		if linewidth:
+			thin_linewidth = math.ceil(linewidth/2)
 		axis.set_title(title)
-		axis.plot(scatter_x, scatter_y_100, label = "moving average 100 blocks", color = "blue", alpha = alpha)
-		axis.plot(scatter_x, scatter_y_10, label = "moving average 10 blocks", color = "green", alpha = alpha)
-		axis.hlines(scatter_y.mean(), 0, len(scatter_x), label = "mean", colors = "red", linestyles = "dotted", alpha = alpha)
+		axis.plot(scatter_x, scatter_y_100, label = "moving average 100 blocks", color = "green", alpha = alpha, linewidth = thin_linewidth)
+		axis.plot(scatter_x, scatter_y_30, label = "moving average 30 blocks", color = "blue", alpha = alpha, linewidth = linewidth)
+		# axis.plot(scatter_x, scatter_y_30_std, label = "moving standart deviation 30 blocks", color = "yellow", alpha = alpha, linewidth = linewidth)
+		axis.hlines(scatter_y.mean(), 0, len(scatter_x), label = "mean", colors = "red", linestyles = "dotted", alpha = alpha, linewidth = thin_linewidth)
 		plt.setp(axis.get_xticklabels(), rotation=30, horizontalalignment='right')
 		axis.legend(fontsize = SMALL_LEGEND_FONTSIZE)
 
-def add_scatter_and_moving_average_plot_to_axis(axis, scatter_x, scatter_y, title, label, scale = 1, alpha = 1):
-	scatter_y_100 = create_array_of_interval_mean(scatter_y, 100)
-	scatter_y_10 = create_array_of_interval_mean(scatter_y, 10)
+def add_scatter_and_moving_average_plot_to_axis(axis, scatter_x, scatter_y, title, label, scale = 1, alpha = 1, linewidth = None, interval_min = None, interval_max = None):
+	scatter_y_100 = create_array_of_moving_average(scatter_y, 100)
+	scatter_y_30 = create_array_of_moving_average(scatter_y, 30)
 
 	axis.set_title(title)
-	clip_max = scatter_y_100.max()
-	clip_min = scatter_y_100.min()
-	scatter_zip = zip(scatter_x, scatter_y)
-	scatter_zip_clipped = [p for p in scatter_zip if p[1] <= clip_max and p[1]>= clip_min]
-	if len(scatter_zip_clipped) > 0:
-		scatter_x_clipped, scatter_y_clipped = zip(*scatter_zip_clipped)
-		axis.scatter(scatter_x_clipped, scatter_y_clipped, label = label, alpha = alpha, color = "orange", edgecolors='none', s = scale)
-	axis.plot(scatter_x, scatter_y_100, label = "moving average 100 blocks", color = "green", alpha = alpha)
-	axis.plot(scatter_x, scatter_y_10, label = "moving average 10 blocks", color = "purple", alpha = alpha)
-	axis.hlines(scatter_y.mean(), 0, scatter_x.max(), label = "mean", colors = "red", linestyles = "dotted", alpha = alpha)
+	if len(scatter_y_100) > 0:
+		clip_max = scatter_y_100.max()
+		clip_min = scatter_y_100.min()
+		if interval_max is not None:
+			clip_max = max(clip_max, interval_max)
+		if interval_min:
+			clip_min = min(clip_min, interval_min)
+
+		if clip_max is not None and clip_min is not None:
+			scatter_zip = zip(scatter_x, scatter_y)
+			scatter_zip_clipped = [p for p in scatter_zip if p[1] <= clip_max and p[1]>= clip_min]
+			scatter_x_clipped, scatter_y_clipped = zip(*scatter_zip_clipped)
+			axis.scatter(scatter_x_clipped, scatter_y_clipped, label = label, alpha = alpha, color = "orange", edgecolors='none', s = scale)
+
+	thin_linewidth = None
+	if linewidth:
+		thin_linewidth = math.ceil(linewidth/2)
+
+	axis.plot(scatter_x, scatter_y_100, label = "moving average 100 blocks", color = "green", alpha = alpha, linewidth = thin_linewidth)
+	axis.plot(scatter_x, scatter_y_30, label = "moving average 30 blocks", color = "purple", alpha = alpha, linewidth = linewidth)
+	axis.hlines(scatter_y.mean(), 0, scatter_x.max(), label = "mean", colors = "red", linestyles = "dotted", alpha = alpha, linewidth = thin_linewidth)
 	axis.ticklabel_format(style = "plain")
 	plt.setp(axis.get_xticklabels(), rotation=30, horizontalalignment='right')
 	# axis.legend(fontsize = SMALL_LEGEND_FONTSIZE)
@@ -266,7 +308,7 @@ def generate_run_report_from_dict(run_dict, CUT_RESULTS_TO = None, show = False,
 
 	plot_fn = add_scatter_plot_to_axis
 	if moving_average_plot:
-		plot_fn = add_scatter_and_moving_average_plot_to_axis
+		plot_fn = add_moving_average_plot_to_axis
 
 	player_df = run_dict["df"].loc[run_dict["df"]["actor_type"] == "player"]
 	non_zero_lifetime_player_df = player_df.query("lifetime > 0")
@@ -476,7 +518,7 @@ def generate_run_report_from_dict_internal_lifetime(run_dict, CUT_RESULTS_TO = N
 
 	plot_fn = add_scatter_plot_to_axis
 	if moving_average_plot:
-		plot_fn = add_scatter_and_moving_average_plot_to_axis
+		plot_fn = add_moving_average_plot_to_axis
 
 	player_df = run_dict["df"].loc[run_dict["df"]["actor_type"] == "player"]
 	non_zero_lifetime_player_df = player_df.query("lifetime > 0")
@@ -513,12 +555,12 @@ def generate_run_report_from_dict_internal_lifetime(run_dict, CUT_RESULTS_TO = N
 
 	fig, subplots = plt.subplot_mosaic(
 	"""
-	AAABBB
-	CCCDDD
-	EEEFFF
-	GGGHHH
-	IIJJKK
-	LLMMNN
+	DDDDDD
+	DDDDDD
+	IIIKKK
+	LLLMMM
+	CCCNNN
+
 	""",figsize = FIG_SIZE)
 
 	## Config string
@@ -529,28 +571,28 @@ def generate_run_report_from_dict_internal_lifetime(run_dict, CUT_RESULTS_TO = N
 	fig.suptitle(config_string, size = 20, y = 0)
 
 	## Updates/second
-	plot_fn(subplots["A"], player_df["index"], player_df["fps"], "fps x player iteration", "fps", alpha = 1, scale = 1)
+	# plot_fn(subplots["A"], player_df["index"], player_df["fps"], "fps x player iteration", "fps", alpha = 1, scale = 1)
 
 	## Updates per player
-	plot_fn(subplots["B"], player_df["index"], player_df["updates"], "updates x player iteration", "updates", alpha = 1, scale = 1)
+	# plot_fn(subplots["B"], player_df["index"], player_df["updates"], "updates x player iteration", "updates", alpha = 1, scale = 1)
 
 	## Player
 	add_heatmap_to_axis(subplots["C"], player_df["cell_x"], player_df["cell_y"], bins = (28, 14), title = "Capture heatmap for player")
-	plot_fn(subplots["D"], player_df["index"], player_df["internal_lifetime"], "internal_lifetime x player iteration", "internal_lifetime", alpha = 1, scale = 1)
+	plot_fn(subplots["D"], player_df["index"], player_df["internal_lifetime"], "internal_lifetime x player iteration", "internal_lifetime", alpha = 1, scale = 10, linewidth = 5, interval_min = 0, interval_max = 7)
 
 	## Ghost
-	add_heatmap_to_axis(subplots["E"], ghost_df["cell_x"], ghost_df["cell_y"], bins = (28, 14), title = "Capture heatmap for ghost")
-	plot_fn(subplots["F"], ghost_df["index"], ghost_df["internal_lifetime"], "internal_lifetime x ghost iteration", "internal_lifetime", alpha = 1, scale = 1)
+	# add_heatmap_to_axis(subplots["E"], ghost_df["cell_x"], ghost_df["cell_y"], bins = (28, 14), title = "Capture heatmap for ghost")
+	# plot_fn(subplots["F"], ghost_df["index"], ghost_df["internal_lifetime"], "internal_lifetime x ghost iteration", "internal_lifetime", alpha = 1, scale = 1)
 
 	## Pills
-	add_heatmap_to_axis(subplots["G"], pill_df["cell_x"], pill_df["cell_y"], bins = (28, 14), title = "Capture heatmap for pill")
-	plot_fn(subplots["H"], pill_df["index"], pill_df["internal_lifetime"], "internal_lifetime x pill iteration", "internal_lifetime", alpha = 1, scale = 1)
+	# add_heatmap_to_axis(subplots["G"], pill_df["cell_x"], pill_df["cell_y"], bins = (28, 14), title = "Capture heatmap for pill")
+	# plot_fn(subplots["H"], pill_df["index"], pill_df["internal_lifetime"], "internal_lifetime x pill iteration", "internal_lifetime", alpha = 1, scale = 1)
 
 	## pills captured/internal_lifetime x autoplayer generation
 	plot_fn(subplots["I"], non_zero_internal_lifetime_player_df["index"], non_zero_internal_lifetime_player_df["pills_captured"]/non_zero_internal_lifetime_player_df["internal_lifetime"], "pills_captured/internal_lifetime x\nplayer iteration", "pills_captured/internal_lifetime")
 
 	## Ghosts captured/internal_lifetime x autoplayer generation
-	plot_fn(subplots["J"], non_zero_internal_lifetime_player_df["index"], non_zero_internal_lifetime_player_df["ghosts_captured"]/non_zero_internal_lifetime_player_df["internal_lifetime"], "ghosts_captured/internal_lifetime x\nplayer iteration", "ghosts_captured/internal_lifetime")
+	# plot_fn(subplots["J"], non_zero_internal_lifetime_player_df["index"], non_zero_internal_lifetime_player_df["ghosts_captured"]/non_zero_internal_lifetime_player_df["internal_lifetime"], "ghosts_captured/internal_lifetime x\nplayer iteration", "ghosts_captured/internal_lifetime")
 
 	## Ghosts/pill x autoplayer generation
 	plot_fn(subplots["K"], non_zero_pills_captured_player_df["index"], non_zero_pills_captured_player_df["ghosts_captured"]/non_zero_pills_captured_player_df["pills_captured"], "ghosts_captured/pills_captured x\nplayer iteration", "ghosts_captured/pills_captured")
@@ -558,8 +600,12 @@ def generate_run_report_from_dict_internal_lifetime(run_dict, CUT_RESULTS_TO = N
 	## Visited_count x autoplayer generation
 	plot_fn(subplots["L"], player_df["index"], player_df["visited_count"], "visited_count x player iteration", "visited_count")
 
-	## grid_cell_changes/internal_lifetime x autoplayer generation
-	plot_fn(subplots["M"], non_zero_internal_lifetime_player_df["index"], non_zero_internal_lifetime_player_df["grid_cell_changes"]/non_zero_internal_lifetime_player_df["internal_lifetime"], "grid_cell_changes/internal_lifetime  x\n player iteration", "grid_cell_changes/internal_lifetime")
+	if run_dict["neat_enabled"] == True:
+		# neat species
+		add_scatter_plot_to_axis(subplots["M"], player_df["index"], player_df["species"], "species x player iteration", "species", show_average = False)
+	else:
+		## grid_cell_changes/internal_lifetime x autoplayer generation
+		plot_fn(subplots["M"], non_zero_internal_lifetime_player_df["index"], non_zero_internal_lifetime_player_df["grid_cell_changes"]/non_zero_internal_lifetime_player_df["internal_lifetime"], "grid_cell_changes/internal_lifetime  x\n player iteration", "grid_cell_changes/internal_lifetime")
 
 	## collision_count/internal_lifetime x autoplayer generation
 	plot_fn(subplots["N"], non_zero_internal_lifetime_player_df["index"], non_zero_internal_lifetime_player_df["collision_count"]/non_zero_internal_lifetime_player_df["internal_lifetime"], "collision_count/internal_lifetime x\n player iteration", "collision_count/internal_lifetime")
@@ -701,12 +747,16 @@ def count_captured(row, df):
 	else:
 		return None
 
-def load_dataframe(path, run):
+def load_dataframe(path, run, neat_enabled = False):
 	actors_df = None
 	errors = list()
 	if (OVERRIDE_OLD_DATAFRAME) or (not os.path.exists(f"{path}{run}.pd")):
-		data = pd.read_csv(f"{path}{run}.data_fixed", skipinitialspace = True, converters = {"genes":gene_parser}, quotechar="'")
-		data = data.drop(["genes"], axis = 1)
+
+		if neat_enabled == True:
+			data = pd.read_csv(f"{path}{run}.data_fixed", skipinitialspace = True, converters = {"genes":neat_gene_parser}, quotechar="'")
+		else:
+			data = pd.read_csv(f"{path}{run}.data_fixed", skipinitialspace = True, converters = {"genes":null_gene_parser}, quotechar="'")
+
 
 		actors_dict = create_lifetime_dict(data)
 		actors_df = pd.DataFrame.from_dict(actors_dict, orient="index")

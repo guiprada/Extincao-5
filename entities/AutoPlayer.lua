@@ -11,57 +11,20 @@ local autoplayer_type_name = "player"
 
 -------------------------------------------------------------------------------
 local fitness_modes = {}
+fitness_modes.movement = function (self)
+	self._fitness = self:get_grid_cell_changes() * self:get_visited_count()
+end
 
 fitness_modes.updates = function (self)
 	self._fitness = self:get_update_count()
-end
-
-fitness_modes.lifetime = function (self)
-	self._fitness = self:get_lifetime()
 end
 
 fitness_modes.no_pill_updates = function (self)
 	self._fitness = self:get_no_pill_update_count()
 end
 
-fitness_modes.cells_visited = function (self)
-	self._fitness = self:get_visited_count()
-end
-
-fitness_modes.movement = function (self)
-	self._fitness = self:get_grid_cell_changes() * self:get_visited_count()
-end
-
-fitness_modes.movement_captures = function (self)
-	self._fitness = self:get_visited_count() + self._pills_caught + self._ghosts_caught
-end
-
-fitness_modes.movement_captures_hack_26 = function (self)
-	if self:get_visited_count() > 26 then -- 26 is the size of the longest path
-		self._fitness = self:get_visited_count() + self._pills_caught + self._ghosts_caught
-	else
-		self._fitness = self:get_visited_count()
-	end
-end
-
-fitness_modes.movement_captures_hack_26_old = function (self)
-	if self:get_visited_count() > 26 then -- 26 is the size of the longest path
-		self._fitness = self:get_visited_count() + self._pills_caught + self._ghosts_caught
-	else
-		self._fitness = math.min(26, self:get_grid_cell_changes())
-	end
-end
-
-fitness_modes.movement_updates = function (self)
-	if self:get_visited_count() > 26 then -- 26 is the size of the longest path
-		self._fitness = self:get_visited_count() + self._pills_caught + self._ghosts_caught
-	else
-		self._fitness = math.min(26, self:get_update_count()/10000)
-	end
-end
-
 -------------------------------------------------------------------------------
-function AutoPlayer.init(search_path_length, mutate_chance, mutate_percentage, ann_layers, ann_mode, crossover, autoplayer_ann_backpropagation, autoplayer_fitness_mode, collision_purge, rotate_purge, initial_bias, start_idle, start_on_center)
+function AutoPlayer.init(search_path_length, mutate_chance, mutate_percentage, ann_layers, ann_mode, crossover, autoplayer_ann_backpropagation, autoplayer_fitness_mode, collision_purge, rotate_purge, initial_bias)
 	AutoPlayer._search_path_length = search_path_length
 
 	AutoPlayer._mutate_chance = mutate_chance
@@ -79,8 +42,6 @@ function AutoPlayer.init(search_path_length, mutate_chance, mutate_percentage, a
 	AutoPlayer._collision_purge = collision_purge or false
 	AutoPlayer._rotate_purge = rotate_purge or false
 	AutoPlayer._initial_bias = initial_bias
-	AutoPlayer._start_idle = start_idle or false
-	AutoPlayer._start_on_center = start_on_center or false
 
 	GridActor.register_type(autoplayer_type_name)
 end
@@ -116,36 +77,18 @@ function AutoPlayer:reset(reset_table)
 	self._grid_cell_changes = 0
 	self._pill_update_count = 0
 	self._collision_count = 0
-	self._ghosts_caught = 0
-	self._pills_caught = 0
 
-	cell = AutoPlayer._start_on_center and {x = 14, y = 6} or cell
-	if self._start_idle then
-		cell = cell or AutoPlayer._grid:get_valid_cell()
-		GridActor.reset(self, cell)
+	GridActor.reset(self, cell)
 
-		self._direction = "idle"
-		self._orientation = "up"
+	local target_grid = AutoPlayer._grid:get_valid_cell()
+	self._home_grid.x = target_grid.x
+	self._home_grid.y = target_grid.y
 
-		-- self._home_grid.x = cell.x
-		-- self._home_grid.y = cell.y
+	self._target_grid.x = target_grid.x
+	self._target_grid.y = target_grid.y
 
-		-- self._target_grid.x = cell.x
-		-- self._target_grid.y = cell.y
-	else
-		cell = cell or AutoPlayer._grid:get_valid_cell()
-		GridActor.reset(self, cell)
-
-		-- local target_grid = AutoPlayer_NEAT._grid:get_valid_cell()
-		-- self._home_grid.x = target_grid.x
-		-- self._home_grid.y = target_grid.y
-
-		-- self._target_grid.x = target_grid.x
-		-- self._target_grid.y = target_grid.y
-
-		self._direction = self:get_random_valid_direction()
-		self._orientation = self._direction
-	end
+	self._direction = self:get_random_valid_direction()
+	self._orientation = self._direction
 
 	if not self._max_cell then
 		self._max_cell = {}
@@ -291,11 +234,9 @@ function AutoPlayer:update_pill_update_count(ghost_state)
 end
 
 function AutoPlayer:got_ghost()
-	self._ghosts_caught = self._ghosts_caught + 1
 end
 
 function AutoPlayer:got_pill()
-	self._pills_caught = self._pills_caught + 1
 end
 
 function AutoPlayer:get_ann()

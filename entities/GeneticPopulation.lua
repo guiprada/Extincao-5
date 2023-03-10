@@ -5,7 +5,7 @@ local GeneticPopulation = {}
 GeneticPopulation.__index = GeneticPopulation
 qpd.table.assign_methods(GeneticPopulation, Population)
 
-function GeneticPopulation:new(class, active_size, initial_random_population_size, population_history_size, specie_niche_initial_population_size, specie_niche_population_history_size, specie_mule_start, specie_all_roulette_start, specie_threshold, player_caugh_callback, reset_table, o)
+function GeneticPopulation:new(class, active_size, population_size, genetic_population_size, reset_table, o)
 	local o = o or {}
 	setmetatable(o, self)
 
@@ -13,27 +13,21 @@ function GeneticPopulation:new(class, active_size, initial_random_population_siz
 
 	o._class = class
 	o._speciatable = o._class._speciatable
-	o._player_caught_callback = player_caugh_callback
 	if o._speciatable then
-		o._species = {}
-		o._specie_niche = {}
-		o._specie_niche_count = {}
-		o._specie_history_count = {}
-		o._specie_initial_population_size = specie_niche_initial_population_size or math.max(initial_random_population_size/10, 30)
-		o._specie_population_history_size = specie_niche_population_history_size or math.max(initial_random_population_size/10, 30)
-		o._specie_mule_start = specie_mule_start
-		o._specie_all_roulette_start = specie_all_roulette_start
-		o._specie_threshold = specie_threshold
+		self._species = {}
+		self._specie_niche = {}
+		self._specie_niche_count = {}
+		self._species_history_count = {}
+		self._species_size = math.max(population_size/10, 30)
 	else
-		o._species = nil
-		o._specie_niche = nil
+		self._species = nil
+		self._specie_niche = nil
 	end
 
 	o._active_size = active_size
-	o._initial_random_population_size = initial_random_population_size
-	o._random_init = initial_random_population_size
-	o._genetic_population_size = population_history_size
-	o._genetics_enabled = population_history_size and true or false
+	o._population_size = population_size
+	o._random_init = population_size
+	o._genetic_population_size = genetic_population_size
 	o._new_table = o._new_table
 	o._reset_table = reset_table
 
@@ -47,7 +41,7 @@ function GeneticPopulation:new(class, active_size, initial_random_population_siz
 		o._population[i]:reset(o:get_reset_table())
 
 		if o._speciatable then
-			local new_specie = o._population[i]:get_ann():speciate(o:get_species(), o._specie_threshold)
+			local new_specie = o._population[i]:get_ann():speciate(o:get_species())
 			if new_specie then
 				o:new_specie(new_specie)
 			end
@@ -70,8 +64,9 @@ function GeneticPopulation:set_neat_selection(value)
 	self._neat_selection = value or true
 end
 
-function GeneticPopulation:set_new_speciation(value)
-	print("new speciation still not backported")
+function GeneticPopulation:set_neat_mode(value)
+	self:set_fitness_attribute("_own_fitness")
+	self:set_neat_selection(true)
 end
 
 function GeneticPopulation:add_to_history(actor)
@@ -80,10 +75,10 @@ function GeneticPopulation:add_to_history(actor)
 	-- history count
 	if self._speciatable then
 		local added_species_id = actor_history._specie_id -- we add first to not extinguish if species are the same
-		self._specie_history_count[added_species_id] = self._specie_history_count[added_species_id] + 1
+		self._species_history_count[added_species_id] = self._species_history_count[added_species_id] + 1
 
 		local this_ann = actor:get_ann()
-		this_ann._specie:add_to_history(actor, self._specie_population_history_size)
+		this_ann._specie:add_to_history(actor, self._species_size)
 	end
 
 	if #self._history > self._genetic_population_size then
@@ -93,7 +88,7 @@ function GeneticPopulation:add_to_history(actor)
 			-- history count
 			if self._speciatable then
 				local removed_species_id = lowest._specie_id
-				self._specie_history_count[removed_species_id] = self._specie_history_count[removed_species_id] - 1
+				self._species_history_count[removed_species_id] = self._species_history_count[removed_species_id] - 1
 				self:check_extinct(removed_species_id)
 			end
 
@@ -189,10 +184,6 @@ function GeneticPopulation:replace(i)
 	local this_actor = self._population[i]
 	self:add_to_history(this_actor)
 
-	if self._player_caught_callback and (this_actor:type() == "player") then
-		self:_player_caught_callback()
-	end
-
 	-- replace
 	if self._random_init > 0 then
 		self._random_init = self._random_init - 1
@@ -208,7 +199,7 @@ function GeneticPopulation:replace(i)
 		self:check_extinct(specie_id)
 
 		-- speciate
-		local new_specie = this_actor:get_ann():speciate(self:get_species(), self._specie_threshold)
+		local new_specie = this_actor:get_ann():speciate(self:get_species())
 		self:new_specie(new_specie)
 		if new_specie then
 			print("[WARN] - Speciating in speciation niche!")
@@ -223,7 +214,7 @@ function GeneticPopulation:replace(i)
 
 	-- speciate
 	if self._speciatable then
-		local new_specie = this_actor:get_ann():speciate(self:get_species(), self._specie_threshold)
+		local new_specie = this_actor:get_ann():speciate(self:get_species())
 		self:new_specie(new_specie)
 	end
 end
@@ -249,9 +240,9 @@ end
 function GeneticPopulation:new_specie(new_specie)
 	if new_specie then
 		local new_specie_id = new_specie:get_id()
-		self._specie_history_count[new_specie_id] = 0
+		self._species_history_count[new_specie_id] = 0
 		self._specie_niche_count[new_specie_id] = 0
-		for _ = 1, self._specie_initial_population_size do
+		for _ = 1, self._species_size do
 			self._specie_niche[#self._specie_niche + 1] = new_specie
 			self._specie_niche_count[new_specie_id] = self._specie_niche_count[new_specie:get_id()] + 1
 		end
@@ -260,7 +251,7 @@ end
 
 function GeneticPopulation:check_extinct(specie_id)
 	if self._specie_niche_count[specie_id] == 0 then
-		if self._specie_history_count[specie_id] <= 0 then
+		if self._species_history_count[specie_id] <= 0 then
 			self._species[specie_id]:purge()
 			self._species[specie_id] = false
 		end

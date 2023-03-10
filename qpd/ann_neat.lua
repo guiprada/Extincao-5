@@ -1314,14 +1314,6 @@ function ANN:get_outputs(inputs, run_type)
 	return outputs
 end
 
-function ANN:set_negative_weight_and_activation_initialization(value)
-	-- NEGATIVE_WEIGHT_AND_ACTIVATION = value
-end
-
-function ANN:set_input_proportional_activation(value)
-	-- INPUT_PROPORTIONAL_ACTIVATION = value
-end
-
 function ANN:to_string()
 	return "{neuron count: " .. self._genome:get_neuron_count() .. ", link count: " .. self._genome:get_link_count() .. (self._specie and (", species: " .. self._specie:get_id()) or "") .. "}"
 end

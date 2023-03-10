@@ -12,8 +12,6 @@ local Pill = require "entities.Pill"
 local ANN = require "qpd.ann"
 
 --------------------------------------------------------------------------------
-local MAX_DT_FACTOR = 4
-
 local color_array = {}
 color_array[1] = qpd.color.gray
 color_array[2] = qpd.color.pink
@@ -33,47 +31,7 @@ color_array[15] = qpd.color.orange
 color_array[16] = qpd.color.lime
 
 --------------------------------------------------------------------------------
-local function set_ghost_state(state)
-	local time = (state == "chasing") and gs.ghost_chase_time
-	time = time or ((state == "scattering") and gs.ghost_scatter_time)
-	time = time or ((state == "frightened") and gs.pill_effect_time)
-
-	if not time then
-		print("[ERROR] - Tried to set invalid ghost state", state)
-	else
-		gs.ghost_state = state
-		gs.ghost_state_timer:reset(time)
-		if state == "frightened" then
-			gs.got_pill = false
-			gs.pill_is_in_effect = false
-		end
-	end
-end
-
-local function reset_ghost_state()
-	set_ghost_state("scattering")
-end
-
-local ghost_start_positions = {
-	{x = 2, y = 2},
-	{x = 27, y = 13},
-	{x = 2, y = 13},
-	{x = 27, y = 2},
-}
-
-local function reposition_ghosts()
-	for i, ghost in ipairs(gs.GhostPopulation:get_population()) do
-		local pos = ghost_start_positions[i%4]
-		ghost:reposition(pos, nil, i%4)
-	end
-end
-
-local function player_caught_callback()
-	set_ghost_state("chasing")
-	reposition_ghosts()
-end
-
-local function change_ghost_state_callback()
+local function change_ghost_state()
 	local ghosts = gs.GhostPopulation:get_population()
 
 	if (gs.ghost_state == "scattering") then
@@ -135,18 +93,9 @@ function gs.load(map_file_path)
 		print("Failed to read games.conf or extinction.conf")
 	else
 		gs.headless = gs.game_conf.headless or false
-		gs.game_speed = gs.game_conf.game_speed or 100
+		gs.game_speed = 100
 		gs.default_zoom = gs.game_conf.default_zoom
-
-		if gs.game_conf.game_precise_timer then
-			GridActor:enablePreciseTime()
-		end
-
-		if gs.game_conf.enable_new_speciation == true then
-			GeneticPopulation:set_new_speciation(true)
-		end
-
-		gs.game_fixed_distance_per_update = gs.game_conf.game_fixed_distance_per_update
+		-- local difficulty_factor = gs.game_conf.difficulty/3
 
 		gs.fps = qpd.fps.new()
 
@@ -202,13 +151,16 @@ function gs.load(map_file_path)
 		gs.grid = qpd.grid.new(gs.map_matrix, collisions)
 
 		-- seed with a known value
-		gs.game_conf.seed = gs.game_conf.seed or os.time()
-		qpd.random.seed(gs.game_conf.seed)
+		gs.game_conf.seed = os.time()
+		qpd.random.seed(gs.game_conf.seed )
 		local this_log_path = "logs/" .. tostring(gs.game_conf.seed )
+
+		-- save configuration used
+		save_config_to_file(this_log_path .. ".conf", gs.game_conf)
 
 		-- Create a logger
 		local event_logger_file_path = this_log_path .. ".data"
-		local event_logger_columns = {"timestamp", "actor_id", "actor_type", "event_type", "other", "cell_x", "cell_y", "updates", "no_pill_updates", "visited_count", "grid_cell_changes", "collision_count", "fps", "lifetime", "genes"}
+		local event_logger_columns = {"timestamp", "actor_id", "actor_type", "event_type", "other", "cell_x", "cell_y", "updates", "no_pill_updates", "visited_count", "grid_cell_changes", "collision_count", "genes"}
 		local event_logger = qpd.logger:new(event_logger_file_path, event_logger_columns, 10)
 
 		-- Initialze GridActor
@@ -233,15 +185,10 @@ function gs.load(map_file_path)
 		gs.ghost_chase_time = gs.game_conf.ghost_chase_time
 		gs.ghost_scatter_time = gs.game_conf.ghost_scatter_time
 		gs.ghost_speed_factor = gs.game_conf.ghost_speed_factor
-		gs.ghost_sequential_home = gs.game_conf.ghost_sequential_home
 
-		if gs.game_conf.ghost_shuffle_try_order then
-			Ghost.set_shuffle_try_order(true)
-		end
-
-		gs.ghost_state_timer = qpd.timer.new(gs.ghost_scatter_time, change_ghost_state_callback)
-		reset_ghost_state()
-		-- print(gs.ghost_state)
+		gs.ghost_state_timer = qpd.timer.new(gs.ghost_scatter_time, change_ghost_state)
+		gs.ghost_state_timer:reset()
+		gs.ghost_state = "scattering"
 		-- gs.ghost_states = {"scattering", "chasing", "frightened"}
 		Ghost.init(
 			gs.grid,
@@ -265,24 +212,10 @@ function gs.load(map_file_path)
 			gs.GhostPopulation = GeneticPopulation:new(
 				Ghost,
 				gs.game_conf.ghost_active_population,
-				gs.game_conf.ghost_initial_random_population_size or 0,
-				gs.game_conf.ghost_population_history_size or 0
+				gs.game_conf.ghost_population,
+				gs.game_conf.ghost_genetic_population or 0
 			)
 		end
-
-		if gs.game_conf.ghost_state_reset_on_autoplayer_capture then
-			for i, ghost in ipairs(gs.GhostPopulation) do
-				local target_offset = ghost:get_target_offset()
-				local direction = "right"
-				local pos = {x = 2, y = 6}
-				if i%2 == 0 then
-					pos.x = 26
-					direction = "left"
-				end
-			end
-		end
-
-		reposition_ghosts()
 
 		-- Initalize Autoplayer
 		gs.autoplayer_speed_factor = gs.game_conf.autoplayer_speed_factor
@@ -292,32 +225,22 @@ function gs.load(map_file_path)
 				gs.game_conf.autoplayer_search_path_length,
 				gs.game_conf.autoplayer_mutate_chance,
 				gs.game_conf.autoplayer_mutate_percentage,
-				gs.game_conf.autoplayer_neat_add_neuron_chance,
-				gs.game_conf.autoplayer_neat_add_link_chance,
-				gs.game_conf.autoplayer_neat_loopback_chance,
+				gs.game_conf.autoplayer_add_neuron_chance,
+				gs.game_conf.autoplayer_add_link_chance,
+				gs.game_conf.autoplayer_loopback_chance,
 				gs.game_conf.autoplayer_ann_layers,
 				gs.game_conf.autoplayer_ann_mode,
 				gs.game_conf.autoplayer_crossover,
 				gs.game_conf.autoplayer_fitness_mode,
 				gs.game_conf.autoplayer_neat_speciate,
-				gs.game_conf.autoplayer_neat_initial_links,
-				gs.game_conf.autoplayer_neat_fully_connected,
-				gs.game_conf.autoplayer_neat_negative_weight_and_activation_initialization,
-				gs.game_conf.autoplayer_neat_input_proportional_activation,
-				gs.game_conf.autoplayer_start_idle,
-				gs.game_conf.autoplayer_start_on_center
+				gs.game_conf.autoplayer_initial_links,
+				gs.game_conf.autoplayer_fully_connected
 			)
 			gs.AutoPlayerPopulation = GeneticPopulation:new(
 				AutoPlayer_NEAT,
 				gs.game_conf.autoplayer_active_population,
-				gs.game_conf.autoplayer_initial_random_population_size,
-				gs.game_conf.autoplayer_population_history_size,
-				gs.game_conf.autoplayer_neat_specie_niche_initial_population_size,
-				gs.game_conf.autoplayer_neat_specie_niche_population_history_size,
-				gs.game_conf.autoplayer_neat_specie_mule_start,
-				gs.game_conf.autoplayer_specie_all_roulette_start,
-				gs.game_conf.autoplayer_neat_specie_threshold,
-				gs.game_conf.ghost_state_reset_on_autoplayer_capture and player_caught_callback or nil
+				gs.game_conf.autoplayer_population,
+				gs.game_conf.autoplayer_genetic_population
 			)
 			gs.AutoPlayerPopulation:set_neat_selection(true)
 		else
@@ -332,29 +255,18 @@ function gs.load(map_file_path)
 				gs.game_conf.autoplayer_fitness_mode,
 				gs.game_conf.autoplayer_collision_purge or false,
 				gs.game_conf.autoplayer_rotate_purge or false,
-				gs.game_conf.autoplayer_ann_initial_bias,
-				gs.game_conf.autoplayer_start_idle,
-				gs.game_conf.autoplayer_start_on_center
+				gs.game_conf.autoplayer_ann_initial_bias
 			)
 			gs.AutoPlayerPopulation = GeneticPopulation:new(
 				AutoPlayer,
 				gs.game_conf.autoplayer_active_population,
-				gs.game_conf.autoplayer_initial_random_population_size,
-				gs.game_conf.autoplayer_population_history_size,
-				nil,
-				nil,
-				nil,
-				nil,
-				nil,
-				gs.game_conf.ghost_state_reset_on_autoplayer_capture and player_caught_callback or nil
+				gs.game_conf.autoplayer_population,
+				gs.game_conf.autoplayer_genetic_population
 			)
 		end
 
 		-- max dt
-		gs.max_dt = (gs.tilemap_view.tilesize / MAX_DT_FACTOR) / qpd.value.max(gs.autoplayer_speed_factor * gs.game_speed, gs.ghost_speed_factor * gs.game_speed)
-		gs.game_conf.max_dt = gs.max_dt
-		-- save configuration used
-		save_config_to_file(this_log_path .. ".conf", gs.game_conf)
+		gs.max_dt = (gs.tilemap_view.tilesize / 4) / qpd.value.max(gs.autoplayer_speed_factor * gs.game_speed, gs.ghost_speed_factor * gs.game_speed)
 
 		-- define keyboard actions
 		gs.actions_keyup = {}
@@ -395,14 +307,6 @@ function gs.load(map_file_path)
 				add_ghost()
 				print("active ghost added!")
 			end
-		gs.actions_keyup['f'] =
-			function ()
-				gs.game_fixed_distance_per_update = not gs.game_fixed_distance_per_update
-			end
-		gs.actions_keyup['h'] =
-			function ()
-				gs.headless = not gs.headless
-			end
 	end
 end
 
@@ -422,32 +326,6 @@ function gs.draw()
 		gs.AutoPlayerPopulation:get_count(),
 		200,
 		0)
-
-	if gs.game_conf.autoplayer_neat_enable then
-		love.graphics.print(
-			"NEAT",
-			300,
-			0)
-	end
-
-	if gs.game_conf.autoplayer_fitness_mode then
-		love.graphics.print(
-			gs.game_conf.autoplayer_fitness_mode,
-			400,
-			0)
-	end
-
-	love.graphics.print(
-		gs.game_conf.autoplayer_ann_mode,
-		600,
-		0)
-
-	love.graphics.print(
-		gs.game_conf.seed,
-		750,
-		0)
-
-
 	if gs.paused then
 		gs.paused_text:draw()
 	end
@@ -458,14 +336,9 @@ function gs.update(dt)
 	-- gs.tilemap_view:follow(dt, gs.player.speed_factor, gs.player:get_center())
 	if not gs.paused then
 		-- dt should not be to high
-		if gs.game_fixed_distance_per_update then
-			-- print("fixed speed")
-			dt = gs.max_dt
-		else
-			if (dt > gs.max_dt) then
-				-- print("ops, dt too high, physics wont work, limiting dt too:", gs.max_dt)
-				dt = gs.max_dt
-			end
+		local dt = dt < gs.max_dt and dt or gs.max_dt
+		if (dt > gs.max_dt ) then
+			print("ops, dt too high, physics wont work, skipping dt= " .. dt)
 		end
 
 		-- clear grid collisions
@@ -482,9 +355,6 @@ function gs.update(dt)
 
 			local ghosts = gs.GhostPopulation:get_population()
 			for i=1, #ghosts, 1 do
-				if gs.ghost_sequential_home then
-					ghosts[i]:increase_home()
-				end
 				ghosts[i]:flip_direction()
 			end
 		elseif (gs.pill_is_in_effect == true) and (gs.got_pill == false) then
@@ -529,7 +399,7 @@ function gs.resize(w, h)
 	gs.tilemap_view:resize(gs.width, gs.height)
 
 	GridActor.set_tilesize(gs.tilemap_view.tilesize)
-	gs.max_dt = (gs.tilemap_view.tilesize / MAX_DT_FACTOR) / qpd.value.max(gs.autoplayer_speed_factor * gs.game_speed, gs.ghost_speed_factor * gs.game_speed)
+	gs.max_dt = (gs.tilemap_view.tilesize / 4) / qpd.value.max(gs.autoplayer_speed_factor * gs.game_speed, gs.ghost_speed_factor * gs.game_speed)
 end
 
 function gs.unload()

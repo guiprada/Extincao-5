@@ -600,7 +600,7 @@ local function get_baseline_pill_ghost_next_direction(self, grid, search_path_le
 	current_direction = current_direction or self._direction
 
 	if ghost_state == "frightened" then
-		local found_ghost, _, ghost_direction = can_see_class(self, "ghost", grid, search_path_length)
+		local found_ghost, ghost_direction = can_see_class(self, "ghost", grid, search_path_length)
 		if found_ghost then
 			return ghost_direction
 		end

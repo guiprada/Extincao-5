@@ -938,7 +938,6 @@ function _Genome:add_neuron()
 		local y = (chosen_link:get_input_y() + chosen_link:get_output_y())/2
 
 		local new_neuron_innovation_id = Innovation_manager:get_neuron_innovation_id(x, y)
-		local activation_response = _get_random_activation_response()
 		local new_neuron = _Neuron_Gene:new(
 			"hidden",
 			false,
@@ -1312,6 +1311,14 @@ function ANN:get_outputs(inputs, run_type)
 	end
 
 	return outputs
+end
+
+function ANN:set_negative_weight_and_activation_initialization(value)
+	print("set negative weight and activation not backported!")
+end
+
+function ANN:set_input_proportional_activation(value)
+	print("set input proportional activation not backported!")
 end
 
 function ANN:to_string()

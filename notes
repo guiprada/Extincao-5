@@ -45,9 +45,9 @@ autoplayer_neat_speciate = true
 autoplayer_neat_initial_links  = false
 autoplayer_neat_fully_connected = true
 autoplayer_neat_mule_chance = 0
-autoplayer_add_neuron_chance = 0.05
-autoplayer_add_link_chance = 0.05
-autoplayer_loopback_chance = 0.05
+autoplayer_neat_add_neuron_chance = 0.05
+autoplayer_neat_add_link_chance = 0.05
+autoplayer_neat_loopback_link_chance = 0.05
 
 autoplayer_ann_mode = b1
 autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
@@ -87,9 +87,9 @@ autoplayer_neat_speciate = true
 autoplayer_neat_initial_links  = false
 autoplayer_neat_fully_connected = true
 autoplayer_neat_mule_chance = 0
-autoplayer_add_neuron_chance = 0.05
-autoplayer_add_link_chance = 0.05
-autoplayer_loopback_chance = 0.05
+autoplayer_neat_add_neuron_chance = 0.05
+autoplayer_neat_add_link_chance = 0.05
+autoplayer_neat_loopback_link_chance = 0.05
 
 autoplayer_ann_mode = b1_path_grading_hack
 autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
@@ -129,9 +129,9 @@ autoplayer_neat_speciate = true
 autoplayer_neat_initial_links  = false
 autoplayer_neat_fully_connected = true
 autoplayer_neat_mule_chance = 0
-autoplayer_add_neuron_chance = 0.05
-autoplayer_add_link_chance = 0.05
-autoplayer_loopback_chance = 0.05
+autoplayer_neat_add_neuron_chance = 0.05
+autoplayer_neat_add_link_chance = 0.05
+autoplayer_neat_loopback_link_chance = 0.05
 
 autoplayer_ann_mode = b1_path_grading_simple
 autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
@@ -171,9 +171,9 @@ autoplayer_neat_speciate = true
 autoplayer_neat_initial_links  = false
 autoplayer_neat_fully_connected = true
 autoplayer_neat_mule_chance = 0
-autoplayer_add_neuron_chance = 0.05
-autoplayer_add_link_chance = 0.05
-autoplayer_loopback_chance = 0.05
+autoplayer_neat_add_neuron_chance = 0.05
+autoplayer_neat_add_link_chance = 0.05
+autoplayer_neat_loopback_link_chance = 0.05
 
 autoplayer_ann_mode = b2
 autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 2, activation_function_name = "binary_step"}}
@@ -213,9 +213,9 @@ autoplayer_neat_speciate = true
 autoplayer_neat_initial_links  = false
 autoplayer_neat_fully_connected = true
 autoplayer_neat_mule_chance = 0
-autoplayer_add_neuron_chance = 0.05
-autoplayer_add_link_chance = 0.05
-autoplayer_loopback_chance = 0.05
+autoplayer_neat_add_neuron_chance = 0.05
+autoplayer_neat_add_link_chance = 0.05
+autoplayer_neat_loopback_link_chance = 0.05
 
 autoplayer_ann_mode = b3
 autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 1, activation_function_name = "binary_step"}}
@@ -255,9 +255,9 @@ autoplayer_neat_speciate = true
 autoplayer_neat_initial_links  = false
 autoplayer_neat_fully_connected = true
 autoplayer_neat_mule_chance = 0
-autoplayer_add_neuron_chance = 0.05
-autoplayer_add_link_chance = 0.05
-autoplayer_loopback_chance = 0.05
+autoplayer_neat_add_neuron_chance = 0.05
+autoplayer_neat_add_link_chance = 0.05
+autoplayer_neat_loopback_link_chance = 0.05
 
 autoplayer_ann_mode = nb4
 autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 4, activation_function_name = "identity"}}
@@ -298,9 +298,9 @@ autoplayer_neat_speciate = true
 autoplayer_neat_initial_links  = false
 autoplayer_neat_fully_connected = true
 autoplayer_neat_mule_chance = 0
-autoplayer_add_neuron_chance = 0.05
-autoplayer_add_link_chance = 0.05
-autoplayer_loopback_chance = 0.05
+autoplayer_neat_add_neuron_chance = 0.05
+autoplayer_neat_add_link_chance = 0.05
+autoplayer_neat_loopback_link_chance = 0.05
 
 autoplayer_ann_mode = nb4_path_grading
 autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {activation_function_name = "relu"}, {count = 1, activation_function_name = "identity"}}

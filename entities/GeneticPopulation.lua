@@ -5,9 +5,11 @@ local GeneticPopulation = {}
 GeneticPopulation.__index = GeneticPopulation
 qpd.table.assign_methods(GeneticPopulation, Population)
 
-function GeneticPopulation:new(class, active_size, population_size, genetic_population_size, reset_table, o)
+function GeneticPopulation:new(class, active_size, population_size, genetic_population_size, specie_threshold, player_caught_callback, reset_table, o)
 	local o = o or {}
 	setmetatable(o, self)
+
+	o._player_caught_callback = player_caught_callback
 
 	o._fitness_attribute = "_fitness"
 
@@ -19,6 +21,7 @@ function GeneticPopulation:new(class, active_size, population_size, genetic_popu
 		self._specie_niche_count = {}
 		self._species_history_count = {}
 		self._species_size = math.max(population_size/10, 30)
+		self._specie_threshold = specie_threshold
 	else
 		self._species = nil
 		self._specie_niche = nil
@@ -41,7 +44,7 @@ function GeneticPopulation:new(class, active_size, population_size, genetic_popu
 		o._population[i]:reset(o:get_reset_table())
 
 		if o._speciatable then
-			local new_specie = o._population[i]:get_ann():speciate(o:get_species())
+			local new_specie = o._population[i]:get_ann():speciate(o:get_species(), o._specie_threshold)
 			if new_specie then
 				o:new_specie(new_specie)
 			end
@@ -64,9 +67,8 @@ function GeneticPopulation:set_neat_selection(value)
 	self._neat_selection = value or true
 end
 
-function GeneticPopulation:set_neat_mode(value)
-	self:set_fitness_attribute("_own_fitness")
-	self:set_neat_selection(true)
+function GeneticPopulation:set_new_speciation(value)
+	print("new speciation not backported!")
 end
 
 function GeneticPopulation:add_to_history(actor)
@@ -184,6 +186,10 @@ function GeneticPopulation:replace(i)
 	local this_actor = self._population[i]
 	self:add_to_history(this_actor)
 
+	if self._player_caught_callback and (this_actor:type() == "player") then
+		self:_player_caught_callback()
+	end
+
 	-- replace
 	if self._random_init > 0 then
 		self._random_init = self._random_init - 1
@@ -199,7 +205,7 @@ function GeneticPopulation:replace(i)
 		self:check_extinct(specie_id)
 
 		-- speciate
-		local new_specie = this_actor:get_ann():speciate(self:get_species())
+		local new_specie = this_actor:get_ann():speciate(self:get_species(), self._specie_threshold)
 		self:new_specie(new_specie)
 		if new_specie then
 			print("[WARN] - Speciating in speciation niche!")
@@ -214,7 +220,7 @@ function GeneticPopulation:replace(i)
 
 	-- speciate
 	if self._speciatable then
-		local new_specie = this_actor:get_ann():speciate(self:get_species())
+		local new_specie = this_actor:get_ann():speciate(self:get_species(), self._specie_threshold)
 		self:new_specie(new_specie)
 	end
 end

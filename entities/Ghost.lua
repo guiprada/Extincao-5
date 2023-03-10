@@ -7,6 +7,19 @@ local qpd = require "qpd.qpd"
 local ghost_type_name = "ghost"
 
 Ghost._state = "none"
+Ghost._sequential_home = false
+Ghost._shuffle_try_order = false
+
+Ghost._ghost_homes = {
+	{x = 1, y = 1},
+	{x = 28, y = 14},
+	{x = 1, y = 14},
+	{x = 28, y = 1},
+}
+---------------------------------------------------------------
+function Ghost.get_random_home_index()
+	return qpd.random.random(1, #Ghost._ghost_homes)
+end
 
 function Ghost.set_state(new_state)
 	Ghost._state = new_state
@@ -14,6 +27,10 @@ end
 
 function Ghost.set_speed(new_speed)
 	Ghost._speed = new_speed
+end
+
+function Ghost.set_shuffle_try_order(value)
+	Ghost._shuffle_try_order = value or true
 end
 
 function Ghost.init(grid,
@@ -30,7 +47,7 @@ function Ghost:new(o)
 	local o = GridActor:new(o or {})
 	setmetatable(o, self)
 
-	o._home = {} -- determined by pos_index, it is a phenotype
+	o._home = Ghost.get_random_home_index() -- determined by pos_index, it is a phenotype
 	o._try_order = {} -- gene
 
 	o._type = GridActor.get_type_by_name(ghost_type_name)
@@ -39,13 +56,16 @@ function Ghost:new(o)
 end
 
 function Ghost:reset(reset_table)
-	local home_cell, target_offset, try_order
+	local home, target_offset, try_order, pos, direction
 	if reset_table then
-		home_cell = reset_table.home_cell
+		home = reset_table.home
 		target_offset = reset_table.target_offset
 		try_order = reset_table.try_order
+		pos = reset_table.pos
+		direction = reset_table.direction
 	end
-	home_cell = home_cell or Ghost._grid:get_invalid_cell()
+
+	self._home = home or Ghost.get_random_home_index()
 
 	target_offset = target_offset or qpd.random.random(math.floor(-Ghost._target_spread), math.ceil(Ghost._target_spread))
 	try_order = try_order or nil
@@ -63,10 +83,7 @@ function Ghost:reset(reset_table)
 	self._try_order[3] = try_order[3]
 	self._try_order[4] = try_order[4]
 
-	self._home.x = home_cell.x
-	self._home.y = home_cell.y
-
-	GridActor.reset(self, Ghost._grid:get_valid_cell())
+	GridActor.reset(self, pos or Ghost._grid:get_valid_cell())
 
 	self._n_catches = 0
 	self._fitness = 0
@@ -74,13 +91,42 @@ function Ghost:reset(reset_table)
 	self._target_offset = target_offset
 
 	-- set a valid direction
-	self:set_random_valid_direction()
+	self:set_direction(direction)
+end
+
+function Ghost:reposition(pos, target_offset, home)
+	if pos then
+		GridActor.reposition(self, pos)
+		self:set_direction()
+	end
+
+	self._target_offset = target_offset or self._target_offset
+	self._home = home or self._home
+end
+
+function Ghost:set_direction(direction)
+	self._direction = direction or self:get_random_valid_direction()
 	self._debounce_get_next_direction = true
 	self:update_dynamic_front()
 end
 
+function Ghost:get_target_offset()
+	return self._target_offset
+end
+
 function Ghost:set_target_offset(value)
 	self._target_offset = value
+end
+
+function Ghost:increase_home()
+	self._home = self._home + 1
+	if self._home > #self._ghost_homes then
+		self._home = 1
+	end
+end
+
+function Ghost:get_home()
+	return Ghost._ghost_homes[self._home]
 end
 
 function Ghost:get_history()
@@ -99,7 +145,7 @@ function Ghost:crossover(mom, dad, reset_table)
 	-- 	target_offset = target_offset + math.floor(qpd.random.random(-2, 2))
 	-- end
 
-	self:reset({target_offset = self._target_offset})
+	self:reset({target_offset = self._target_offset, home = self._home})
 end
 
 function Ghost:is_type(type_name)
@@ -171,7 +217,13 @@ end
 function Ghost:update(dt, speed, targets)
 	if (self._is_active) then
 		if speed*dt > (GridActor._tilesize/2) then
-			print("physics sanity check failed, Actor traveled distance > tilesize")
+			print("physics sanity check failed, Actor traveled distance > tilesize/2")
+		end
+
+		self._lifetime = self._lifetime + dt
+
+		if self._shuffle_try_order then
+			qpd.array.shuffle(self._try_order)
 		end
 
 		if GridActor._tilesize ~= self._tilesize then
@@ -204,6 +256,7 @@ function Ghost:update(dt, speed, targets)
 				self:collided(target)
 			end
 		else
+			print("no target")
 			target = Ghost._grid:get_invalid_cell()
 		end
 
@@ -214,46 +267,35 @@ function Ghost:update(dt, speed, targets)
 		self._has_collided = false
 		if(self:is_front_wall()) then
 			self:center_on_cell() -- it stops relayed cornering
+			self._debounce_get_next_direction = false
 			self:find_next_direction(target)
 			self._has_collided = true
-		end
-
-		--on change tile
-		self._changed_grid_cell = false
-		if  self._cell.x ~= self._last_cell.x then
-			self._changed_grid_cell = "x"
-		end
-		if self._cell.y ~= self._last_cell.y then
-			if self._changed_grid_cell then
-				self._changed_grid_cell = "xy"
-			else
-				self._changed_grid_cell = "y"
-			end
-		end
-		if self._changed_grid_cell then
-			self._debounce_get_next_direction = false
-		end
-
-		--on tile center, or close
-		local dist_grid_center = qpd.point.distance(self.x, self.y, Ghost._grid.cell_to_center_point(self._cell.x, self._cell.y, self._tilesize))
-		if (dist_grid_center < speed*dt) then
-			if ( self._direction == "up" or self._direction== "down") then
-				self:center_on_cell_x()
-			elseif ( self._direction == "left" or self._direction== "right") then
-				self:center_on_cell_y()
-			end
-			self:find_next_direction(target)
-		end
-
-		if self._direction ~= "idle" then
-			--print("X: ", self.x, "Y:", self.y)
-			if self._direction == "up" then self.y = self.y - dt * speed
-			elseif self._direction == "down" then self.y = self.y + dt * speed
-			elseif self._direction == "left" then self.x = self.x -dt * speed
-			elseif self._direction == "right" then self.x = self.x +dt * speed
-			end
 		else
-			self._direction = self._next_direction
+			if self._changed_grid_cell then
+				self._debounce_get_next_direction = false
+				self._already_centered = false
+			end
+
+			--on tile center, or close
+			local dist_grid_center = qpd.point.distance(self.x, self.y, Ghost._grid.cell_to_center_point(self._cell.x, self._cell.y, self._tilesize))
+			if (dist_grid_center < speed*dt) and not(self._already_centered) then
+				self._already_centered = true
+				if ( self._direction == "up" or self._direction== "down") then
+					self:center_on_cell_y()
+				elseif ( self._direction == "left" or self._direction== "right") then
+					self:center_on_cell_x()
+				end
+				self:find_next_direction(target)
+			end
+
+			if self._direction ~= "idle" then
+				local this_speed = dt * speed
+				if self._direction == "up" then self.y = self.y - this_speed
+				elseif self._direction == "down" then self.y = self.y + this_speed
+				elseif self._direction == "left" then self.x = self.x - this_speed
+				elseif self._direction == "right" then self.x = self.x +this_speed
+				end
+			end
 		end
 	end
 end
@@ -266,12 +308,13 @@ function Ghost:find_next_direction(target)
 
 		self.enabled_directions = self:get_enabled_directions()
 		if (#self.enabled_directions < 1) then
-			print("enabled_directions cant be empty")
+			-- print("enabled_directions cant be empty")
+			self._direction = "idle"
 		elseif not Ghost._grid:is_corridor(self._cell.x, self._cell.y) then
 		-- if 	(Ghost._grid.grid_types[self._cell.y][self._cell.x]~=3 and-- invertido
 		-- 	Ghost._grid.grid_types[self._cell.y][self._cell.x]~=12 ) then
-			--check which one is closer to the target
-			-- make a table to contain the posible destinations
+		-- 	check which one is closer to the target
+		-- 	make a table to contain the posible destinations
 			local possible_next_moves = {}
 			for i = 1, #self._try_order, 1 do
 				if (self.enabled_directions[self._try_order[i]] == true) then
@@ -302,11 +345,9 @@ function Ghost:find_next_direction(target)
 			end
 
 			if (#possible_next_moves == 0) then
-				print("possible_next_moves cant be empty")
-				return
-			end
-
-			if (target._is_active) then
+				-- print("possible_next_moves cant be empty")
+				self._direction = "idle"
+			elseif (target._is_active) then
 				if (Ghost._state == "chasing") then
 					self:go_to_target(target, possible_next_moves)
 				elseif (Ghost._state == "scattering") then
@@ -314,7 +355,7 @@ function Ghost:find_next_direction(target)
 				elseif (Ghost._state == "frightened") then
 					self:wander(possible_next_moves)
 				else
-					print("error, invalid ghost_state")
+					print("error, invalid ghost_state: ", Ghost._state)
 				end
 			else
 				self:go_home(possible_next_moves)
@@ -414,8 +455,9 @@ end
 
 function Ghost:go_home(possible_next_moves)
 	local destination = {}
-	destination.x = self._home.x
-	destination.y = self._home.y
+	local home = self:get_home()
+	destination.x = home.x
+	destination.y = home.y
 
 	self:get_closest(possible_next_moves, destination)
 end

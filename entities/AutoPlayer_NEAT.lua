@@ -11,20 +11,57 @@ local autoplayer_type_name = "player"
 
 -------------------------------------------------------------------------------
 local fitness_modes = {}
-fitness_modes.movement = function (self)
-	self._fitness = self:get_grid_cell_changes() * self:get_visited_count()
-end
 
 fitness_modes.updates = function (self)
 	self._fitness = self:get_update_count()
+end
+
+fitness_modes.lifetime = function (self)
+	self._fitness = self:get_lifetime()
 end
 
 fitness_modes.no_pill_updates = function (self)
 	self._fitness = self:get_no_pill_update_count()
 end
 
+fitness_modes.cells_visited = function (self)
+	self._fitness = self:get_visited_count()
+end
+
+fitness_modes.movement = function (self)
+	self._fitness = self:get_grid_cell_changes() * self:get_visited_count()
+end
+
+fitness_modes.movement_captures = function (self)
+	self._fitness = self:get_visited_count() + self._pills_caught + self._ghosts_caught
+end
+
+fitness_modes.movement_captures_hack_26 = function (self)
+	if self:get_visited_count() > 26 then -- 26 is the size of the longest path
+		self._fitness = self:get_visited_count() + self._pills_caught + self._ghosts_caught
+	else
+		self._fitness = self:get_visited_count()
+	end
+end
+
+fitness_modes.movement_captures_hack_26_old = function (self)
+	if self:get_visited_count() > 26 then -- 26 is the size of the longest path
+		self._fitness = self:get_visited_count() + self._pills_caught + self._ghosts_caught
+	else
+		self._fitness = math.min(26, self:get_grid_cell_changes())
+	end
+end
+
+fitness_modes.movement_updates = function (self)
+	if self:get_visited_count() > 26 then -- 26 is the size of the longest path
+		self._fitness = self:get_visited_count() + self._pills_caught + self._ghosts_caught
+	else
+		self._fitness = math.min(26, self:get_update_count()/10000)
+	end
+end
+
 -------------------------------------------------------------------------------
-function AutoPlayer_NEAT.init(search_path_length, mutate_chance, mutate_percentage, add_neuron_chance, add_link_chance, loopback_chance, ann_layers, ann_mode, crossover, fitness_mode, autoplayer_neat_speciate, initial_links, fully_connected)
+function AutoPlayer_NEAT.init(search_path_length, mutate_chance, mutate_percentage, add_neuron_chance, add_link_chance, loopback_chance, ann_layers, ann_mode, crossover, fitness_mode, autoplayer_neat_speciate, neat_initial_links, neat_fully_connected, negative_weight_and_activation_initialization, input_proportional_activation, start_idle, start_on_center)
 	--AutoPlayer.init(search_path_length, mutate_chance, mutate_percentage, ann_layers, ann_mode, crossover, autoplayer_ann_backpropagation, autoplayer_fitness_mode, collision_purge, rotate_purge, initial_bias)
 	AutoPlayer_NEAT._search_path_length = search_path_length
 
@@ -38,8 +75,13 @@ function AutoPlayer_NEAT.init(search_path_length, mutate_chance, mutate_percenta
 	AutoPlayer_NEAT._crossover = crossover
 	AutoPlayer_NEAT._autoplayer_fitness_mode = fitness_mode
 	AutoPlayer_NEAT._speciatable = autoplayer_neat_speciate or false
-	AutoPlayer_NEAT._initial_links = initial_links or false
-	AutoPlayer_NEAT._fully_connected = fully_connected or false
+	AutoPlayer_NEAT._neat_initial_links = neat_initial_links or false
+	AutoPlayer_NEAT._neat_fully_connected = neat_fully_connected or false
+	AutoPlayer_NEAT._start_idle = start_idle or false
+	AutoPlayer_NEAT._start_on_center = start_on_center or false
+
+	qpd.ann_neat:set_negative_weight_and_activation_initialization(negative_weight_and_activation_initialization)
+	qpd.ann_neat:set_input_proportional_activation(input_proportional_activation)
 
 	GridActor.register_type(autoplayer_type_name)
 end
@@ -49,8 +91,8 @@ function AutoPlayer_NEAT:new(o)
 	setmetatable(o, self)
 
 	o._type = GridActor.get_type_by_name(autoplayer_type_name)
-	self._target_grid = {}
-	self._home_grid = {}
+	-- self._target_grid = {}
+	-- self._home_grid = {}
 
 	return o
 end
@@ -62,8 +104,6 @@ function AutoPlayer_NEAT:reset(reset_table)
 		ann = reset_table.ann
 	end
 
-	cell = cell or AutoPlayer_NEAT._grid:get_valid_cell()
-
 	if ann then
 		self._ann = ann
 	else
@@ -74,8 +114,8 @@ function AutoPlayer_NEAT:reset(reset_table)
 			AutoPlayer_NEAT._ann_layers[3].count,
 			AutoPlayer_NEAT._ann_layers[3].activation_function_name,
 			AutoPlayer_NEAT._ann_layers[3].activation_function_parameters,
-			AutoPlayer_NEAT._initial_links,
-			AutoPlayer_NEAT._fully_connected,
+			AutoPlayer_NEAT._neat_initial_links,
+			AutoPlayer_NEAT._neat_fully_connected,
 			AutoPlayer_NEAT._ann_layers[2].activation_function_name,
 			AutoPlayer_NEAT._ann_layers[2].activation_function_parameters
 		)
@@ -88,18 +128,36 @@ function AutoPlayer_NEAT:reset(reset_table)
 	self._grid_cell_changes = 0
 	self._pill_update_count = 0
 	self._collision_count = 0
+	self._ghosts_caught = 0
+	self._pills_caught = 0
 
-	GridActor.reset(self, cell)
+	cell = AutoPlayer_NEAT._start_on_center and {x = 14, y = 6} or cell
+	if self._start_idle then
+		cell = cell or AutoPlayer_NEAT._grid:get_valid_cell()
+		GridActor.reset(self, cell)
 
-	local target_grid = AutoPlayer_NEAT._grid:get_valid_cell()
-	self._home_grid.x = target_grid.x
-	self._home_grid.y = target_grid.y
+		self._direction = "idle"
+		self._orientation = "up"
 
-	self._target_grid.x = target_grid.x
-	self._target_grid.y = target_grid.y
+		-- self._home_grid.x = cell.x
+		-- self._home_grid.y = cell.y
 
-	self._direction = self:get_random_valid_direction()
-	self._orientation = self._direction
+		-- self._target_grid.x = cell.x
+		-- self._target_grid.y = cell.y
+	else
+		cell = cell or AutoPlayer_NEAT._grid:get_valid_cell()
+		GridActor.reset(self, cell)
+
+		-- local target_grid = AutoPlayer_NEAT._grid:get_valid_cell()
+		-- self._home_grid.x = target_grid.x
+		-- self._home_grid.y = target_grid.y
+
+		-- self._target_grid.x = target_grid.x
+		-- self._target_grid.y = target_grid.y
+
+		self._direction = self:get_random_valid_direction()
+		self._orientation = self._direction
+	end
 
 	if not self._max_cell then
 		self._max_cell = {}
@@ -204,9 +262,11 @@ function AutoPlayer_NEAT:update_pill_update_count(ghost_state)
 end
 
 function AutoPlayer_NEAT:got_ghost()
+	self._ghosts_caught = self._ghosts_caught + 1
 end
 
 function AutoPlayer_NEAT:got_pill()
+	self._pills_caught = self._pills_caught + 1
 end
 
 function AutoPlayer_NEAT:get_ann()
@@ -251,7 +311,7 @@ function AutoPlayer_NEAT:get_history()
 	if ann then
 		local specie = ann._specie
 		local genome = ann:get_genome()
-		return {_fitness = self:get_fitness(), _genome = genome, _specie_id = specie:get_id()}
+		return {_fitness = self:get_fitness(), _genome = genome, _specie_id = specie and specie:get_id() or "no species"}
 	else
 		print("ERROR - AutoPlayer_NEAT - Invalid ANN!")
 		qpd.gamestate.switch("menu")

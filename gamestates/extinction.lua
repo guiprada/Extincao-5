@@ -304,8 +304,7 @@ function gs.load(map_file_path)
 				gs.game_conf.autoplayer_neat_speciate,
 				gs.game_conf.autoplayer_initial_links,
 				gs.game_conf.autoplayer_fully_connected,
-				gs.game_conf.autoplayer_neat_negative_weight_and_activation,
-				gs.game_conf.autoplayer_neat_input_proportional_activation,
+				gs.game_conf.autoplayer_neat_negative_weight_initialization,
 				gs.game_conf.autoplayer_start_idle,
 				gs.game_conf.autoplayer_start_on_center
 			)

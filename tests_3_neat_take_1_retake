@@ -29,7 +29,7 @@ autoplayer_neat_specie_niche_population_history_size = 30
 autoplayer_neat_specie_mule_start = false
 autoplayer_neat_specie_all_roulette_start = true
 autoplayer_neat_specie_threshold = 3
-autoplayer_neat_negative_weight_and_activation = false
+autoplayer_neat_negative_weight_initialization = false
 autoplayer_neat_input_proportional_activation = false
 
 autoplayer_start_idle = true
@@ -87,7 +87,7 @@ autoplayer_neat_specie_niche_population_history_size = 30
 autoplayer_neat_specie_mule_start = false
 autoplayer_neat_specie_all_roulette_start = true
 autoplayer_neat_specie_threshold = 3
-autoplayer_neat_negative_weight_and_activation = false
+autoplayer_neat_negative_weight_initialization = false
 autoplayer_neat_input_proportional_activation = false
 
 autoplayer_start_idle = true
@@ -145,7 +145,7 @@ autoplayer_neat_specie_niche_population_history_size = 30
 autoplayer_neat_specie_mule_start = false
 autoplayer_neat_specie_all_roulette_start = true
 autoplayer_neat_specie_threshold = 3
-autoplayer_neat_negative_weight_and_activation = false
+autoplayer_neat_negative_weight_initialization = false
 autoplayer_neat_input_proportional_activation = false
 
 autoplayer_start_idle = true
@@ -204,7 +204,7 @@ autoplayer_neat_specie_niche_population_history_size = 30
 autoplayer_neat_specie_mule_start = false
 autoplayer_neat_specie_all_roulette_start = true
 autoplayer_neat_specie_threshold = 3
-autoplayer_neat_negative_weight_and_activation = false
+autoplayer_neat_negative_weight_initialization = false
 autoplayer_neat_input_proportional_activation = false
 
 autoplayer_start_idle = true
@@ -262,7 +262,7 @@ autoplayer_neat_specie_niche_population_history_size = 30
 autoplayer_neat_specie_mule_start = false
 autoplayer_neat_specie_all_roulette_start = true
 autoplayer_neat_specie_threshold = 3
-autoplayer_neat_negative_weight_and_activation = false
+autoplayer_neat_negative_weight_initialization = false
 autoplayer_neat_input_proportional_activation = false
 
 autoplayer_start_idle = true
@@ -320,7 +320,7 @@ autoplayer_neat_specie_niche_population_history_size = 30
 autoplayer_neat_specie_mule_start = false
 autoplayer_neat_specie_all_roulette_start = true
 autoplayer_neat_specie_threshold = 3
-autoplayer_neat_negative_weight_and_activation = false
+autoplayer_neat_negative_weight_initialization = false
 autoplayer_neat_input_proportional_activation = false
 
 autoplayer_start_idle = true
@@ -378,7 +378,7 @@ autoplayer_neat_specie_niche_population_history_size = 30
 autoplayer_neat_specie_mule_start = false
 autoplayer_neat_specie_all_roulette_start = true
 autoplayer_neat_specie_threshold = 3
-autoplayer_neat_negative_weight_and_activation = false
+autoplayer_neat_negative_weight_initialization = false
 autoplayer_neat_input_proportional_activation = false
 
 autoplayer_start_idle = true
@@ -437,7 +437,7 @@ autoplayer_neat_specie_niche_population_history_size = 30
 autoplayer_neat_specie_mule_start = false
 autoplayer_neat_specie_all_roulette_start = true
 autoplayer_neat_specie_threshold = 3
-autoplayer_neat_negative_weight_and_activation = false
+autoplayer_neat_negative_weight_initialization = false
 autoplayer_neat_input_proportional_activation = false
 
 autoplayer_start_idle = true

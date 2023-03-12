@@ -41,10 +41,17 @@ local _ann_run_types = {
 }
 
 -- internal functions
-local function _get_random_link_weight(scale)
+local function _get_random_link_weight_only_positive(scale)
 	scale = scale or 1
 	return qpd_random.random() * scale
 end
+
+local function _get_random_link_weight_maybe_negative(scale)
+	scale = scale or 1
+	return qpd_random.choose(-1, 1) * qpd_random.random() * scale
+end
+
+local _get_random_link_weight = _get_random_link_weight_only_positive
 
 local function _get_random_activation_response(input_count)
 	input_count = input_count or 1
@@ -1313,12 +1320,13 @@ function ANN:get_outputs(inputs, run_type)
 	return outputs
 end
 
-function ANN:set_negative_weight_and_activation_initialization(value)
-	print("set negative weight and activation not backported!")
-end
-
-function ANN:set_input_proportional_activation(value)
-	print("set input proportional activation not backported!")
+function ANN:set_negative_weight_and_initialization(value)
+	value = value or false
+	if value == true then
+		_get_random_link_weight = _get_random_link_weight_maybe_negative
+	else
+		_get_random_link_weight = _get_random_link_weight_only_positive
+	end
 end
 
 function ANN:to_string()

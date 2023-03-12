@@ -1,0 +1,226 @@
+run: 1678488237 | ann_mode: nb4_path_grading
+{{count = 4, activation_function_name = "identity"},
+{activation_function_name = "relu"},
+{count = 1, activation_function_name = "identity"}}
+
+Total player entries: 36913
+Total non_zero_internal_lifetime player entries: 36441
+Total non_zero_pills_captured player entries: 7950
+Total non_zero_updates player entries: 36441
+Total zero_internal_lifetime player entries: 472
+Total zero_updates player entries: 472
+Total zero_updates player entries with internal_lifetime > 0: 0
+Total zero_pill player entries: 28963
+Total pill entries: 10367
+Total ghost entries: 9049
+------------------------------Describes :)
+
+fps: 
+count    36913.000000
+mean       494.547422
+std         13.296754
+min        190.000000
+25%        493.000000
+50%        498.000000
+75%        501.000000
+max        513.000000
+Name: fps, dtype: float64
+
+updates: 
+count    36913.000000
+mean      1179.059681
+std       1797.722665
+min          0.000000
+25%        228.000000
+50%        387.000000
+75%        930.000000
+max      19221.000000
+Name: updates, dtype: float64
+
+internal_lifetime for player: 
+count    36913.000000
+mean         2.363592
+std          3.595067
+min          0.000000
+25%          0.463994
+50%          0.779301
+75%          1.860086
+max         38.302758
+Name: internal_lifetime, dtype: float64
+
+internal_lifetime for ghosts: 
+count    9049.000000
+mean       19.296307
+std        22.586008
+min         0.001494
+25%         1.779847
+50%        11.894220
+75%        28.117300
+max       180.349314
+Name: internal_lifetime, dtype: float64
+
+internal_lifetime for pills: 
+count    10367.000000
+mean        13.842998
+std         16.913050
+min          0.000000
+25%          3.574497
+50%          8.360812
+75%         17.847568
+max        270.448166
+Name: internal_lifetime, dtype: float64
+
+visited_count: 
+count    36913.000000
+mean        24.033267
+std         19.246857
+min          0.000000
+25%          9.000000
+50%         19.000000
+75%         34.000000
+max        135.000000
+Name: visited_count, dtype: float64
+
+grid_cell_changes: 
+count    36913.000000
+mean      1179.059654
+std       1797.722681
+min          0.000000
+25%        228.000000
+50%        387.000000
+75%        930.000000
+max      19221.000000
+Name: grid_cell_changes, dtype: float64
+
+grid_cell_changes/internal_lifetime: 
+count    36441.000000
+mean       493.461826
+std         28.786832
+min        176.470588
+25%        494.670909
+50%        499.073895
+75%        501.406988
+max        513.746714
+dtype: float64
+
+collision_count: 
+count    36913.0
+mean         0.0
+std          0.0
+min          0.0
+25%          0.0
+50%          0.0
+75%          0.0
+max          0.0
+Name: collision_count, dtype: float64
+
+collision_count/internal_lifetime: 
+count    36441.0
+mean         0.0
+std          0.0
+min          0.0
+25%          0.0
+50%          0.0
+75%          0.0
+max          0.0
+dtype: float64
+
+ghosts_captured: 
+count    36913.000000
+mean         0.245144
+std          0.808807
+min          0.000000
+25%          0.000000
+50%          0.000000
+75%          0.000000
+max         19.000000
+Name: ghosts_captured, dtype: float64
+
+ghosts_captured/internal_lifetime: 
+count    36441.000000
+mean         0.034175
+std          0.118829
+min          0.000000
+25%          0.000000
+50%          0.000000
+75%          0.000000
+max          2.073550
+dtype: float64
+
+pills_captured: 
+count    36913.000000
+mean         0.280850
+std          0.610011
+min          0.000000
+25%          0.000000
+50%          0.000000
+75%          0.000000
+max          8.000000
+Name: pills_captured, dtype: float64
+
+pills_captured/internal_lifetime: 
+count    36441.000000
+mean         0.039054
+std          0.080819
+min          0.000000
+25%          0.000000
+50%          0.000000
+75%          0.000000
+max          0.331565
+dtype: float64
+
+ghosts_captured/pills_captured: 
+count    7950.000000
+mean        0.887885
+std         1.082202
+min         0.000000
+25%         0.000000
+50%         0.750000
+75%         1.000000
+max         8.000000
+dtype: float64
+
+------------------------------Correlacoes :)
+
+A taxa de atualizacao e as outras metricas
+fps internal_lifetime r: 0.17811809921752172 rs: 0.33318355686143963 T: 0.2312946513051163
+fps updates r: 0.18525388524439035 rs: 0.34259679141235283 T: 0.23869740090813613
+fps visited_count r: 0.16166160188386178 rs: 0.2629835588661405 T: 0.1825853143688784
+fps grid_cell_changes r: 0.18525391370045885 rs: 0.3425968321090705 T: 0.23869743402414162
+fps collision_count r: nan rs: nan T: nan
+fps ghosts_captured r: 0.1095556810653123 rs: 0.2657406327161105 T: 0.21741174926207135
+fps pills_captured r: 0.17109556985810195 rs: 0.3715802851118519 T: 0.30410510843922317
+fps collision_count/internal_lifetime r: nan rs: nan T: nan
+fps pills_captured/internal_lifetime r: 0.17784303408139485 rs: 0.3728829297331744 T: 0.2948842476446166
+fps ghosts_captured/internal_lifetime r: 0.10512495628215525 rs: 0.26817428669707727 T: 0.21713470635042545
+fps grid_cell_changes/lifetime r: 0.18593806806809574 rs: 0.29867313532222134 T: 0.2033445637396691
+fps grid_cell_changes/internal_lifetime r: 0.33443866772132463 rs: 0.5679295897743384 T: 0.42581360256224915
+updates/lifetime collision_count/lifetime r: nan rs: nan T: nan
+updates/lifetime pills_captured/lifetime r: 0.3139608925896605 rs: 0.41787070610783417 T: 0.33109038081416126
+updates/lifetime ghosts_captured/lifetime r: 0.18147450121548991 rs: 0.2925308006405981 T: 0.23199075185633475
+
+Updates e as outras metricas
+updates internal_lifetime r: 0.9998554028205094 rs: 0.9995194769073563 T: 0.9897411133811355
+updates visited_count r: 0.6213867874102336 rs: 0.7826543958498754 T: 0.593913293092706
+updates grid_cell_changes r: 0.9999999999958068 rs: 0.9999999999757836 T: 0.9999999794215781
+updates collision_count r: nan rs: nan T: nan
+updates ghosts_captured r: 0.5977858755385413 rs: 0.5190404891239889 T: 0.4181351010140328
+updates pills_captured r: 0.9123242604825809 rs: 0.7126146259319417 T: 0.5872673543413203
+
+Internal_lifetime e as outras metricas
+internal_lifetime visited_count r: 0.6213679476963754 rs: 0.782585124022573 T: 0.5934811375343098
+internal_lifetime grid_cell_changes r: 0.9998554027969612 rs: 0.999519476703604 T: 0.9897410928149176
+internal_lifetime collision_count r: nan rs: nan T: nan
+internal_lifetime ghosts_captured r: 0.5982498801375151 rs: 0.5190193604210758 T: 0.41788680114551585
+internal_lifetime pills_captured r: 0.9125299364870378 rs: 0.7126113729632565 T: 0.586906689867502
+internal_lifetime ghost_captured/pills_captured r: 0.009050660946409852 rs: 0.04919718216730561 T: 0.036859480936014405
+
+As metricas de movimentacao
+visited_count grid_cell_changes r: 0.621386796057598 rs: 0.7826544000940073 T: 0.5939133153701677
+visited_count collision_count r: nan rs: nan T: nan
+visited_count ghosts_captured r: 0.36129256196151055 rs: 0.35443041389217594 T: 0.28755994305074345
+visited_count pills_captured r: 0.5552872265156835 rs: 0.4845440533979676 T: 0.39672106740579927
+visited_count ghost_captured/pills_captured r: -0.011169856164360205 rs: 0.021405010072299318 T: 0.016922013398776335
+
+As metricas de captura
+ghosts_captured pills_captured r: 0.6362725885938403 rs: 0.7284790595626478 T: 0.7047744147195866

@@ -15,7 +15,7 @@ autoplayer_ann_mode = baseline_collide_random
 autoplayer_fitness_mode = movement
 autoplayer_speed_factor = 10
 autoplayer_search_path_length = 5
-autoplayer_initial_random_population_size_history_size = 0
+autoplayer_population_history_size = 0
 autoplayer_initial_random_population_size = 0
 autoplayer_active_population = 1
 
@@ -39,7 +39,7 @@ autoplayer_ann_mode = baseline_full_random
 autoplayer_fitness_mode = movement
 autoplayer_speed_factor = 10
 autoplayer_search_path_length = 5
-autoplayer_initial_random_population_size_history_size = 0
+autoplayer_population_history_size = 0
 autoplayer_initial_random_population_size = 0
 autoplayer_active_population = 1
 
@@ -63,7 +63,7 @@ autoplayer_ann_mode = baseline_valid_random
 autoplayer_fitness_mode = movement
 autoplayer_speed_factor = 10
 autoplayer_search_path_length = 5
-autoplayer_initial_random_population_size_history_size = 0
+autoplayer_population_history_size = 0
 autoplayer_initial_random_population_size = 0
 autoplayer_active_population = 1
 
@@ -87,7 +87,7 @@ autoplayer_ann_mode = baseline_valid_full_random
 autoplayer_fitness_mode = movement
 autoplayer_speed_factor = 10
 autoplayer_search_path_length = 5
-autoplayer_initial_random_population_size_history_size = 0
+autoplayer_population_history_size = 0
 autoplayer_initial_random_population_size = 0
 autoplayer_active_population = 1
 
@@ -111,7 +111,7 @@ autoplayer_ann_mode = baseline_random
 autoplayer_fitness_mode = movement
 autoplayer_speed_factor = 10
 autoplayer_search_path_length = 5
-autoplayer_initial_random_population_size_history_size = 0
+autoplayer_population_history_size = 0
 autoplayer_initial_random_population_size = 0
 autoplayer_active_population = 1
 
@@ -135,7 +135,7 @@ autoplayer_ann_mode = baseline
 autoplayer_fitness_mode = movement
 autoplayer_speed_factor = 10
 autoplayer_search_path_length = 5
-autoplayer_initial_random_population_size_history_size = 0
+autoplayer_population_history_size = 0
 autoplayer_initial_random_population_size = 0
 autoplayer_active_population = 1
 
@@ -159,7 +159,7 @@ autoplayer_ann_mode = baseline_pill
 autoplayer_fitness_mode = movement
 autoplayer_speed_factor = 10
 autoplayer_search_path_length = 5
-autoplayer_initial_random_population_size_history_size = 0
+autoplayer_population_history_size = 0
 autoplayer_initial_random_population_size = 0
 autoplayer_active_population = 1
 
@@ -183,7 +183,7 @@ autoplayer_ann_mode = baseline_pill_ghost
 autoplayer_fitness_mode = movement
 autoplayer_speed_factor = 10
 autoplayer_search_path_length = 5
-autoplayer_initial_random_population_size_history_size = 0
+autoplayer_population_history_size = 0
 autoplayer_initial_random_population_size = 0
 autoplayer_active_population = 1
 

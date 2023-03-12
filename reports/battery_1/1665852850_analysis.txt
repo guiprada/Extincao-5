@@ -210,17 +210,14 @@ internal_lifetime grid_cell_changes r: 0.9820014897799393 rs: 0.995441579946687 
 internal_lifetime collision_count r: nan rs: nan T: nan
 internal_lifetime ghosts_captured r: 0.9417800385817906 rs: 0.8930231193408955 T: 0.7484199467292167
 internal_lifetime pills_captured r: 0.9795557071326917 rs: 0.9117095225785019 T: 0.7993330234717141
+internal_lifetime ghost_captured/pills_captured r: -0.01505736420328778 rs: 0.04332302507573646 T: 0.028879638153029786
 
 As metricas de movimentacao
 visited_count grid_cell_changes r: 0.7332917563470991 rs: 0.9734167668347987 T: 0.8651559725603396
 visited_count collision_count r: nan rs: nan T: nan
 visited_count ghosts_captured r: 0.7056375929018067 rs: 0.8901796006596537 T: 0.7394493837034521
 visited_count pills_captured r: 0.723417756073281 rs: 0.9034884092517598 T: 0.7730616032220419
-
-As metricas de movimentacao
-visited_count grid_cell_changes r: 0.7332917563470991 rs: 0.9734167668347987 T: 0.8651559725603396
-visited_count collision_count r: nan rs: nan T: nan
-grid_cell_changes collision_count r: nan rs: nan T: nan
+visited_count ghost_captured/pills_captured r: 0.06041245546393556 rs: 0.1004720962399488 T: 0.06949852611951833
 
 As metricas de captura
 ghosts_captured pills_captured r: 0.9613392407814786 rs: 0.9793535519545444 T: 0.9234199183220793

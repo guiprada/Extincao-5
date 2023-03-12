@@ -1321,7 +1321,7 @@ function ANN:get_outputs(inputs, run_type)
 end
 
 function ANN:set_negative_weight_initialization(value)
-	value = value or false
+	-- value = value or false
 	if value == true then
 		_get_random_link_weight = _get_random_link_weight_maybe_negative
 	else

@@ -69,7 +69,7 @@ fitness_modes.movement_captures_lifetime_hack_26 = function (self)
 end
 
 -------------------------------------------------------------------------------
-function AutoPlayer_NEAT.init(search_path_length, mutate_chance, mutate_percentage, add_neuron_chance, add_link_chance, loopback_chance, ann_layers, ann_mode, crossover, fitness_mode, autoplayer_neat_speciate, neat_initial_links, neat_fully_connected, negative_weight_and_activation_initialization, start_idle, start_on_center)
+function AutoPlayer_NEAT.init(search_path_length, mutate_chance, mutate_percentage, add_neuron_chance, add_link_chance, loopback_chance, ann_layers, ann_mode, crossover, fitness_mode, autoplayer_neat_speciate, neat_initial_links, neat_fully_connected, negative_weight_and_activation_initialization, autoplayer_neat_add_neuron_with_unit_activation, start_idle, start_on_center)
 	--AutoPlayer.init(search_path_length, mutate_chance, mutate_percentage, ann_layers, ann_mode, crossover, autoplayer_ann_backpropagation, autoplayer_fitness_mode, collision_purge, rotate_purge, initial_bias)
 	AutoPlayer_NEAT._search_path_length = search_path_length
 
@@ -89,6 +89,7 @@ function AutoPlayer_NEAT.init(search_path_length, mutate_chance, mutate_percenta
 	AutoPlayer_NEAT._start_on_center = start_on_center or false
 
 	qpd.ann_neat:set_negative_weight_initialization(negative_weight_and_activation_initialization)
+	qpd.ann_neat:set_add_neuron_with_unit_activation(autoplayer_neat_add_neuron_with_unit_activation)
 
 	GridActor.register_type(autoplayer_type_name)
 end

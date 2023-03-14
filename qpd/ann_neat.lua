@@ -53,10 +53,17 @@ end
 
 local _get_random_link_weight = _get_random_link_weight_only_positive
 
-local function _get_random_activation_response(input_count)
-	input_count = input_count or 1
-	return qpd_random.random() * input_count
+local function _get_random_activation_response(scale)
+	scale = scale or 1
+	return qpd_random.random() * scale
 end
+
+local function _get_unit_activation_response(scale)
+	scale = scale or 1
+	return scale
+end
+
+local _get_initial_activation_response = _get_random_activation_response
 
 local function _innovation_sorter(a, b)
 	return a._innovation_id < b._innovation_id
@@ -679,11 +686,6 @@ function _Genome:crossover(dad, mutate_chance, mutate_percentage, chance_add_neu
 			local new_neuron = mom_neuron_gene:inherit(mutate_chance, mutate_percentage)
 			table.insert(neurons, new_neuron)
 			mom_index = mom_index + 1
-		-- elseif dad_neuron_gene then
-		-- 	local new_neuron = dad_neuron_gene:inherit(mutate_chance, mutate_percentage)
-		-- 	table.insert(neurons, new_neuron)
-		-- 	dad_index = dad_index + 1
-		-- 	if not new_neuron then print("Try to insert nil neuron 4") end
 		end
 
 		mom_neuron_gene = mom._neurons[mom_index]
@@ -716,10 +718,6 @@ function _Genome:crossover(dad, mutate_chance, mutate_percentage, chance_add_neu
 			local new_link = mom_link_gene:inherit(mutate_chance, mutate_percentage)
 			table.insert(links, new_link)
 			mom_index = mom_index + 1
-		-- elseif dad_link_gene then
-		-- 	local new_link = dad_link_gene:inherit(mutate_chance, mutate_percentage)
-		-- 	table.insert(links, new_link)
-		-- 	dad_index = dad_index + 1
 		end
 
 		mom_link_gene = mom._links[mom_index]
@@ -948,7 +946,7 @@ function _Genome:add_neuron()
 		local new_neuron = _Neuron_Gene:new(
 			"hidden",
 			false,
-			_get_random_activation_response(1),
+			_get_initial_activation_response(1),
 			self._hidden_layers_activation_function_name,
 			self._hidden_layers_activation_function_parameters,
 			new_neuron_innovation_id,
@@ -1119,7 +1117,7 @@ function ANN:new_genome(
 	local increment = 1/(n_inputs - 1)
 	for i = 1, n_inputs do
 		local innovation_id = Innovation_manager:get_neuron_innovation_id(x, y)
-		local new_neuron = _Neuron_Gene:new("input", false, 1, input_layer_activation_function_name, input_layer_activation_function_parameters, innovation_id, x, y)
+		local new_neuron = _Neuron_Gene:new("input", false, _get_initial_activation_response(1), input_layer_activation_function_name, input_layer_activation_function_parameters, innovation_id, x, y)
 		table.insert(neurons, new_neuron)
 		table.insert(input_neurons, new_neuron)
 		y = y + increment
@@ -1132,7 +1130,7 @@ function ANN:new_genome(
 	for i = 1, n_outputs do
 		local innovation_id = Innovation_manager:get_neuron_innovation_id(x, y)
 
-		local new_neuron = _Neuron_Gene:new("output", false, 1, output_layer_activation_function_name, output_layer_activation_function_parameters, innovation_id, x, y)
+		local new_neuron = _Neuron_Gene:new("output", false, _get_initial_activation_response(1), output_layer_activation_function_name, output_layer_activation_function_parameters, innovation_id, x, y)
 		table.insert(neurons, new_neuron)
 		table.insert(output_neurons, new_neuron)
 		y = y + increment
@@ -1326,6 +1324,14 @@ function ANN:set_negative_weight_initialization(value)
 		_get_random_link_weight = _get_random_link_weight_maybe_negative
 	else
 		_get_random_link_weight = _get_random_link_weight_only_positive
+	end
+end
+
+function ANN:set_add_neuron_with_unit_activation(value)
+	if value == true then
+		_get_initial_activation_response = _get_unit_activation_response
+	else
+		_get_initial_activation_response = _get_random_activation_response
 	end
 end
 

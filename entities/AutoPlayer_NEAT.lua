@@ -68,6 +68,14 @@ fitness_modes.movement_captures_lifetime_hack_26 = function (self)
 	end
 end
 
+fitness_modes.ghost_captures_lifetime_hack_26 = function (self)
+	if self:get_visited_count() > 26 then -- 26 is the size of the longest path
+		self._fitness = self:get_lifetime() + (5 * self._ghosts_caught)
+	else
+		self._fitness = self:get_lifetime()
+	end
+end
+
 -------------------------------------------------------------------------------
 function AutoPlayer_NEAT.init(search_path_length, mutate_chance, mutate_percentage, add_neuron_chance, add_link_chance, loopback_chance, ann_layers, ann_mode, crossover, fitness_mode, autoplayer_neat_speciate, neat_initial_links, neat_fully_connected, negative_weight_and_activation_initialization, autoplayer_neat_add_neuron_with_unit_activation, start_idle, start_on_center)
 	--AutoPlayer.init(search_path_length, mutate_chance, mutate_percentage, ann_layers, ann_mode, crossover, autoplayer_ann_backpropagation, autoplayer_fitness_mode, collision_purge, rotate_purge, initial_bias)

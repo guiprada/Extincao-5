@@ -197,7 +197,7 @@ fps grid_cell_changes/lifetime r: 0.19482244092858667 rs: 0.3604535102272134 T: 
 fps grid_cell_changes/internal_lifetime r: 0.30872357609523915 rs: 0.5792847620707585 T: 0.4325481839144441
 updates/lifetime collision_count/lifetime r: nan rs: nan T: nan
 updates/lifetime pills_captured/lifetime r: 0.7328920178187421 rs: 0.7186702787704298 T: 0.563309081969222
-updates/lifetime ghosts_captured/lifetime r: 0.5778757600616312 rs: 0.6514377147621944 T: 0.47565371025775116
+updates/lifetime ghosts_captured/lifetime r: 0.5778757600616311 rs: 0.6514377147621944 T: 0.47565371025775116
 
 Updates e as outras metricas
 updates internal_lifetime r: 0.9993393663062768 rs: 0.9987861974774815 T: 0.9809236983918254

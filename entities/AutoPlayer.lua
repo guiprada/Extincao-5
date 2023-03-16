@@ -60,6 +60,14 @@ fitness_modes.movement_captures_lifetime_hack_26 = function (self)
 	end
 end
 
+fitness_modes.ghost_captures_lifetime_hack_26 = function (self)
+	if self:get_visited_count() > 26 then -- 26 is the size of the longest path
+		self._fitness = self:get_lifetime() + (5 * self._ghosts_caught)
+	else
+		self._fitness = self:get_lifetime()
+	end
+end
+
 -------------------------------------------------------------------------------
 function AutoPlayer.init(search_path_length, mutate_chance, mutate_percentage, ann_layers, ann_mode, crossover, autoplayer_ann_backpropagation, autoplayer_fitness_mode, collision_purge, rotate_purge, initial_bias, start_idle, start_on_center)
 	AutoPlayer._search_path_length = search_path_length

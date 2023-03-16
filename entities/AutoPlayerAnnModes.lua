@@ -624,15 +624,6 @@ end
 -- }
 
 AutoplayerAnnModes.update.b1 = function (self, grid, search_path_length, ghost_state)
--- autoplayer_ann_mode = b1
--- autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {count = 5, activation_function_name = "relu"}, {count = 5, activation_function_name = "relu"}, {count = 4, activation_function_name = "binary_step"}}
--- autoplayer_ann_backpropagation = false
--- autoplayer_ann_learning_rate = 0.3
--- autoplayer_crossover = false
--- autoplayer_mutate_chance = 0.05
--- autoplayer_mutate_percentage = 0.05
--- autoplayer_initial_random_population_size = 6000
--- autoplayer_fitness_mode = no_pill_updates
 	local inputs = {
 		is_left_valid(self, grid),
 		distance_in_front_collision(self, grid, search_path_length),
@@ -663,15 +654,6 @@ AutoplayerAnnModes.update.b1 = function (self, grid, search_path_length, ghost_s
 end
 
 AutoplayerAnnModes.update.b2 = function (self, grid, search_path_length, ghost_state)
--- autoplayer_ann_mode = b2
--- autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {count = 5, activation_function_name = "relu"}, {count = 5, activation_function_name = "relu"}, {count = 4, activation_function_name = "binary_step"}}
--- autoplayer_ann_backpropagation = false
--- autoplayer_ann_learning_rate = 0.3
--- autoplayer_crossover = false
--- autoplayer_mutate_chance = 0.05
--- autoplayer_mutate_percentage = 0.05
--- autoplayer_initial_random_population_size = 6000
--- autoplayer_fitness_mode = no_pill_updates
 	local inputs = {
 		is_left_valid(self, grid),
 		distance_in_front_collision(self, grid, search_path_length),
@@ -705,15 +687,6 @@ AutoplayerAnnModes.update.b2 = function (self, grid, search_path_length, ghost_s
 end
 
 AutoplayerAnnModes.update.b3 = function (self, grid, search_path_length, ghost_state)
--- autoplayer_ann_mode = b3
--- autoplayer_ann_layers = {{count = 12, activation_function_name = "relu"}, {count = 5, activation_function_name = "relu"}, {count = 5, activation_function_name = "relu"}, {count = 4, activation_function_name = "binary_step"}}
--- autoplayer_ann_backpropagation = false
--- autoplayer_ann_learning_rate = 0.3
--- autoplayer_crossover = false
--- autoplayer_mutate_chance = 0.05
--- autoplayer_mutate_percentage = 0.05
--- autoplayer_initial_random_population_size = 6000
--- autoplayer_fitness_mode = no_pill_updates
 	local inputs = {
 		is_left_valid(self, grid),
 		distance_in_front_collision(self, grid, search_path_length),
@@ -750,15 +723,6 @@ AutoplayerAnnModes.update.b3 = function (self, grid, search_path_length, ghost_s
 end
 
 AutoplayerAnnModes.update.nb4 = function (self, grid, search_path_length, ghost_state)
--- autoplayer_ann_mode = nb4
--- autoplayer_ann_layers = {{count = 13, activation_function_name = "relu"}, {count = 5, activation_function_name = "relu"}, {count = 5, activation_function_name = "relu"}, {count = 4, activation_function_name = "identity"}}
--- autoplayer_ann_backpropagation = true
--- autoplayer_ann_learning_rate = 0.1
--- autoplayer_crossover = false
--- autoplayer_mutate_chance = 0.05
--- autoplayer_mutate_percentage = 0.05
--- autoplayer_initial_random_population_size = 6000
--- autoplayer_fitness_mode = no_pill_updates
 	local old_orientation = self._orientation
 	local inputs = {
 		is_left_valid(self, grid),
@@ -801,44 +765,55 @@ AutoplayerAnnModes.update.nb4 = function (self, grid, search_path_length, ghost_
 		rotate_right(self)
 	end
 
-	if self._autoplayer_ann_backpropagation then
-		local good_direction = get_baseline_next_direction(self, grid, search_path_length, ghost_state, old_orientation)
-		local targets = qpd.table.clone(outputs)
-		targets[greatest_index] = 0
+	self._next_direction = self._orientation
+end
 
-		local action = orientation_direction_to_action[old_orientation][good_direction]
+AutoplayerAnnModes.update.nb4_flat = function (self, grid, search_path_length, ghost_state)
+	local old_orientation = self._orientation
+	local inputs = {
+		(old_orientation == "up") and 1 or 0,
+		(old_orientation == "down") and 1 or 0,
+		(old_orientation == "left") and 1 or 0,
+		(old_orientation == "right") and 1 or 0,
+		find_collision_in_path_y(self, -1, grid, search_path_length)/search_path_length,
+		find_collision_in_path_y(self, 1, grid, search_path_length)/search_path_length,
+		find_collision_in_path_x(self, -1, grid, search_path_length)/search_path_length,
+		find_collision_in_path_x(self, 1, grid, search_path_length)/search_path_length,
+		distance_to_class_y(self, -1, "ghost", grid, search_path_length)/search_path_length,
+		distance_to_class_y(self, 1, "ghost", grid, search_path_length)/search_path_length,
+		distance_to_class_x(self, -1, "ghost", grid, search_path_length)/search_path_length,
+		distance_to_class_x(self, 1, "ghost", grid, search_path_length)/search_path_length,
+		distance_to_class_y(self, -1, "pill", grid, search_path_length)/search_path_length,
+		distance_to_class_y(self, 1, "pill", grid, search_path_length)/search_path_length,
+		distance_to_class_x(self, -1, "pill", grid, search_path_length)/search_path_length,
+		distance_to_class_x(self, 1, "pill", grid, search_path_length)/search_path_length,
+		(ghost_state == "frightened") and 1 or 0, -- ghosts frightened
+	}
 
-		if action == "keep" then
-			targets[1] = greatest_value
-		elseif action == "flip" then
-			targets[2] = greatest_value
-		elseif action == "rotate_left" then
-			targets[3] = greatest_value
-		elseif action == "rotate_right" then
-			targets[4] = greatest_value
-		else
-			targets[1] = greatest_value
+	local outputs = self._ann:get_outputs(inputs)
+
+	local greatest_index = 1
+	local greatest_value = outputs[greatest_index]
+	for i = 1, #outputs do
+		if outputs[i] > greatest_value then
+			greatest_index = i
 		end
-		self._ann:adjust_weights(inputs, targets, outputs)
+	end
+
+	if greatest_index == 1 then
+		self._next_direction = "up"
+	elseif greatest_index == 2 then
+		self._next_direction = "down"
+	elseif greatest_index == 3 then
+		self._next_direction = "left"
+	elseif greatest_index == 4 then
+		self._next_direction = "right"
 	end
 
 	self._next_direction = self._orientation
-	-- if self._direction == "idle" then
-	-- 	print("idle", self._next_direction)
-	-- end
 end
 
 AutoplayerAnnModes.update.b1_path_grading = function (self, grid, search_path_length, ghost_state)
--- autoplayer_ann_mode = b1_path_grading
--- autoplayer_ann_layers = {{count = 5, activation_function_name = "identity"}, {count = 5, activation_function_name = "binary_step"}, {count = 1, activation_function_name = "binary_step"}}
--- autoplayer_ann_backpropagation = false
--- autoplayer_ann_learning_rate = 0.1
--- autoplayer_crossover = false
--- autoplayer_mutate_chance = 0.05
--- autoplayer_mutate_percentage = 0.05
--- autoplayer_initial_random_population_size = 6000
--- autoplayer_fitness_mode = no_pill_updates
-
 	local old_direction = self._direction
 
 	local callback, dxy = get_grade_callback_and_dxy_from_direction(self._orientation)
@@ -849,38 +824,9 @@ AutoplayerAnnModes.update.b1_path_grading = function (self, grid, search_path_le
 		rotate_left(self)
 		self._next_direction = self._orientation
 	end
-
-	-- print_array(inputs)
-	-- print(grade)
-	-- print()
-
-	-- if self._autoplayer_ann_backpropagation and (grade == 1) then
-	-- 	if is_direction_good(self, old_direction, ghost_state, grid, search_path_length) then
-	-- 		self._ann:adjust_weights(inputs, {0}, {1})
-	-- 	end
-	-- end
-
-	-- if self._autoplayer_ann_backpropagation and (grade >= 0) then
-	-- 	if is_direction_good(self, old_direction, ghost_state, grid, search_path_length) then
-	-- 		self._ann:adjust_weights(inputs, {-1}, {grade})
-	-- 	end
-	-- elseif self._autoplayer_ann_backpropagation and (grade < 0) then
-	-- 	if not is_front_valid(self, grid) then
-	-- 		self._ann:adjust_weights(inputs, {1}, {grade})
-	-- 	end
-	-- end
 end
 
 AutoplayerAnnModes.update.b1_path_grading_simple = function (self, grid, search_path_length, ghost_state)
--- autoplayer_ann_mode = b1_path_grading
--- autoplayer_ann_layers = {{count = 5, activation_function_name = "identity"}, {count = 5, activation_function_name = "binary_step"}, {count = 1, activation_function_name = "binary_step"}}
--- autoplayer_ann_backpropagation = false
--- autoplayer_ann_learning_rate = 0.1
--- autoplayer_crossover = false
--- autoplayer_mutate_chance = 0.05
--- autoplayer_mutate_percentage = 0.05
--- autoplayer_initial_random_population_size = 6000
--- autoplayer_fitness_mode = no_pill_updates
 	for _ = 1, 4 do
 		local callback, dxy = get_grade_callback_and_dxy_from_direction(self._orientation)
 
@@ -920,15 +866,6 @@ AutoplayerAnnModes.update.b1_path_grading_hack = function (self, grid, search_pa
 end
 
 AutoplayerAnnModes.update.nb4_path_grading = function (self, grid, search_path_length, ghost_state)
--- autoplayer_ann_mode = nb4_path_grading
--- autoplayer_ann_layers = {{count = 4, activation_function_name = "relu"}, {count = 5, activation_function_name = "relu"}, {count = 5, activation_function_name = "relu"}, {count = 1, activation_function_name = "identity"}}
--- autoplayer_ann_backpropagation = false
--- autoplayer_ann_learning_rate = 0.1
--- autoplayer_crossover = false
--- autoplayer_mutate_chance = 0.05
--- autoplayer_mutate_percentage = 0.05
--- autoplayer_initial_random_population_size = 6000
--- autoplayer_fitness_mode = no_pill_updates
 	self._orientation = self._direction  -- not needed, just to keep it synced for effect :)
 
 	local enabled_directions = self:get_enabled_directions()
@@ -987,17 +924,6 @@ AutoplayerAnnModes.update.nb4_path_grading = function (self, grid, search_path_l
 		self._next_direction = available_paths[1].direction
 	else
 		print("AutoPlayer has nowhere to go!")
-	end
-
-	if self._autoplayer_ann_backpropagation then
-		local good_direction = get_baseline_pill_ghost_next_direction(self, grid, search_path_length, ghost_state, old_direction)
-		if self._next_direction ~= good_direction then
-			-- local good_direction_index = grid.directions
-			local target = {0}
-			local inputs = available_paths[best_index].inputs
-			local outputs = {available_paths[best_index].grade}
-			self._ann:adjust_weights(inputs, target, outputs)
-		end
 	end
 end
 

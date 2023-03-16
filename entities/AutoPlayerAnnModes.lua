@@ -769,7 +769,7 @@ AutoplayerAnnModes.update.nb4 = function (self, grid, search_path_length, ghost_
 end
 
 AutoplayerAnnModes.update.nb4_flat = function (self, grid, search_path_length, ghost_state)
-	local old_orientation = self._orientation
+	local old_orientation = self._next_direction
 	local inputs = {
 		(old_orientation == "up") and 1 or 0,
 		(old_orientation == "down") and 1 or 0,
@@ -810,7 +810,7 @@ AutoplayerAnnModes.update.nb4_flat = function (self, grid, search_path_length, g
 		self._next_direction = "right"
 	end
 
-	self._next_direction = self._orientation
+	self._orientation = self._next_direction
 end
 
 AutoplayerAnnModes.update.b1_path_grading = function (self, grid, search_path_length, ghost_state)

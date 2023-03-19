@@ -30,6 +30,8 @@ color_array[14] = qpd.color.beige
 color_array[15] = qpd.color.orange
 color_array[16] = qpd.color.lime
 
+local TILESIZE_SPEED_FACTOR = 34
+
 --------------------------------------------------------------------------------
 local function set_ghost_state(state)
 	local time = (state == "chasing") and gs.ghost_chase_time
@@ -212,6 +214,8 @@ function gs.load(map_file_path)
 		-- Initialze GridActor
 		GridActor.init(gs.grid, gs.tilemap_view.tilesize, event_logger)
 
+		gs.tilesize_adjusted_speed = gs.game_speed * gs.tilemap_view.tilesize / TILESIZE_SPEED_FACTOR
+
 		-- pills
 		gs.got_pill = false
 		gs.pill_is_in_effect = false
@@ -299,13 +303,17 @@ function gs.load(map_file_path)
 				gs.game_conf.autoplayer_fitness_mode,
 				gs.game_conf.autoplayer_neat_speciate,
 				gs.game_conf.autoplayer_initial_links,
-				gs.game_conf.autoplayer_fully_connected
+				gs.game_conf.autoplayer_fully_connected,
+				gs.game_conf.autoplayer_neat_negative_weight_initialization,
+				gs.game_conf.autoplayer_neat_add_neuron_with_unit_activation,
+				gs.game_conf.autoplayer_start_idle,
+				gs.game_conf.autoplayer_start_on_center
 			)
 			gs.AutoPlayerPopulation = GeneticPopulation:new(
 				AutoPlayer_NEAT,
 				gs.game_conf.autoplayer_active_population,
 				gs.game_conf.autoplayer_initial_random_population_size,
-				gs.game_conf.autoplayer_initial_random_population_size_history_size,
+				gs.game_conf.autoplayer_population_history_size,
 				gs.game_conf.autoplayer_neat_specie_threshold,
 				gs.game_conf.ghost_state_reset_on_autoplayer_capture and player_caught_callback or nil
 			)
@@ -322,20 +330,22 @@ function gs.load(map_file_path)
 				gs.game_conf.autoplayer_fitness_mode,
 				gs.game_conf.autoplayer_collision_purge or false,
 				gs.game_conf.autoplayer_rotate_purge or false,
-				gs.game_conf.autoplayer_ann_initial_bias
+				gs.game_conf.autoplayer_ann_initial_bias,
+				gs.game_conf.autoplayer_start_idle,
+				gs.game_conf.autoplayer_start_on_center
 			)
 			gs.AutoPlayerPopulation = GeneticPopulation:new(
 				AutoPlayer,
 				gs.game_conf.autoplayer_active_population,
 				gs.game_conf.autoplayer_initial_random_population_size,
-				gs.game_conf.autoplayer_initial_random_population_size_history_size,
+				gs.game_conf.autoplayer_population_history_size,
 				nil,
 				gs.game_conf.ghost_state_reset_on_autoplayer_capture and player_caught_callback or nil
 			)
 		end
 
 		-- max dt
-		gs.max_dt = (gs.tilemap_view.tilesize / 4) / qpd.value.max(gs.autoplayer_speed_factor * gs.game_speed, gs.ghost_speed_factor * gs.game_speed)
+		gs.max_dt = (gs.tilemap_view.tilesize / 4) / qpd.value.max(gs.autoplayer_speed_factor * gs.tilesize_adjusted_speed, gs.ghost_speed_factor * gs.tilesize_adjusted_speed)
 		gs.game_conf.max_dt = gs.max_dt
 
 		-- save configuration used
@@ -364,6 +374,8 @@ function gs.load(map_file_path)
 				else
 					gs.game_speed = 0.1
 				end
+				gs.tilesize_adjusted_speed = gs.game_speed * gs.tilemap_view.tilesize / TILESIZE_SPEED_FACTOR
+				gs.max_dt = (gs.tilemap_view.tilesize / 4) / qpd.value.max(gs.autoplayer_speed_factor * gs.tilesize_adjusted_speed, gs.ghost_speed_factor * gs.tilesize_adjusted_speed)
 				print("speed:", gs.game_speed)
 			end
 		gs.actions_keyup['s'] =
@@ -374,6 +386,8 @@ function gs.load(map_file_path)
 				if gs.game_speed < 150 then
 					gs.game_speed = gs.game_speed + 10
 				end
+				gs.tilesize_adjusted_speed = gs.game_speed * gs.tilemap_view.tilesize / TILESIZE_SPEED_FACTOR
+				gs.max_dt = (gs.tilemap_view.tilesize / 4) / qpd.value.max(gs.autoplayer_speed_factor * gs.tilesize_adjusted_speed, gs.ghost_speed_factor * gs.tilesize_adjusted_speed)
 				print("speed:", gs.game_speed)
 			end
 		gs.actions_keyup['g'] =
@@ -412,14 +426,14 @@ function gs.draw()
 	if gs.game_conf.autoplayer_neat_enable then
 		love.graphics.print(
 			"NEAT",
-			300,
+			250,
 			0)
 	end
 
 	if gs.game_conf.autoplayer_fitness_mode then
 		love.graphics.print(
 			gs.game_conf.autoplayer_fitness_mode,
-			400,
+			350,
 			0)
 	end
 
@@ -485,9 +499,9 @@ function gs.update(dt)
 
 		-- set ghost state
 		Ghost.set_state(gs.ghost_state)
-		gs.GhostPopulation:update(dt, gs.ghost_speed_factor * gs.game_speed, gs.AutoPlayerPopulation:get_population())
+		gs.GhostPopulation:update(dt, gs.ghost_speed_factor * gs.tilesize_adjusted_speed, gs.AutoPlayerPopulation:get_population())
 
-		gs.AutoPlayerPopulation:update(dt, gs.autoplayer_speed_factor * gs.game_speed, gs.ghost_state)
+		gs.AutoPlayerPopulation:update(dt, gs.autoplayer_speed_factor * gs.tilesize_adjusted_speed, gs.ghost_state)
 	end
 end
 
@@ -513,7 +527,9 @@ function gs.resize(w, h)
 	gs.tilemap_view:resize(gs.width, gs.height)
 
 	GridActor.set_tilesize(gs.tilemap_view.tilesize)
-	gs.max_dt = (gs.tilemap_view.tilesize / 4) / qpd.value.max(gs.autoplayer_speed_factor * gs.game_speed, gs.ghost_speed_factor * gs.game_speed)
+	gs.tilesize_adjusted_speed = gs.game_speed * gs.tilemap_view.tilesize / TILESIZE_SPEED_FACTOR
+	gs.max_dt = (gs.tilemap_view.tilesize / 4) / qpd.value.max(gs.autoplayer_speed_factor * gs.tilesize_adjusted_speed, gs.ghost_speed_factor * gs.tilesize_adjusted_speed)
+
 end
 
 function gs.unload()

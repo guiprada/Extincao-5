@@ -1,4 +1,8 @@
 - TESTAR ORDEM DA FILA DA ESPECIACAO - ALEATORIA E INVERSA(COMO ERA)
+- TESTAR NEAT INICIANDO TUDO COM PESO 1 para garantir que sera ativado!
+- ATUALMENTE OS PESOS PODEM SER NULOS E A MUTACAO E MULTIPLICATIVA!(IMPLEMENTAR MUTACAO ADITIVA!)
+- TESTAR NEAT COM PESOS NEGATIVOS
+- TESTAR NEAT COM TUDO ALEATORIO
 - pesquisar bug ipairs x #self._layers
 	https://stackoverflow.com/questions/23590885/why-does-luas-length-operator-return-unexpected-values
 	Background: Tables in Lua are internally divided into array part and hash part. That's an optimization. Lua tries to avoid allocating memory often, so it pre allocates for the next power of two. That's another optimization.

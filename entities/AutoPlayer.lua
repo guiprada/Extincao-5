@@ -52,11 +52,19 @@ fitness_modes.movement_captures_hack_26_old = function (self)
 	end
 end
 
-fitness_modes.movement_updates = function (self)
+fitness_modes.movement_captures_lifetime_hack_26 = function (self)
 	if self:get_visited_count() > 26 then -- 26 is the size of the longest path
-		self._fitness = self:get_visited_count() + self._pills_caught + self._ghosts_caught
+		self._fitness = self:get_visited_count() + (3 *self:get_lifetime()) + self._pills_caught + (5 * self._ghosts_caught)
 	else
-		self._fitness = math.min(26, self:get_update_count()/10000)
+		self._fitness = self:get_visited_count() + (3 *self:get_lifetime())
+	end
+end
+
+fitness_modes.ghost_captures_lifetime_hack_26 = function (self)
+	if self:get_visited_count() > 26 then -- 26 is the size of the longest path
+		self._fitness = self:get_lifetime() + (5 * self._ghosts_caught)
+	else
+		self._fitness = self:get_lifetime()
 	end
 end
 

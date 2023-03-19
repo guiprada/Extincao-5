@@ -143,7 +143,7 @@ def add_scatter_plot_to_axis(axis, scatter_x, scatter_y, title, label, alpha = 1
 	axis.set_title(title)
 	axis.scatter(scatter_x, scatter_y, label = label, alpha = alpha, edgecolors='none', s = scale)
 	if show_average == True:
-		axis.hlines(scatter_y.mean(), 0, len(scatter_x), label = "mean", colors = "red", linestyles = "dotted", alpha = 1)
+		axis.hlines(scatter_y.mean(), 0, len(scatter_x), label = "mean", colors = "red", linestyles = "solid", alpha = 1)
 	plt.setp(axis.get_xticklabels(), rotation=30, horizontalalignment='right')
 	# axis.legend(fontsize = SMALL_LEGEND_FONTSIZE)
 

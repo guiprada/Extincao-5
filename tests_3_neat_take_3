@@ -1,4 +1,4 @@
-4-- new school b1
+1-- new school b1
 game_speed = 150
 headless = false
 default_zoom = 3
@@ -45,7 +45,7 @@ __autoplayer_collision_purge = false
 __autoplayer_rotate_purge = false
 autoplayer_initial_random_population_size = 300
 autoplayer_active_population = 1
-autoplayer_initial_random_population_size_history_size = 300
+autoplayer_population_history_size = 300
 __autoplayer_ann_backpropagation = false
 __autoplayer_ann_learning_rate = 0.1
 autoplayer_crossover = true
@@ -57,7 +57,7 @@ autoplayer_search_path_length = 5
 pill_effect_time = 3
 pill_active_population = 2
 
-5-- new school b1_path_grading_hack
+2-- new school b1_path_grading_hack
 game_speed = 150
 headless = false
 default_zoom = 3
@@ -104,7 +104,7 @@ __autoplayer_collision_purge = false
 __autoplayer_rotate_purge = false
 autoplayer_initial_random_population_size = 300
 autoplayer_active_population = 1
-autoplayer_initial_random_population_size_history_size = 300
+autoplayer_population_history_size = 300
 __autoplayer_ann_backpropagation = false
 __autoplayer_ann_learning_rate = 0.1
 autoplayer_crossover = true
@@ -116,7 +116,7 @@ autoplayer_search_path_length = 5
 pill_effect_time = 3
 pill_active_population = 2
 
-6-- new school nb4
+3-- new school nb4
 game_speed = 150
 headless = false
 default_zoom = 3
@@ -163,7 +163,7 @@ __autoplayer_collision_purge = false
 __autoplayer_rotate_purge = false
 autoplayer_initial_random_population_size = 300
 autoplayer_active_population = 1
-autoplayer_initial_random_population_size_history_size = 300
+autoplayer_population_history_size = 300
 __autoplayer_ann_backpropagation = false
 __autoplayer_ann_learning_rate = 0.1
 autoplayer_crossover = true

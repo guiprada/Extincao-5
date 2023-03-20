@@ -1,3 +1,6 @@
+- TESTAR usar a distancia para um cruzamento como entrada
+- TESTAR usar o vetor para a pilula mais proxima como entrada
+- TESTAR usar usar como entrada a saida de 4 redes neurais qualificadoras + a orientacao atual
 - TESTAR ORDEM DA FILA DA ESPECIACAO - ALEATORIA E INVERSA(COMO ERA)
 - TESTAR NEAT INICIANDO TUDO COM PESO 1 para garantir que sera ativado!
 - ATUALMENTE OS PESOS PODEM SER NULOS E A MUTACAO E MULTIPLICATIVA!(IMPLEMENTAR MUTACAO ADITIVA!)

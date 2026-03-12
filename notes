@@ -10,11 +10,14 @@
 	- cover edge cases: single neuron, fully connected, empty species list
 
 ----------------- KNOWN BUGS / INVESTIGATION
-- ipairs vs # on _layers: RESOLVED. _layers is built fresh in ANN:new() with
-  sequential integer keys (o._layers[1], o._layers[2], ...) and never modified
-  after construction. No hash-part contamination possible. The # operator is safe.
-  The original concern was from a different table; the layer-sort fix in
-  ann_neat.lua addressed ordering, not this.
+- ipairs vs # on _layers: OPEN. table.sort on o._layers[i] was observed to
+  change #_layers[i] in practice. Hash-part contamination was investigated and
+  ruled out (user removed it, bug persisted). Root cause unknown — possibly a
+  LuaJIT sort quirk with specific input patterns, or a side effect during
+  comparison. Defensive clone-check kept in ANN:new(). NOTE: the recovery path
+  uses qpd_array.clone which does NOT exist in array.lua — if sort corruption
+  is triggered, the recovery will crash. Either add array.clone or replace
+  recovery with a plain numeric-loop copy.
 
 ----------------- TODO
 - TESTAR ORDEM DA FILA DA ESPECIACAO - ALEATORIA E INVERSA(COMO ERA)

@@ -403,16 +403,11 @@ function GridActor:log(event_type, other)
 	event_table["visited_count"] = self:get_visited_count()
 	event_table["grid_cell_changes"] = self:get_grid_cell_changes()
 	event_table["collision_count"] = self:get_collision_count()
-	event_table["fps"] = tostring(love.timer.getFPS())
 	event_table["lifetime"] = self:get_lifetime()
 	event_table["genes"] = self:get_genes()
 
 	GridActor._event_logger:log(event_table)
 end
 
-function GridActor:enablePreciseTime()
-	print("GridActor precise timer enabled!")
-	_time_callback = love.timer.getTime
-end
 
 return GridActor

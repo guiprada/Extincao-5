@@ -754,7 +754,7 @@ function _Genome:add_link(chance_loopback)
 			local n   = self._neurons[idx]
 			if n:get_neuron_type() ~= "input"
 			and n:get_neuron_type() ~= "bias"
-			and n:is_loopback() then
+			and not n:is_loopback() then
 				innovation_id = Innovation_manager:get_link_innovation_id(n, n)
 				if not self:_has_link(innovation_id) then
 					tries = 0

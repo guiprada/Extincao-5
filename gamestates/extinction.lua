@@ -138,10 +138,6 @@ function gs.load(map_file_path)
 		gs.game_speed = gs.game_conf.game_speed or 100
 		gs.default_zoom = gs.game_conf.default_zoom
 
-		if gs.game_conf.game_precise_timer then
-			GridActor:enablePreciseTime()
-		end
-
 		if gs.game_conf.enable_new_speciation == true then
 			GeneticPopulation:set_new_speciation(true)
 		end
@@ -208,7 +204,7 @@ function gs.load(map_file_path)
 
 		-- Create a logger
 		local event_logger_file_path = this_log_path .. ".data"
-		local event_logger_columns = {"timestamp", "actor_id", "actor_type", "event_type", "other", "cell_x", "cell_y", "updates", "no_pill_updates", "visited_count", "grid_cell_changes", "collision_count", "fps", "lifetime", "genes"}
+		local event_logger_columns = {"timestamp", "actor_id", "actor_type", "event_type", "other", "cell_x", "cell_y", "updates", "no_pill_updates", "visited_count", "grid_cell_changes", "collision_count", "lifetime", "genes"}
 		local event_logger = qpd.logger:new(event_logger_file_path, event_logger_columns, 10)
 
 		-- Initialze GridActor
@@ -407,15 +403,13 @@ function gs.load(map_file_path)
 end
 
 function gs.draw()
-	if not gs.headless then
-		gs.tilemap_view.camera:draw(
-			function ()
-				gs.tilemap_view:draw()
-				gs.pillsPopulation:draw()
-				gs.AutoPlayerPopulation:draw()
-				gs.GhostPopulation:draw(gs.ghost_state)
-			end)
-	end
+	gs.tilemap_view.camera:draw(
+		function ()
+			gs.tilemap_view:draw()
+			gs.pillsPopulation:draw()
+			gs.AutoPlayerPopulation:draw()
+			gs.GhostPopulation:draw(gs.ghost_state)
+		end)
 
 	gs.fps:draw()
 	love.graphics.print(

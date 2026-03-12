@@ -44,7 +44,6 @@ love = {
 		present    = function()    end,
 	},
 	timer = {
-		getFPS  = function() return 60    end,
 		getTime = os.clock,
 	},
 	keyboard = {

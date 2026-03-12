@@ -10,16 +10,11 @@
 	- cover edge cases: single neuron, fully connected, empty species list
 
 ----------------- KNOWN BUGS / INVESTIGATION
-- ipairs vs # on _layers: _layers is built with sequential integer keys so
-  should be safe, but verify no hash-part contamination after add_neuron.
-  See: https://stackoverflow.com/questions/23590885/why-does-luas-length-operator-return-unexpected-values
-  Background: Tables in Lua are internally divided into array part and hash part. That's an optimization. Lua tries to avoid allocating memory often, so it pre allocates for the next power of two. That's another optimization.
-
-  When the last item in the array part is nil, the result of # is the length of the shortest valid sequence found by binsearching the array part for the first nil-followed key.
-  When the last item in the array part is not nil AND the hash part is empty, the result of # is the physical length of the array part.
-  When the last item in the array part is not nil AND the hash part is NOT empty, the result of # is the length of the shortest valid sequence found by binsearching the hash part for for the first nil-followed key (that is such positive integer i that t[i] ~= nil and t[i+1] == nil), assuming that the array part is full of non-nils(!).
-  So the result of # is almost always the (desired) length of the shortest valid sequence, unless the last element in the array part representing a non-sequence is non-nil. Then, the result is bigger than desired.
-  (the layer-sort fix in ann_neat.lua addressed ordering, not this)
+- ipairs vs # on _layers: RESOLVED. _layers is built fresh in ANN:new() with
+  sequential integer keys (o._layers[1], o._layers[2], ...) and never modified
+  after construction. No hash-part contamination possible. The # operator is safe.
+  The original concern was from a different table; the layer-sort fix in
+  ann_neat.lua addressed ordering, not this.
 
 ----------------- TODO
 - TESTAR ORDEM DA FILA DA ESPECIACAO - ALEATORIA E INVERSA(COMO ERA)
@@ -69,6 +64,11 @@
 	- id_to_neuron flat lookup replaces two-level position dict
 - Clean up old/duplicate ANN files (ann_old, ann_not_so_old, _ann_neat_old,
   _ann_neat_stock, ann_neat_hybrid, ann_neat_TCC, ann_neat_new, ann_neat_stock)
+- Compatibility score formula corrected to match NEAT paper:
+    score = c1*D/N + c2*E/N + c3*W_bar
+  Original code had a precedence bug that added raw n_matched/longest to the
+  excess term. New formula is correct. qpd.ann (non-NEAT) still active and needed
+  by AutoPlayer.lua and extinction.lua — not dead code.
 
 ----------------- CORRUPTED
 1671132502 B2

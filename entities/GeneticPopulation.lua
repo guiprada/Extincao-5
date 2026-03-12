@@ -139,7 +139,7 @@ end
 end
 
 function GeneticPopulation:_selection()
-	local everybody = qpd.table.clone(self._history)
+	local everybody = qpd.table.deep_clone(self._history)
 
 	-- add living actors
 	for _, actor in ipairs(self._population) do

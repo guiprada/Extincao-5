@@ -158,10 +158,10 @@ function _Link_Gene:mutate(mutate_chance, mutate_percentage)
 		or 1))
 end
 
--- Shallow-clone this gene and immediately mutate it.
+-- Deep-clone this gene and immediately mutate it.
 -- Used during crossover to produce a child gene from one parent's gene.
 function _Link_Gene:inherit(mutate_chance, mutate_percentage)
-	local clone = qpd_table.clone(self)
+	local clone = qpd_table.deep_clone(self)
 	clone:mutate(mutate_chance, mutate_percentage)
 	return clone
 end
@@ -280,9 +280,9 @@ function _Neuron_Gene:mutate(mutate_chance, mutate_percentage)
 			or 1))
 end
 
--- Clone and mutate; used during crossover.
+-- Deep-clone and mutate; used during crossover.
 function _Neuron_Gene:inherit(mutate_chance, mutate_percentage)
-	local clone = qpd_table.clone(self)
+	local clone = qpd_table.deep_clone(self)
 	clone:mutate(mutate_chance, mutate_percentage)
 	return clone
 end
@@ -1228,8 +1228,7 @@ function ANN:new(genome, o)
 	-- (defensive; was a real bug during development).
 	local id_to_neuron = {}
 	for i = 1, #o._layers do
-		local before = {}
-		for k = 1, #o._layers[i] do before[k] = o._layers[i][k] end
+		local before = qpd_table.shallow_clone(o._layers[i])
 		table.sort(o._layers[i], function(a, b) return a:get_y() < b:get_y() end)
 
 		if #before ~= #o._layers[i] then

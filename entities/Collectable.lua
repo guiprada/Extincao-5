@@ -6,7 +6,7 @@ function Collectable.new(cell, sprite, size_factor, tilesize, bonus_type, bonus_
 	local o = {}
 
 	o.x, o.y = qpd.grid.cell_to_center_point(cell.x, cell.y, tilesize)
-	o.cell = qpd.table.clone(cell)
+	o.cell = qpd.table.deep_clone(cell)
 
 	o._sprite = sprite
 	o._size_factor = size_factor

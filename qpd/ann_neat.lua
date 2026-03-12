@@ -1228,11 +1228,12 @@ function ANN:new(genome, o)
 	-- (defensive; was a real bug during development).
 	local id_to_neuron = {}
 	for i = 1, #o._layers do
-		local before = qpd_table.clone(o._layers[i])
+		local before = {}
+		for k = 1, #o._layers[i] do before[k] = o._layers[i][k] end
 		table.sort(o._layers[i], function(a, b) return a:get_y() < b:get_y() end)
 
 		if #before ~= #o._layers[i] then
-			-- Sorting should never change length; recover from the pre-sort clone.
+			-- Sorting should never change length; recover original references.
 			print("sorting messed up the length")
 			local recovered = {}
 			for k = 1, #before do recovered[k] = before[k] end

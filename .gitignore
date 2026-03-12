@@ -3,6 +3,8 @@ logs/
 logs_good/
 logs_*/
 reports/
+# runs/ subdirs are generated; only runs/RUNS_FOLDER_IS_NECESSARY is tracked
+runs/*/
 
 # ---- experiment data ----
 # (for Primordial: also add tests_*/ here before first commit)

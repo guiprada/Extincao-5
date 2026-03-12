@@ -1234,7 +1234,9 @@ function ANN:new(genome, o)
 		if #before ~= #o._layers[i] then
 			-- Sorting should never change length; recover from the pre-sort clone.
 			print("sorting messed up the length")
-			o._layers[i] = qpd_array.clone(before)
+			local recovered = {}
+			for k = 1, #before do recovered[k] = before[k] end
+			o._layers[i] = recovered
 			print("fixed?", #before, #o._layers[i])
 		end
 

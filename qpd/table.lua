@@ -146,6 +146,7 @@ function qpd_table.read_from_conf(filepath, separator)
 		new_table = nil
 	else
 		for line in file:lines() do
+			line = line:gsub("\r", "")   -- strip Windows CR so files are portable
 			if line ~= "" then
 				local key, value =  string.match(line, match_string)
 				key = tonumber(key) or key
@@ -161,7 +162,7 @@ function qpd_table.read_from_conf(filepath, separator)
 end
 
 function qpd_table.read_from_string(str)
-	return assert(loadstring("return" .. str))()
+	return assert((loadstring or load)("return" .. str))()
 end
 
 function qpd_table.write_to_file(this_table, filepath, separator)

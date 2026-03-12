@@ -43,9 +43,7 @@ love = {
 		clear      = function()    end,
 		present    = function()    end,
 	},
-	timer = {
-		getTime = os.clock,
-	},
+	timer = {},
 	keyboard = {
 		isDown = function() return false end,
 	},

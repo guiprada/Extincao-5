@@ -485,6 +485,35 @@ end
 
 function _Innovation_manager:type() return "_Innovation_manager" end
 
+-- Returns a plain-table snapshot of the innovation registry.
+-- Call before saving population; pass to load_state() on resume.
+function _Innovation_manager:get_state()
+	-- Deep-copy the nested tables so the snapshot is independent.
+	local links_copy = {}
+	for in_id, outs in pairs(self._links) do
+		links_copy[in_id] = {}
+		for out_id, innov_id in pairs(outs) do
+			links_copy[in_id][out_id] = innov_id
+		end
+	end
+	local neurons_copy = {}
+	for x, ys in pairs(self._neurons) do
+		neurons_copy[x] = {}
+		for y, innov_id in pairs(ys) do
+			neurons_copy[x][y] = innov_id
+		end
+	end
+	return { id_count = self._id_count, links = links_copy, neurons = neurons_copy }
+end
+
+-- Restores the innovation registry from a previously saved state.
+-- Must be called before any genome is reconstructed so that IDs are consistent.
+function _Innovation_manager:load_state(state)
+	self._id_count = state.id_count
+	self._links    = state.links
+	self._neurons  = state.neurons
+end
+
 -- Create the singleton.
 Innovation_manager = _Innovation_manager:new()
 
@@ -1089,6 +1118,83 @@ function _Genome:get_n_inputs()     return self._n_inputs                       
 function _Genome:get_n_outputs()    return self._n_outputs                              end
 function _Genome:type()             return "_Genome"                                    end
 
+-- ---- serialization ----
+
+-- Returns a plain table that fully describes this genome.
+-- All neuron and link genes are encoded as scalar-only records; no Lua
+-- object references survive the round-trip.
+function _Genome:serialize()
+	local neurons = {}
+	for i, ng in ipairs(self._neurons) do
+		neurons[i] = {
+			id                              = ng:get_id(),
+			neuron_type                     = ng:get_neuron_type(),
+			x                               = ng:get_x(),
+			y                               = ng:get_y(),
+			activation_function_name        = ng._activation_function_name,
+			activation_function_parameters  = ng._activation_function_parameters,
+			activation_response             = ng:get_activation_response(),
+			recurrent                       = ng._recurrent,
+			loopback                        = ng._loopback or false,
+		}
+	end
+
+	local links = {}
+	for i, lg in ipairs(self._links) do
+		links[i] = {
+			id              = lg:get_id(),
+			input_neuron_id = lg:get_input_neuron():get_id(),
+			output_neuron_id= lg:get_output_neuron():get_id(),
+			weight          = lg:get_weight(),
+			enabled         = lg:is_enabled(),
+			recurrent       = lg:is_recurrent(),
+		}
+	end
+
+	return {
+		neurons                                  = neurons,
+		links                                    = links,
+		hidden_layers_activation_function_name   = self._hidden_layers_activation_function_name,
+		hidden_layers_activation_function_parameters = self._hidden_layers_activation_function_parameters,
+	}
+end
+
+-- Rebuilds a _Genome from the plain table produced by serialize().
+-- Requires Innovation_manager to already be loaded (IDs are reused, not minted).
+function _Genome.from_data(data)
+	-- Rebuild neuron genes; build an id→gene lookup for link reconstruction.
+	local id_to_gene = {}
+	local neurons    = {}
+	for _, nd in ipairs(data.neurons) do
+		local ng = _Neuron_Gene:new(
+			nd.neuron_type,
+			nd.recurrent,
+			nd.activation_function_name,
+			nd.activation_function_parameters,
+			nd.id,
+			nd.x,
+			nd.y,
+			nd.activation_response)
+		if nd.loopback then ng:set_loopback(true) end
+		id_to_gene[nd.id] = ng
+		table.insert(neurons, ng)
+	end
+
+	-- Rebuild link genes using the neuron-gene references.
+	local links = {}
+	for _, ld in ipairs(data.links) do
+		local in_gene  = id_to_gene[ld.input_neuron_id]
+		local out_gene = id_to_gene[ld.output_neuron_id]
+		local lg = _Link_Gene:new(in_gene, out_gene, ld.id, ld.weight)
+		if not ld.enabled then lg:set_enabled(false) end
+		table.insert(links, lg)
+	end
+
+	return _Genome:new(neurons, links,
+		data.hidden_layers_activation_function_name,
+		data.hidden_layers_activation_function_parameters)
+end
+
 -- ============================================================
 -- ANN  (public module)
 -- ============================================================
@@ -1385,5 +1491,26 @@ end
 function ANN:get_gene_count() return self._genome:get_gene_count() end
 function ANN:get_genome()     return self._genome                  end
 function ANN:type()           return "ANN_neat"                    end
+
+-- ---- Innovation_manager accessors (module-level, not per-instance) ----
+-- These expose the module-private singleton to callers such as population_io.
+
+function ANN.get_innovation_state()
+	return Innovation_manager:get_state()
+end
+
+function ANN.load_innovation_state(state)
+	Innovation_manager:load_state(state)
+end
+
+-- Reconstructs an ANN from a serialized genome data table.
+-- Used when resuming a run: the genome is restored without going through
+-- new_genome(), so Innovation_manager IDs are reused rather than minted.
+-- The full phenotype (_layers, _specie, etc.) is built via ANN:new() so the
+-- network is immediately ready for forward-pass evaluation via get_outputs().
+function ANN.from_genome_data(data)
+	local genome = _Genome.from_data(data)
+	return ANN:new(genome)
+end
 
 return ANN

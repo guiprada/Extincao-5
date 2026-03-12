@@ -3,14 +3,17 @@
 --
 -- Usage (from the project root):
 --   lua5.4 run_headless.lua [max_updates]
+--   lua5.4 run_headless.lua [max_updates] --resume <run_dir>
 --
--- max_updates: number of gs.update() ticks to run (default: 500000)
+-- max_updates  number of gs.update() ticks to run (default: 500000)
+-- --resume <run_dir>
+--              Resume from a saved population checkpoint.
+--              <run_dir> is the full path or relative path to the run folder,
+--              e.g.  runs/neat_nb4_path_grading_lifetime/1773336963
+--              The conf is loaded normally; only the population gene pool is
+--              restored from the checkpoint.
 --
--- The simulation reads conf/extinction.conf and conf/games.conf as normal.
--- To run a specific experiment, copy or symlink the desired test config to
--- conf/extinction.conf before launching.
---
--- Output lands in logs/ as usual (.data files for analysis).
+-- Output lands in runs/<strategy>/<seed>/ (.data event log, run.conf, population.lua).
 
 -- ============================================================
 -- love mock
@@ -71,20 +74,49 @@ qpd.strings.load(qpd.files.str_en)
 qpd.fonts.load(qpd.files.fonts_conf)   -- calls newFont -> returns _stub_font
 
 -- ============================================================
+-- Parse arguments
+-- ============================================================
+local max_updates = tonumber(arg and arg[1]) or 500000
+local resume_dir  = nil
+do
+	local i = 2
+	while arg and arg[i] do
+		if arg[i] == "--resume" and arg[i+1] then
+			resume_dir = arg[i+1]
+			i = i + 2
+		else
+			i = i + 1
+		end
+	end
+end
+
+-- ============================================================
 -- Load and start simulation
 -- ============================================================
 
 local extinction = require "gamestates.extinction"
 extinction.load()
 
+-- Optionally restore population from a previous checkpoint.
+if resume_dir then
+	local pop_io = require "qpd.population_io"
+	local data   = pop_io.load(resume_dir)
+	if data and extinction.AutoPlayerPopulation then
+		pop_io.restore(extinction.AutoPlayerPopulation, data)
+		print("[headless] resumed from: " .. resume_dir)
+	else
+		print("[WARN] [headless] --resume: could not restore population from " .. resume_dir)
+	end
+end
+
 -- Use max_dt for every tick: deterministic, physics-safe steps.
 -- If game_fixed_distance_per_update is set in conf the update loop does
 -- this automatically; we mirror that here for the headless case.
-local dt          = extinction.max_dt
-local max_updates = tonumber(arg and arg[1]) or 500000
+local dt = extinction.max_dt
 
-print(string.format("[headless] starting: max_updates=%d  dt=%.6f  seed=%s",
-	max_updates, dt, tostring(extinction.game_conf and extinction.game_conf.seed)))
+print(string.format("[headless] starting: max_updates=%d  dt=%.6f  seed=%s%s",
+	max_updates, dt, tostring(extinction.game_conf and extinction.game_conf.seed),
+	resume_dir and ("  resume=" .. resume_dir) or ""))
 
 local t0 = os.clock()
 for i = 1, max_updates do
@@ -94,3 +126,6 @@ local elapsed = os.clock() - t0
 
 print(string.format("[headless] done: %d updates in %.1f s  (%.0f updates/s)",
 	max_updates, elapsed, max_updates / elapsed))
+
+-- Final population save (complements the per-generation saves in extinction.lua).
+extinction.unload()

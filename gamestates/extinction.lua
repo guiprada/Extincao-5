@@ -10,6 +10,7 @@ local Population = require "entities.Population"
 local Ghost = require "entities.Ghost"
 local Pill = require "entities.Pill"
 local ANN = require "qpd.ann"
+local pop_io = require "qpd.population_io"
 
 --------------------------------------------------------------------------------
 local color_array = {}
@@ -200,7 +201,15 @@ function gs.load(map_file_path)
 		-- seed with a known value
 		gs.game_conf.seed = gs.game_conf.seed or os.time()
 		qpd.random.seed(gs.game_conf.seed)
-		local this_log_path = "logs/" .. tostring(gs.game_conf.seed )
+
+		-- Build run directory: runs/<strategy>/<seed>/
+		local strategy    = pop_io.strategy_name(gs.game_conf)
+		gs._run_dir       = "runs/" .. strategy .. "/" .. tostring(gs.game_conf.seed)
+		os.execute('mkdir -p "' .. gs._run_dir .. '"')
+		gs._last_saved_generation = -1
+
+		-- Keep logs/ working as before (data files land in the run dir now).
+		local this_log_path = gs._run_dir .. "/run"
 
 		-- Create a logger
 		local event_logger_file_path = this_log_path .. ".data"
@@ -496,6 +505,15 @@ function gs.update(dt)
 		gs.GhostPopulation:update(dt, gs.ghost_speed_factor * gs.tilesize_adjusted_speed, gs.AutoPlayerPopulation:get_population())
 
 		gs.AutoPlayerPopulation:update(dt, gs.autoplayer_speed_factor * gs.tilesize_adjusted_speed, gs.ghost_state)
+
+		-- Checkpoint at every generation boundary (configurable; NEAT only).
+		if gs.game_conf.autoplayer_neat_enable and gs._run_dir then
+			local gen = gs.AutoPlayerPopulation:get_generation()
+			if gen > gs._last_saved_generation then
+				gs._last_saved_generation = gen
+				pop_io.save(gs._run_dir, gs.AutoPlayerPopulation)
+			end
+		end
 	end
 end
 
@@ -527,6 +545,11 @@ function gs.resize(w, h)
 end
 
 function gs.unload()
+	-- Final population checkpoint on clean exit.
+	if gs.game_conf and gs.game_conf.autoplayer_neat_enable
+			and gs.AutoPlayerPopulation and gs._run_dir then
+		pop_io.save(gs._run_dir, gs.AutoPlayerPopulation)
+	end
 	-- the callbacks are saved by the gamestate
 	gs = {}
 end

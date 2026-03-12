@@ -59,6 +59,17 @@ function GeneticPopulation:get_species()
 	return self._species
 end
 
+function GeneticPopulation:get_active_size()
+	return self._active_size
+end
+
+-- Returns the zero-based generation index.
+-- A generation is complete every time _count is a multiple of _active_size.
+function GeneticPopulation:get_generation()
+	if self._active_size == 0 then return 0 end
+	return math.floor(self._count / self._active_size)
+end
+
 function GeneticPopulation:set_fitness_attribute(value)
 	self._fitness_attribute = value
 end

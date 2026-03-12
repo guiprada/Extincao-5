@@ -5,7 +5,7 @@ logs_*/
 reports/
 
 # ---- experiment data ----
-# (for Primordial: also add tests_*/ and data/ here before first commit)
+# (for Primordial: also add tests_*/ here before first commit)
 *.data*
 *.zip
 *.pd

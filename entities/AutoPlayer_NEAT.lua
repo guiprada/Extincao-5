@@ -96,8 +96,8 @@ function AutoPlayer_NEAT.init(search_path_length, mutate_chance, mutate_percenta
 	AutoPlayer_NEAT._start_idle = start_idle or false
 	AutoPlayer_NEAT._start_on_center = start_on_center or false
 
-	qpd.ann_neat:set_negative_weight_initialization(negative_weight_and_activation_initialization)
-	qpd.ann_neat:set_add_neuron_with_unit_activation(autoplayer_neat_add_neuron_with_unit_activation)
+	qpd.ann_neat:set_negative_weight_and_activation_initialization(negative_weight_and_activation_initialization)
+	qpd.ann_neat:set_input_proportional_activation(autoplayer_neat_add_neuron_with_unit_activation)
 
 	GridActor.register_type(autoplayer_type_name)
 end

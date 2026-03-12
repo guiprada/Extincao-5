@@ -1,7 +1,15 @@
+# ---- runtime output ----
 logs/
 logs_good/
+logs_*/
+reports/
 
-data_analysis/__pycache__/
-.vscode/
+# ---- experiment data ----
+# (for Primordial: also add tests_*/ and data/ here before first commit)
 *.data*
 *.zip
+*.pd
+
+# ---- tooling ----
+data_analysis/__pycache__/
+.vscode/

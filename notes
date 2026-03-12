@@ -44,6 +44,23 @@
 
 	- layout em uma configuracao lua
 
+----------------- REFACTORING (next steps, in order)
+- Clean up remaining dead code and old files across the project
+- Fix headless runner (crashes on config path in table.lua:143)
+- Population saving and loading
+- Batched tests (run multiple configs/seeds automatically)
+- Tests -- add tests to everything, starting with ANN infrastructure:
+	- ann_neat: unit tests for crossover, speciation, compatibility score,
+	  add_neuron, add_link (especially the forward-link fix), get_outputs
+	- ann: unit tests for forward pass
+	- cover edge cases: single neuron, fully connected, empty species list
+
+----------------- KNOWN BUGS / INVESTIGATION
+- ipairs vs # on _layers: _layers is built with sequential integer keys so
+  should be safe, but verify no hash-part contamination after add_neuron.
+  See: https://stackoverflow.com/questions/23590885/...
+  (the layer-sort fix in ann_neat.lua addressed ordering, not this)
+
 ----------------- DONE
 - implementar NEAT
 	- verificar se o link ja existe
@@ -62,21 +79,21 @@
 ** to adapt this to ghosts we could get a next position only when out of corridors **
 ** should mutation be only  for greater amplitude?(since crossover always diminishes it) **
 
-- BASELINE, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, mas não sai da rota para procurar pilulas ou fantasmas.
-- BASELINE_PILL, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, desvia da rota para procurar pilulas mas não para fantasmas.
-- BASELINE_PILL_GHOST, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, desvia da rota para procurar pilulas e capturar fantasmas.
-- BASELINE_RANDOM, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, caso a rota atual seja ruim, assume uma outra rota aleatoriamente.
-- BASELINE_COLLIDE_RANDOM, um algoritmo especialista caso tenha ocorrido uma colisão, assume uma outra rota aleatoriamente.
+- BASELINE, um algoritmo especialista que foge quando vulnerï¿½vel e ataca quando oportuno, mas nï¿½o sai da rota para procurar pilulas ou fantasmas.
+- BASELINE_PILL, um algoritmo especialista que foge quando vulnerï¿½vel e ataca quando oportuno, desvia da rota para procurar pilulas mas nï¿½o para fantasmas.
+- BASELINE_PILL_GHOST, um algoritmo especialista que foge quando vulnerï¿½vel e ataca quando oportuno, desvia da rota para procurar pilulas e capturar fantasmas.
+- BASELINE_RANDOM, um algoritmo especialista que foge quando vulnerï¿½vel e ataca quando oportuno, caso a rota atual seja ruim, assume uma outra rota aleatoriamente.
+- BASELINE_COLLIDE_RANDOM, um algoritmo especialista caso tenha ocorrido uma colisï¿½o, assume uma outra rota aleatoriamente.
 - BASELINE_FULL_RANDOM, um algoritmo especialista que, assume uma outra rota aleatoriamente.
-- BASELINE_VALID_RANDOM, um algoritmo especialista que foge quando vulnerável e ataca quando oportuno, caso a rota atual seja ruim, assume uma outra rota válida aleatoriamente.
-- BASELINE_VALID_FULL_RANDOM, um algoritmo especialista que, assume uma outra rota válida aleatoriamente.
+- BASELINE_VALID_RANDOM, um algoritmo especialista que foge quando vulnerï¿½vel e ataca quando oportuno, caso a rota atual seja ruim, assume uma outra rota vï¿½lida aleatoriamente.
+- BASELINE_VALID_FULL_RANDOM, um algoritmo especialista que, assume uma outra rota vï¿½lida aleatoriamente.
 
 
 
 - em ordem de capacidades
 *- BASELINE_FULL_RANDOM. (nenhuma capacidade)
 *- BASELINE_VALID_FULL_RANDOM. (capacidade de escolher uma rota valida)
-*- BASELINE_COLLIDE_RANDOM. (detecta colisão)
+*- BASELINE_COLLIDE_RANDOM. (detecta colisï¿½o)
 *- BASELINE_RANDOM. (capacidade de fugir e atacar)
 *- BASELINE_VALID_RANDOM. (capacidade de fugir e ataque oportuno e escolher rotas validas)
 *- BASELINE. (capacidade de fugir e ataque oportuno, nao desvia rota para capturar)

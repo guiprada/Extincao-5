@@ -8,6 +8,11 @@
 	  add_neuron, add_link (especially the forward-link fix), get_outputs
 	- ann: unit tests for forward pass
 	- cover edge cases: single neuron, fully connected, empty species list
+- The qpd-framework did not come out as expected. I think the workflow should be:
+	- create project folder, let us call it sample_proj/
+	- inside sample_proj you clone qpd -> sample_proj/qpd/
+	- you execute sample_proj/qpd/inflate.bat and it will copy its folders to project root, ie it will copy /sample_proj/qpd/gamestates/* to sample_proj/gamestates/*
+	- the resulting workflow will be, any upstream changes to qpd are imedially available - the core libs are in place and ready - supporting files are available but should be moved/merged manually - so they can be customized without the risk of being overwritten
 
 ----------------- KNOWN BUGS / INVESTIGATION
 - ipairs vs # on _layers: OPEN. table.sort on o._layers[i] was observed to

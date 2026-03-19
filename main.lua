@@ -6,7 +6,7 @@ function love.load()
 
 	-- starting files service, should be the first one because we need the
 	-- filepaths to start the other services
-	qpd.files.load("qpd/services/files.conf")
+	qpd.files.load("conf/files.conf")
 
 	-- starting the keymap service
 	qpd.keymap.load(qpd.files.keymap_conf)

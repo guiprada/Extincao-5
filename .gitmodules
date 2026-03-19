@@ -1,0 +1,3 @@
+[submodule "qpd"]
+	path = qpd
+	url = https://github.com/guiprada/qpd

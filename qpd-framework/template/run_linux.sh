@@ -1,2 +1,0 @@
-#!/bin/sh
-./love-11.3-x86_64.AppImage ./

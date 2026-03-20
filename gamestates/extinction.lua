@@ -8,6 +8,7 @@ local AutoPlayer = require "entities.AutoPlayer"
 local AutoPlayer_NEAT = require "entities.AutoPlayer_NEAT"
 local Population = require "entities.Population"
 local Ghost = require "entities.Ghost"
+local Ghost_Genetic = require "entities.Ghost_Genetic"
 local Pill = require "entities.Pill"
 local ANN = require "qpd.ann"
 local pop_io = require "qpd.population_io"
@@ -242,15 +243,17 @@ function gs.load(map_file_path)
 		gs.ghost_speed_factor = gs.game_conf.ghost_speed_factor
 		gs.ghost_sequential_home = gs.game_conf.ghost_sequential_home
 
+		local GhostClass = gs.game_conf.ghost_genetic_enable and Ghost_Genetic or Ghost
+
 		if gs.game_conf.ghost_shuffle_try_order then
-			Ghost.set_shuffle_try_order(true)
+			GhostClass.set_shuffle_try_order(true)
 		end
 
 		gs.ghost_state_timer = qpd.timer.new(gs.ghost_scatter_time, change_ghost_state_callback)
 		reset_ghost_state()
 		-- print(gs.ghost_state)
 		-- gs.ghost_states = {"scattering", "chasing", "frightened"}
-		Ghost.init(
+		GhostClass.init(
 			gs.grid,
 			gs.ghost_state,
 			gs.game_conf.ghost_target_spread,
@@ -263,7 +266,7 @@ function gs.load(map_file_path)
 		if gs.game_conf.ghost_population_target_offset_array then
 			local ghost_population_target_offset_array = qpd.table.read_from_string(gs.game_conf.ghost_population_target_offset_array)
 			gs.GhostPopulation = GeneticPopulation:new(
-				Ghost,
+				GhostClass,
 				#ghost_population_target_offset_array,
 				0,
 				0
@@ -274,14 +277,16 @@ function gs.load(map_file_path)
 			end
 		else
 			gs.GhostPopulation = GeneticPopulation:new(
-				Ghost,
+				GhostClass,
 				gs.game_conf.ghost_active_population,
 				gs.game_conf.ghost_initial_random_population_size or 0,
 				gs.game_conf.ghost_population_history_size or 0
 			)
 		end
 
-		Ghost.set_sibling_ghosts(gs.GhostPopulation:get_population())
+		if GhostClass.set_sibling_ghosts then
+			GhostClass.set_sibling_ghosts(gs.GhostPopulation:get_population())
+		end
 
 		if gs.game_conf.ghost_state_reset_on_autoplayer_capture then
 			for i, ghost in ipairs(gs.GhostPopulation) do

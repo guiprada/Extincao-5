@@ -542,7 +542,7 @@ function Ghost:get_furthest(possible_next_moves, destination)
 	local furthest_distance = qpd.point.distance2(possible_next_moves[furthest], destination)
 	for i = 2, #possible_next_moves, 1 do
 		local this_dist = qpd.point.distance2(possible_next_moves[i], destination)
-		if (this_dist >= possible_next_moves[furthest].dist) then
+		if (this_dist >= furthest_distance) then
 			furthest = i
 			furthest_distance = this_dist
 		end

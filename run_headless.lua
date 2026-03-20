@@ -71,6 +71,7 @@ love = {
 local qpd = require "qpd.qpd"
 
 qpd.files.load("qpd/services/files.conf")
+qpd.files.load("conf/files.conf")
 qpd.keymap.load(qpd.files.keymap_conf)
 qpd.strings.load(qpd.files.str_en)
 qpd.fonts.load(qpd.files.fonts_conf)   -- calls newFont -> returns _stub_font

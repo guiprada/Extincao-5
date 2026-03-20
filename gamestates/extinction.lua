@@ -72,8 +72,9 @@ local ghost_start_positions = {
 
 local function reposition_ghosts()
 	for i, ghost in ipairs(gs.GhostPopulation:get_population()) do
-		local pos = ghost_start_positions[i%4]
-		ghost:reposition(pos, nil, i%4)
+		local idx = (i-1)%4 + 1
+		local pos = ghost_start_positions[idx]
+		ghost:reposition(pos, nil, idx)
 	end
 end
 

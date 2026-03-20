@@ -10,6 +10,16 @@ Ghost._state = "none"
 Ghost._sequential_home = false
 Ghost._shuffle_try_order = false
 
+Ghost._fitness_mode = "catches"
+Ghost._fitness_modes = {
+	catches = function(g)
+		return g._n_catches
+	end,
+	catches_pills = function(g)
+		return g._n_catches + (g._n_pills * 0.001) / math.max(g._n_updates, 1)
+	end,
+}
+
 Ghost._ghost_homes = {
 	{x = 1, y = 1},
 	{x = 28, y = 14},
@@ -31,6 +41,10 @@ end
 
 function Ghost.set_shuffle_try_order(value)
 	Ghost._shuffle_try_order = value or true
+end
+
+function Ghost.set_fitness_mode(mode)
+	Ghost._fitness_mode = mode or "catches"
 end
 
 function Ghost.init(grid,
@@ -86,6 +100,8 @@ function Ghost:reset(reset_table)
 	GridActor.reset(self, pos or Ghost._grid:get_valid_cell())
 
 	self._n_catches = 0
+	self._n_pills = 0
+	self._n_updates = 0
 	self._fitness = 0
 
 	self._target_offset = target_offset
@@ -233,7 +249,9 @@ function Ghost:update(dt, speed, targets)
 		end
 		Ghost._grid:update_collision(self)
 
-		self._fitness = self._n_catches
+		self._n_updates = self._n_updates + 1
+		local _fitness_fn = Ghost._fitness_modes[Ghost._fitness_mode]
+		self._fitness = _fitness_fn and _fitness_fn(self) or self._n_catches
 
 		-- updates average distance to player and group,
 		-- it is used for collision

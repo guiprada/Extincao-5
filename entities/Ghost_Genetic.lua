@@ -1,15 +1,7 @@
 -- Ghost_Genetic: extends Ext-5 Ghost with Ext-3 genetic fear genes and crossover.
--- Inherits: update, collided, draw, movement from Ghost (Ext-5).
---
--- Known differences vs original Ext-3 implementation (TODOs):
---   1. _grid_pos_closest_pill is never set — Ghost:update() does not track the
---      nearest pill, so go_to_closest_pill always falls back to wander.
---      Override update() here to track it if this gene should be functional.
---   2. Collision detection is pixel-distance (< tilesize), not cell-distance.
---      Ext-3 may have used manhattan cell distance; threshold may differ.
---   3. Fitness = _n_catches only. Ext-3 may have had a richer fitness function
---      (penalties for being eaten, bonuses for herding, etc.).
---   4. There may be further behavioral differences not yet identified.
+-- Inherits: collided, draw, movement from Ghost (Ext-5).
+-- Overrides update() to call Ghost.update() (OO inheritance) then track
+-- closest pill for go_to_closest_pill gene and _n_pills for fitness.
 local Ghost = require "entities.Ghost"
 local Ghost_Genetic = Ghost:new()
 Ghost_Genetic.__index = Ghost_Genetic
@@ -22,6 +14,7 @@ Ghost_Genetic._ghost_fear_on  = false
 Ghost_Genetic._chase_feared_on   = false
 Ghost_Genetic._scatter_feared_on = false
 Ghost_Genetic._sibling_ghosts = {}
+Ghost_Genetic._pills = {}
 
 -- chase_feared_gene (1-9): behavior when chasing and target within fear_target cells
 local chase_feared_dispatch = {
@@ -63,6 +56,10 @@ function Ghost_Genetic.set_sibling_ghosts(ghosts)
 	Ghost_Genetic._sibling_ghosts = ghosts
 end
 
+function Ghost_Genetic.set_pills(pills)
+	Ghost_Genetic._pills = pills or {}
+end
+
 function Ghost_Genetic:new(o)
 	local o = Ghost:new(o or {})
 	setmetatable(o, self)
@@ -81,6 +78,9 @@ function Ghost_Genetic:reset(reset_table)
 	self._fear_target         = fear_target         or qpd.random.random(0, Ghost_Genetic._fear_spread)
 	self._chase_feared_gene   = chase_feared_gene   or qpd.random.random(1, 9)
 	self._scatter_feared_gene = scatter_feared_gene or qpd.random.random(1, 5)
+	self._pill_near = false
+	self._dist_to_closest_pill = math.huge
+	self._grid_pos_closest_pill = nil
 end
 
 function Ghost_Genetic:get_history()
@@ -158,6 +158,42 @@ function Ghost_Genetic:crossover(mom, dad, reset_table)
 		chase_feared_gene   = new_chase_feared_gene,
 		scatter_feared_gene = new_scatter_feared_gene,
 	})
+end
+
+function Ghost_Genetic:update(dt, speed, targets)
+	-- Call base update first (OO inheritance — movement, collision, base fitness).
+	Ghost.update(self, dt, speed, targets)
+
+	if not self._is_active then return end
+
+	-- Track closest pill (Ext-3 style) so go_to_closest_pill gene is functional.
+	local closest_dist2 = math.huge
+	for i = 1, #Ghost_Genetic._pills do
+		local pill = Ghost_Genetic._pills[i]
+		if pill._is_active then
+			local d = qpd.point.distance2(pill, self)
+			if d < closest_dist2 then
+				closest_dist2 = d
+				if not self._grid_pos_closest_pill then
+					self._grid_pos_closest_pill = {}
+				end
+				self._grid_pos_closest_pill.x = pill._cell.x
+				self._grid_pos_closest_pill.y = pill._cell.y
+			end
+		end
+	end
+	self._dist_to_closest_pill = closest_dist2
+
+	-- Increment _n_pills when passing near a pill (debounced per approach).
+	local near_threshold = Ghost._tilesize * Ghost._tilesize
+	if closest_dist2 < near_threshold then
+		if not self._pill_near then
+			self._n_pills = self._n_pills + 1
+			self._pill_near = true
+		end
+	else
+		self._pill_near = false
+	end
 end
 
 function Ghost_Genetic:go_to_closest_pill(possible_next_moves)

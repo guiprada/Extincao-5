@@ -295,6 +295,12 @@ function gs.load(map_file_path)
 			GhostClass.set_sibling_ghosts(gs.GhostPopulation:get_population())
 		end
 
+		if GhostClass.set_pills then
+			GhostClass.set_pills(gs.pillsPopulation:get_population())
+		end
+
+		Ghost.set_fitness_mode(gs.game_conf.ghost_fitness_mode)
+
 		if gs.game_conf.ghost_state_reset_on_autoplayer_capture then
 			for i, ghost in ipairs(gs.GhostPopulation) do
 				local target_offset = ghost:get_target_offset()

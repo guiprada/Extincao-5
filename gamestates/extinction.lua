@@ -253,7 +253,11 @@ function gs.load(map_file_path)
 		Ghost.init(
 			gs.grid,
 			gs.ghost_state,
-			gs.game_conf.ghost_target_spread
+			gs.game_conf.ghost_target_spread,
+			gs.game_conf.ghost_fear_spread,
+			gs.game_conf.ghost_fear_on,
+			gs.game_conf.ghost_chase_feared_on,
+			gs.game_conf.ghost_scatter_feared_on
 		)
 
 		if gs.game_conf.ghost_population_target_offset_array then
@@ -276,6 +280,8 @@ function gs.load(map_file_path)
 				gs.game_conf.ghost_population_history_size or 0
 			)
 		end
+
+		Ghost.set_sibling_ghosts(gs.GhostPopulation:get_population())
 
 		if gs.game_conf.ghost_state_reset_on_autoplayer_capture then
 			for i, ghost in ipairs(gs.GhostPopulation) do

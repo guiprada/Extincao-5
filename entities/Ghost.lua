@@ -16,6 +16,35 @@ Ghost._ghost_homes = {
 	{x = 1, y = 14},
 	{x = 28, y = 1},
 }
+
+-- Genetic ghost configuration (set via Ghost.init)
+Ghost._fear_spread = 50
+Ghost._ghost_fear_on = false
+Ghost._chase_feared_on = false
+Ghost._scatter_feared_on = false
+Ghost._sibling_ghosts = {}
+
+-- Behavior dispatch tables for fear genes
+-- chase_feared_gene (1-9): behavior when ghost is in chase state and player is within fear_target cells
+local chase_feared_dispatch = {
+	[1] = function(g, t, m) g:go_home(m) end,
+	[2] = function(g, t, m) g:go_to_closest_pill(m) end,
+	[3] = function(g, t, m) g:go_to_group(m) end,
+	[4] = function(g, t, m) g:run_from_target(t, m) end,
+	[5] = function(g, t, m) g:wander(m) end,
+	[6] = function(g, t, m) g:go_to_target(t, m) end,
+	[7] = function(g, t, m) g:catch_target(t, m) end,
+	[8] = function(g, t, m) g:surround_target_back(t, m) end,
+	[9] = function(g, t, m) g:surround_target_front(t, m) end,
+}
+-- scatter_feared_gene (1-5): behavior when ghost is in scatter state and player is within fear_target cells
+local scatter_feared_dispatch = {
+	[1] = function(g, t, m) g:go_home(m) end,
+	[2] = function(g, t, m) g:go_to_closest_pill(m) end,
+	[3] = function(g, t, m) g:go_to_group(m) end,
+	[4] = function(g, t, m) g:run_from_target(t, m) end,
+	[5] = function(g, t, m) g:wander(m) end,
+}
 ---------------------------------------------------------------
 function Ghost.get_random_home_index()
 	return qpd.random.random(1, #Ghost._ghost_homes)
@@ -33,11 +62,23 @@ function Ghost.set_shuffle_try_order(value)
 	Ghost._shuffle_try_order = value or true
 end
 
+function Ghost.set_sibling_ghosts(ghosts)
+	Ghost._sibling_ghosts = ghosts
+end
+
 function Ghost.init(grid,
 					initial_state,
-					target_spread)
+					target_spread,
+					fear_spread,
+					ghost_fear_on,
+					chase_feared_on,
+					scatter_feared_on)
 	Ghost._grid = grid
 	Ghost._target_spread = target_spread or 0
+	Ghost._fear_spread = fear_spread or 50
+	Ghost._ghost_fear_on = ghost_fear_on or false
+	Ghost._chase_feared_on = chase_feared_on or false
+	Ghost._scatter_feared_on = scatter_feared_on or false
 	Ghost.set_state(initial_state)
 
 	GridActor.register_type(ghost_type_name)
@@ -57,12 +98,16 @@ end
 
 function Ghost:reset(reset_table)
 	local home, target_offset, try_order, pos, direction
+	local fear_target, chase_feared_gene, scatter_feared_gene
 	if reset_table then
 		home = reset_table.home
 		target_offset = reset_table.target_offset
 		try_order = reset_table.try_order
 		pos = reset_table.pos
 		direction = reset_table.direction
+		fear_target = reset_table.fear_target
+		chase_feared_gene = reset_table.chase_feared_gene
+		scatter_feared_gene = reset_table.scatter_feared_gene
 	end
 
 	self._home = home or Ghost.get_random_home_index()
@@ -89,6 +134,11 @@ function Ghost:reset(reset_table)
 	self._fitness = 0
 
 	self._target_offset = target_offset
+
+	-- genetic genes
+	self._fear_target = fear_target or qpd.random.random(0, Ghost._fear_spread)
+	self._chase_feared_gene = chase_feared_gene or qpd.random.random(1, 9)
+	self._scatter_feared_gene = scatter_feared_gene or qpd.random.random(1, 5)
 
 	-- set a valid direction
 	self:set_direction(direction)
@@ -133,19 +183,77 @@ function Ghost:get_history()
 	return {
 		_fitness = self._fitness,
 		_target_offset = self._target_offset,
-		_try_order = self._try_order
+		_home = self._home,
+		_try_order = {self._try_order[1], self._try_order[2], self._try_order[3], self._try_order[4]},
+		_fear_target = self._fear_target,
+		_chase_feared_gene = self._chase_feared_gene,
+		_scatter_feared_gene = self._scatter_feared_gene,
 	}
 end
 
 function Ghost:crossover(mom, dad, reset_table)
-	-- local son = {}
-	-- local target_offset = math.floor((mom._target_offset + dad._target_offset)/2)
+	-- target_offset: pick one parent's value, mutate ±2, clamp to target_spread
+	local base_offset = (qpd.random.random() < 0.5) and mom._target_offset or dad._target_offset
+	base_offset = base_offset or 0
+	local new_offset = base_offset + qpd.random.random(-2, 2)
+	if Ghost._target_spread > 0 then
+		new_offset = math.max(-Ghost._target_spread, math.min(Ghost._target_spread, new_offset))
+	end
 
-	-- if (qpd.random.random(0, 10)<=3) then -- mutate
-	-- 	target_offset = target_offset + math.floor(qpd.random.random(-2, 2))
-	-- end
+	-- fear_target: average of parents ± small mutation, clamp to fear_spread
+	local mom_fear = mom._fear_target or qpd.random.random(0, Ghost._fear_spread)
+	local dad_fear = dad._fear_target or qpd.random.random(0, Ghost._fear_spread)
+	local new_fear_target = math.floor((mom_fear + dad_fear) / 2) + qpd.random.random(-5, 5)
+	new_fear_target = math.max(0, math.min(Ghost._fear_spread, new_fear_target))
 
-	self:reset({target_offset = self._target_offset, home = self._home})
+	-- try_order: per-element 40% mom / 20% dad / 40% random direction
+	local mom_order = mom._try_order or {1, 2, 3, 4}
+	local dad_order = dad._try_order or {1, 2, 3, 4}
+	local new_try_order = {}
+	for i = 1, 4 do
+		local r = qpd.random.random()
+		if r < 0.4 then
+			new_try_order[i] = mom_order[i]
+		elseif r < 0.6 then
+			new_try_order[i] = dad_order[i]
+		else
+			new_try_order[i] = qpd.random.random(1, 4)
+		end
+	end
+
+	-- chase_feared_gene: 40% mom / 40% dad / 20% random
+	local new_chase_feared_gene
+	local r3 = qpd.random.random()
+	if r3 < 0.4 then
+		new_chase_feared_gene = mom._chase_feared_gene or qpd.random.random(1, 9)
+	elseif r3 < 0.8 then
+		new_chase_feared_gene = dad._chase_feared_gene or qpd.random.random(1, 9)
+	else
+		new_chase_feared_gene = qpd.random.random(1, 9)
+	end
+
+	-- scatter_feared_gene: 40% mom / 40% dad / 20% random
+	local new_scatter_feared_gene
+	local r4 = qpd.random.random()
+	if r4 < 0.4 then
+		new_scatter_feared_gene = mom._scatter_feared_gene or qpd.random.random(1, 5)
+	elseif r4 < 0.8 then
+		new_scatter_feared_gene = dad._scatter_feared_gene or qpd.random.random(1, 5)
+	else
+		new_scatter_feared_gene = qpd.random.random(1, 5)
+	end
+
+	-- home: 90% keep mom's home, 10% random
+	local new_home = (qpd.random.random() < 0.9) and mom._home or qpd.random.random(1, #Ghost._ghost_homes)
+
+	self:reset({
+		home = new_home,
+		target_offset = new_offset,
+		fear_target = new_fear_target,
+		try_order = new_try_order,
+		chase_feared_gene = new_chase_feared_gene,
+		scatter_feared_gene = new_scatter_feared_gene,
+	})
 end
 
 function Ghost:is_type(type_name)
@@ -349,9 +457,31 @@ function Ghost:find_next_direction(target)
 				self._direction = "idle"
 			elseif (target._is_active) then
 				if (Ghost._state == "chasing") then
-					self:go_to_target(target, possible_next_moves)
+					if Ghost._ghost_fear_on and Ghost._chase_feared_on then
+						local cell_dist = math.abs(target._cell.x - self._cell.x) + math.abs(target._cell.y - self._cell.y)
+						if cell_dist <= self._fear_target then
+							local fn = chase_feared_dispatch[self._chase_feared_gene]
+							if fn then fn(self, target, possible_next_moves)
+							else self:go_to_target(target, possible_next_moves) end
+						else
+							self:go_to_target(target, possible_next_moves)
+						end
+					else
+						self:go_to_target(target, possible_next_moves)
+					end
 				elseif (Ghost._state == "scattering") then
+					if Ghost._ghost_fear_on and Ghost._scatter_feared_on then
+						local cell_dist = math.abs(target._cell.x - self._cell.x) + math.abs(target._cell.y - self._cell.y)
+						if cell_dist <= self._fear_target then
+							local fn = scatter_feared_dispatch[self._scatter_feared_gene]
+							if fn then fn(self, target, possible_next_moves)
+							else self:go_home(possible_next_moves) end
+						else
+							self:go_home(possible_next_moves)
+						end
+					else
 						self:go_home(possible_next_moves)
+					end
 				elseif (Ghost._state == "frightened") then
 					self:wander(possible_next_moves)
 				else
@@ -462,13 +592,21 @@ function Ghost:go_home(possible_next_moves)
 	self:get_closest(possible_next_moves, destination)
 end
 
-function Ghost:go_to_group(possible_next_moves, average_ghost_pos)
-	local this_grid_pos = Ghost._grid:get_grid_pos_absolute(average_ghost_pos)
-
-	local destination = {}
-	destination.x =  this_grid_pos.x
-	destination.y =  this_grid_pos.y
-
+function Ghost:go_to_group(possible_next_moves)
+	-- compute average cell position of all active sibling ghosts
+	local avg_x, avg_y, count = 0, 0, 0
+	for _, g in ipairs(Ghost._sibling_ghosts) do
+		if g._is_active and g ~= self then
+			avg_x = avg_x + g._cell.x
+			avg_y = avg_y + g._cell.y
+			count = count + 1
+		end
+	end
+	if count == 0 then
+		self:go_home(possible_next_moves)
+		return
+	end
+	local destination = {x = math.floor(avg_x / count), y = math.floor(avg_y / count)}
 	self:get_closest(possible_next_moves, destination)
 end
 
@@ -497,6 +635,10 @@ function Ghost:run_from_target(target, possible_next_moves)
 end
 
 function Ghost:go_to_closest_pill(possible_next_moves)
+	if not self._grid_pos_closest_pill then
+		self:wander(possible_next_moves)
+		return
+	end
 	local destination = {}
 
 	destination.x = self._grid_pos_closest_pill.x

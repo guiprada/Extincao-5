@@ -1,7 +1,15 @@
 -- Ghost_Genetic: extends Ext-5 Ghost with Ext-3 genetic fear genes and crossover.
 -- Inherits: update, collided, draw, movement from Ghost (Ext-5).
--- NOTE: collided/update are inherited from the Ext-5 Ghost and may differ
---       from the original Ext-3 implementation; other differences may exist.
+--
+-- Known differences vs original Ext-3 implementation (TODOs):
+--   1. _grid_pos_closest_pill is never set — Ghost:update() does not track the
+--      nearest pill, so go_to_closest_pill always falls back to wander.
+--      Override update() here to track it if this gene should be functional.
+--   2. Collision detection is pixel-distance (< tilesize), not cell-distance.
+--      Ext-3 may have used manhattan cell distance; threshold may differ.
+--   3. Fitness = _n_catches only. Ext-3 may have had a richer fitness function
+--      (penalties for being eaten, bonuses for herding, etc.).
+--   4. There may be further behavioral differences not yet identified.
 local Ghost = require "entities.Ghost"
 local Ghost_Genetic = Ghost:new()
 Ghost_Genetic.__index = Ghost_Genetic

@@ -9,6 +9,13 @@ local AutoPlayer_NEAT = require "entities.AutoPlayer_NEAT"
 local Population = require "entities.Population"
 local Ghost = require "entities.Ghost"
 local Ghost_Genetic = require "entities.Ghost_Genetic"
+
+local ghost_classes = {
+	Ghost         = Ghost,
+	Ghost_Genetic = Ghost_Genetic,
+	-- Ghost_NE   = require "entities.Ghost_NE",   -- future
+	-- Ghost_NEAT = require "entities.Ghost_NEAT",  -- future
+}
 local Pill = require "entities.Pill"
 local ANN = require "qpd.ann"
 local pop_io = require "qpd.population_io"
@@ -243,7 +250,7 @@ function gs.load(map_file_path)
 		gs.ghost_speed_factor = gs.game_conf.ghost_speed_factor
 		gs.ghost_sequential_home = gs.game_conf.ghost_sequential_home
 
-		local GhostClass = gs.game_conf.ghost_genetic_enable and Ghost_Genetic or Ghost
+		local GhostClass = ghost_classes[gs.game_conf.ghost_class] or Ghost
 
 		if gs.game_conf.ghost_shuffle_try_order then
 			GhostClass.set_shuffle_try_order(true)

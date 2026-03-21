@@ -214,7 +214,11 @@ function gs.load(map_file_path)
 		-- Build run directory: runs/<strategy>/<seed>/
 		local strategy    = pop_io.strategy_name(gs.game_conf)
 		gs._run_dir       = "runs/" .. strategy .. "/" .. tostring(gs.game_conf.seed)
-		os.execute('mkdir -p "' .. gs._run_dir .. '"')
+		if package.config:sub(1,1) == "\\" then
+			os.execute('mkdir "' .. gs._run_dir:gsub("/", "\\") .. '" 2>nul')
+		else
+			os.execute('mkdir -p "' .. gs._run_dir .. '"')
+		end
 		gs._last_saved_generation = -1
 
 		-- Keep logs/ working as before (data files land in the run dir now).

@@ -82,6 +82,8 @@ qpd.fonts.load(qpd.files.fonts_conf)   -- calls newFont -> returns _stub_font
 local max_updates  = nil   -- set below after flag parsing
 local max_players  = nil   -- stop after this many autoplayer replacements
 local resume_dir   = nil
+local sentinel_file = nil  -- written by batch launcher to detect completion
+_BATCH_CONF = nil          -- conf overrides table populated by --conf flags
 do
 	local i = 1
 	-- First positional arg (if numeric and not a flag) is max_updates.
@@ -99,9 +101,32 @@ do
 		elseif arg[i] == "--seed" and arg[i+1] then
 			_BATCH_SEED = tonumber(arg[i+1])
 			i = i + 2
+		elseif arg[i] == "--sentinel" and arg[i+1] then
+			sentinel_file = arg[i+1]
+			i = i + 2
+		elseif arg[i] == "--conf" and arg[i+1] then
+			-- --conf key=value  (value parsed as number > bool > string)
+			local kv = arg[i+1]
+			local key, raw = kv:match("^([^=]+)=(.*)$")
+			if key then
+				_BATCH_CONF = _BATCH_CONF or {}
+				local val = tonumber(raw)
+				if val == nil then
+					val = (raw == "true") and true or (raw == "false") and false or raw
+				end
+				_BATCH_CONF[key] = val
+			end
+			i = i + 2
 		else
 			i = i + 1
 		end
+	end
+end
+
+local function write_sentinel(result)
+	if sentinel_file then
+		local h = io.open(sentinel_file, "w")
+		if h then h:write(result .. "\n") ; h:close() end
 	end
 end
 -- --players overrides max_updates; fall back to 500 000 update cap.
@@ -113,60 +138,72 @@ end
 -- Load and start simulation
 -- ============================================================
 
-local extinction = require "gamestates.extinction"
-extinction.load()
+local ok, err = xpcall(function()
 
--- Optionally restore population from a previous checkpoint.
-if resume_dir then
-	local pop_io = require "qpd.population_io"
-	local data   = pop_io.load(resume_dir)
-	if data and extinction.AutoPlayerPopulation then
-		pop_io.restore(extinction.AutoPlayerPopulation, data)
-		print("[headless] resumed from: " .. resume_dir)
+	local extinction = require "gamestates.extinction"
+	extinction.load()
+
+	-- Optionally restore population from a previous checkpoint.
+	if resume_dir then
+		local pop_io = require "qpd.population_io"
+		local data   = pop_io.load(resume_dir)
+		if data and extinction.AutoPlayerPopulation then
+			pop_io.restore(extinction.AutoPlayerPopulation, data)
+			print("[headless] resumed from: " .. resume_dir)
+		else
+			print("[WARN] [headless] --resume: could not restore population from " .. resume_dir)
+		end
+	end
+
+	-- Use max_dt for every tick: deterministic, physics-safe steps.
+	-- If game_fixed_distance_per_update is set in conf the update loop does
+	-- this automatically; we mirror that here for the headless case.
+	local dt  = extinction.max_dt
+	local pop = extinction.AutoPlayerPopulation
+
+	local goal_str
+	if max_players then
+		goal_str = string.format("max_players=%d", max_players)
 	else
-		print("[WARN] [headless] --resume: could not restore population from " .. resume_dir)
+		goal_str = string.format("max_updates=%d", max_updates)
 	end
-end
 
--- Use max_dt for every tick: deterministic, physics-safe steps.
--- If game_fixed_distance_per_update is set in conf the update loop does
--- this automatically; we mirror that here for the headless case.
-local dt  = extinction.max_dt
-local pop = extinction.AutoPlayerPopulation
+	print(string.format("[headless] starting: %s  dt=%.6f  seed=%s%s",
+		goal_str, dt, tostring(extinction.game_conf and extinction.game_conf.seed),
+		resume_dir and ("  resume=" .. resume_dir) or ""))
 
-local goal_str
-if max_players then
-	goal_str = string.format("max_players=%d", max_players)
+	local t0 = os.clock()
+	local updates_done = 0
+
+	if max_players then
+		-- Run until the autoplayer replacement counter hits the target.
+		local start_count = pop and pop._count or 0
+		while (not pop or (pop._count - start_count) < max_players) do
+			extinction.update(dt)
+			updates_done = updates_done + 1
+		end
+	else
+		for _ = 1, max_updates do
+			extinction.update(dt)
+			updates_done = updates_done + 1
+		end
+	end
+
+	local elapsed = os.clock() - t0
+	local players_done = pop and pop._count or 0
+
+	print(string.format("[headless] done: %d updates  %d total players  %.1f s  (%.0f updates/s)",
+		updates_done, players_done, elapsed, updates_done / math.max(elapsed, 0.001)))
+
+	-- Final population save (complements the per-generation saves in extinction.lua).
+	extinction.unload()
+
+end, debug and debug.traceback or tostring)
+
+if ok then
+	write_sentinel("done")
 else
-	goal_str = string.format("max_updates=%d", max_updates)
+	io.stderr:write("[headless] error: " .. tostring(err) .. "\n")
+	write_sentinel("failed")
+	os.exit(1)
 end
-
-print(string.format("[headless] starting: %s  dt=%.6f  seed=%s%s",
-	goal_str, dt, tostring(extinction.game_conf and extinction.game_conf.seed),
-	resume_dir and ("  resume=" .. resume_dir) or ""))
-
-local t0 = os.clock()
-local updates_done = 0
-
-if max_players then
-	-- Run until the autoplayer replacement counter hits the target.
-	local start_count = pop and pop._count or 0
-	while (not pop or (pop._count - start_count) < max_players) do
-		extinction.update(dt)
-		updates_done = updates_done + 1
-	end
-else
-	for _ = 1, max_updates do
-		extinction.update(dt)
-		updates_done = updates_done + 1
-	end
-end
-
-local elapsed = os.clock() - t0
-local players_done = pop and pop._count or 0
-
-print(string.format("[headless] done: %d updates  %d total players  %.1f s  (%.0f updates/s)",
-	updates_done, players_done, elapsed, updates_done / math.max(elapsed, 0.001)))
-
--- Final population save (complements the per-generation saves in extinction.lua).
-extinction.unload()

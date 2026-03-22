@@ -141,6 +141,10 @@ function gs.load(map_file_path)
 		qpd.table.merge(gs.game_conf, extinction_conf)
 		qpd.table.merge(gs.game_conf, games_conf)
 	end
+	-- Batch overrides: set by run_headless.lua via --conf flags.
+	if _BATCH_CONF then
+		qpd.table.merge(gs.game_conf, _BATCH_CONF)
+	end
 	if not gs.game_conf then
 		print("Failed to read games.conf or extinction.conf")
 	else

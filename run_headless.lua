@@ -96,6 +96,9 @@ do
 		elseif arg[i] == "--resume" and arg[i+1] then
 			resume_dir = arg[i+1]
 			i = i + 2
+		elseif arg[i] == "--seed" and arg[i+1] then
+			_BATCH_SEED = tonumber(arg[i+1])
+			i = i + 2
 		else
 			i = i + 1
 		end

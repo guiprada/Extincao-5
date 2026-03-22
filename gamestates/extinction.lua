@@ -208,7 +208,7 @@ function gs.load(map_file_path)
 		gs.grid = qpd.grid.new(gs.map_matrix, collisions)
 
 		-- seed with a known value
-		gs.game_conf.seed = gs.game_conf.seed or os.time()
+		gs.game_conf.seed = _BATCH_SEED or gs.game_conf.seed or os.time()
 		qpd.random.seed(gs.game_conf.seed)
 
 		-- Build run directory: runs/<strategy>/<seed>/

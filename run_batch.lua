@@ -87,6 +87,10 @@ local function build_cmd(lua_exe, rec)
 	if rec.sentinel then
 		parts[#parts+1] = '--sentinel "' .. rec.sentinel .. '"'
 	end
+	-- --conf-file comes first so individual --conf keys can override it.
+	if rec.conf_file then
+		parts[#parts+1] = '--conf-file "' .. rec.conf_file .. '"'
+	end
 	if rec.spec.conf then
 		for k, v in pairs(rec.spec.conf) do
 			parts[#parts+1] = conf_arg(k, v)
@@ -110,10 +114,11 @@ local function make_session(batch)
 		session.runs[i] = {
 			spec    = spec,
 			-- resolved fields (may differ from spec due to auto-seed)
-			players = spec.players,
-			updates = spec.updates,
-			resume  = spec.resume,
-			seed    = spec.seed,     -- nil until assigned
+			players   = spec.players,
+			updates   = spec.updates,
+			resume    = spec.resume,
+			conf_file = spec.conf_file,
+			seed      = spec.seed,     -- nil until assigned
 			status  = "pending",     -- pending | running | done | failed
 			t0      = nil,
 			elapsed = nil,
@@ -134,7 +139,8 @@ local function rec_label(rec)
 	if rec.players then parts[#parts+1] = "players=" .. rec.players end
 	if rec.updates then parts[#parts+1] = "updates=" .. rec.updates end
 	if rec.seed    then parts[#parts+1] = "seed="    .. rec.seed    end
-	if rec.resume  then parts[#parts+1] = "resume"                  end
+	if rec.resume    then parts[#parts+1] = "resume"                       end
+	if rec.conf_file then parts[#parts+1] = rec.conf_file:match("([^/\\]+)$") end
 	if rec.spec.conf then
 		local kv = {}
 		for k, v in pairs(rec.spec.conf) do kv[#kv+1] = k .. "=" .. tostring(v) end

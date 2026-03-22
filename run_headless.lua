@@ -104,6 +104,26 @@ do
 		elseif arg[i] == "--sentinel" and arg[i+1] then
 			sentinel_file = arg[i+1]
 			i = i + 2
+		elseif arg[i] == "--conf-file" and arg[i+1] then
+			-- --conf-file path  loads a key=value conf file into _BATCH_CONF
+			local f = io.open(arg[i+1])
+			if f then
+				_BATCH_CONF = _BATCH_CONF or {}
+				for line in f:lines() do
+					local key, raw = line:match("^%s*([%w_]+)%s*=%s*(.-)%s*$")
+					if key then
+						local val = tonumber(raw)
+						if val == nil then
+							val = (raw == "true") and true or (raw == "false") and false or raw
+						end
+						_BATCH_CONF[key] = val
+					end
+				end
+				f:close()
+			else
+				io.stderr:write("[headless] warning: --conf-file not found: " .. arg[i+1] .. "\n")
+			end
+			i = i + 2
 		elseif arg[i] == "--conf" and arg[i+1] then
 			-- --conf key=value  (value parsed as number > bool > string)
 			local kv = arg[i+1]

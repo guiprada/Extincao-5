@@ -8,6 +8,14 @@ local AutoPlayer = require "entities.AutoPlayer"
 local AutoPlayer_NEAT = require "entities.AutoPlayer_NEAT"
 local Population = require "entities.Population"
 local Ghost = require "entities.Ghost"
+local Ghost_Genetic = require "entities.Ghost_Genetic"
+
+local ghost_classes = {
+	Ghost         = Ghost,
+	Ghost_Genetic = Ghost_Genetic,
+	-- Ghost_NE   = require "entities.Ghost_NE",   -- future
+	-- Ghost_NEAT = require "entities.Ghost_NEAT",  -- future
+}
 local Pill = require "entities.Pill"
 local ANN = require "qpd.ann"
 local pop_io = require "qpd.population_io"
@@ -64,8 +72,9 @@ local ghost_start_positions = {
 
 local function reposition_ghosts()
 	for i, ghost in ipairs(gs.GhostPopulation:get_population()) do
-		local pos = ghost_start_positions[i%4]
-		ghost:reposition(pos, nil, i%4)
+		local idx = (i-1)%4 + 1
+		local pos = ghost_start_positions[idx]
+		ghost:reposition(pos, nil, idx)
 	end
 end
 
@@ -131,6 +140,10 @@ function gs.load(map_file_path)
 	if extinction_conf and games_conf then
 		qpd.table.merge(gs.game_conf, extinction_conf)
 		qpd.table.merge(gs.game_conf, games_conf)
+	end
+	-- Batch overrides: set by run_headless.lua via --conf flags.
+	if _BATCH_CONF then
+		qpd.table.merge(gs.game_conf, _BATCH_CONF)
 	end
 	if not gs.game_conf then
 		print("Failed to read games.conf or extinction.conf")
@@ -199,13 +212,17 @@ function gs.load(map_file_path)
 		gs.grid = qpd.grid.new(gs.map_matrix, collisions)
 
 		-- seed with a known value
-		gs.game_conf.seed = gs.game_conf.seed or os.time()
+		gs.game_conf.seed = _BATCH_SEED or gs.game_conf.seed or os.time()
 		qpd.random.seed(gs.game_conf.seed)
 
 		-- Build run directory: runs/<strategy>/<seed>/
 		local strategy    = pop_io.strategy_name(gs.game_conf)
 		gs._run_dir       = "runs/" .. strategy .. "/" .. tostring(gs.game_conf.seed)
-		os.execute('mkdir -p "' .. gs._run_dir .. '"')
+		if package.config:sub(1,1) == "\\" then
+			os.execute('mkdir "' .. gs._run_dir:gsub("/", "\\") .. '" 2>nul')
+		else
+			os.execute('mkdir -p "' .. gs._run_dir .. '"')
+		end
 		gs._last_saved_generation = -1
 
 		-- Keep logs/ working as before (data files land in the run dir now).
@@ -242,24 +259,30 @@ function gs.load(map_file_path)
 		gs.ghost_speed_factor = gs.game_conf.ghost_speed_factor
 		gs.ghost_sequential_home = gs.game_conf.ghost_sequential_home
 
+		local GhostClass = ghost_classes[gs.game_conf.ghost_class] or Ghost
+
 		if gs.game_conf.ghost_shuffle_try_order then
-			Ghost.set_shuffle_try_order(true)
+			GhostClass.set_shuffle_try_order(true)
 		end
 
 		gs.ghost_state_timer = qpd.timer.new(gs.ghost_scatter_time, change_ghost_state_callback)
 		reset_ghost_state()
 		-- print(gs.ghost_state)
 		-- gs.ghost_states = {"scattering", "chasing", "frightened"}
-		Ghost.init(
+		GhostClass.init(
 			gs.grid,
 			gs.ghost_state,
-			gs.game_conf.ghost_target_spread
+			gs.game_conf.ghost_target_spread,
+			gs.game_conf.ghost_fear_spread,
+			gs.game_conf.ghost_fear_on,
+			gs.game_conf.ghost_chase_feared_on,
+			gs.game_conf.ghost_scatter_feared_on
 		)
 
 		if gs.game_conf.ghost_population_target_offset_array then
 			local ghost_population_target_offset_array = qpd.table.read_from_string(gs.game_conf.ghost_population_target_offset_array)
 			gs.GhostPopulation = GeneticPopulation:new(
-				Ghost,
+				GhostClass,
 				#ghost_population_target_offset_array,
 				0,
 				0
@@ -270,12 +293,22 @@ function gs.load(map_file_path)
 			end
 		else
 			gs.GhostPopulation = GeneticPopulation:new(
-				Ghost,
+				GhostClass,
 				gs.game_conf.ghost_active_population,
 				gs.game_conf.ghost_initial_random_population_size or 0,
 				gs.game_conf.ghost_population_history_size or 0
 			)
 		end
+
+		if GhostClass.set_sibling_ghosts then
+			GhostClass.set_sibling_ghosts(gs.GhostPopulation:get_population())
+		end
+
+		if GhostClass.set_pills then
+			GhostClass.set_pills(gs.pillsPopulation:get_population())
+		end
+
+		Ghost.set_fitness_mode(gs.game_conf.ghost_fitness_mode)
 
 		if gs.game_conf.ghost_state_reset_on_autoplayer_capture then
 			for i, ghost in ipairs(gs.GhostPopulation) do

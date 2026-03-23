@@ -1,8 +1,21 @@
 ----------------- REFACTORING (next steps, in order)
 - Clean up remaining dead code and old files across the project
-- Fix headless runner (crashes on config path in table.lua:143)
-- Population saving and loading
+	- Remove old files and tests. Is the paper enough for us to compare to our new results? (We should this after they are replaced by batches)
+	- We are rebuilding, so it might be a good idea to rename some config(or anyother renaming :))
+		- autoplayer_ann_mode - should be autoplayer_update_mode
+
+* Fix headless runner (crashes on config path in table.lua:143)
+- Headless runner testing and improvements?
+* Population saving and loading
+- Population saving and loading testing and improvoments
+
 - Batched tests (run multiple configs/seeds automatically)
+	- Create configurations for the OG papers batteries 1, 2, 3 - We should be able to start a script and wait for the results.
+	- Batched runner tests and improvements
+
+- Batched test run and population analysis
+	- Should we generate a html hypertext of std Batched test output?
+
 - Tests -- add tests to everything, starting with ANN infrastructure:
 	- ann_neat: unit tests for crossover, speciation, compatibility score,
 	  add_neuron, add_link (especially the forward-link fix), get_outputs

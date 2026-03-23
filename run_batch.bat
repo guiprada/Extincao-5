@@ -1,11 +1,11 @@
 @ECHO OFF
-REM Headless simulation launcher -- Windows
-REM Tries bundled luajit first, then system luajit, then lua5.4, then lua.
+REM Batch simulation launcher -- Windows
+REM Runs run_batch.lua with whatever Lua interpreter is available.
 REM
 REM Usage:
-REM   run_headless.bat [max_updates]
+REM   run_batch.bat [batch_file.lua]
 
-SET SCRIPT=run_headless.lua
+SET SCRIPT=run_batch.lua
 SET BUNDLED_LUAJIT=.\lua\luajit.exe
 SET BUNDLED_LUA=.\lua\lua5.4.exe
 

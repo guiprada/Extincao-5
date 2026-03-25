@@ -164,8 +164,13 @@ function GridActor:draw()
 end
 
 function GridActor:update(dt, speed)
-	if speed*dt > (GridActor._tilesize/4) then
-		print("physics sanity check failed, Actor traveled distance > tilesize/4")
+	-- FP note: speed*dt may be tilesize/4 + epsilon (~1e-13) due to IEEE 754
+	-- rounding even when max_dt was computed correctly.  Use 1e-9 tolerance
+	-- (10^6× larger than any FP rounding error, 10^6× smaller than a real
+	-- physics violation) so we only warn on genuine over-steps.
+	if speed*dt > GridActor._tilesize/4 + 1e-9 then
+		print(string.format("physics sanity check failed: speed*dt=%.6f > tilesize/4=%.6f  (speed=%.2f dt=%.8f tilesize=%d)",
+			speed*dt, GridActor._tilesize/4, speed, dt, GridActor._tilesize))
 	end
 
 	self._lifetime = self._lifetime +  dt

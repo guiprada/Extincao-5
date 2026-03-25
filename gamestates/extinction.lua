@@ -41,6 +41,14 @@ color_array[16] = qpd.color.lime
 
 local TILESIZE_SPEED_FACTOR = 34
 
+-- Compute the physics-safe max dt given the current tilesize and speed factors.
+-- Multiplying by (1-1e-9) makes max_dt strictly conservative: IEEE 754 rounding
+-- can make speed*(tilesize/4/speed) land just above tilesize/4 otherwise.
+local function compute_max_dt(tilesize, autoplayer_speed, ghost_speed)
+	local max_speed = qpd.value.max(autoplayer_speed, ghost_speed)
+	return (tilesize / 4) / max_speed * (1 - 1e-9)
+end
+
 --------------------------------------------------------------------------------
 local function set_ghost_state(state)
 	local time = (state == "chasing") and gs.ghost_chase_time
@@ -383,7 +391,7 @@ function gs.load(map_file_path)
 		end
 
 		-- max dt
-		gs.max_dt = (gs.tilemap_view.tilesize / 4) / qpd.value.max(gs.autoplayer_speed_factor * gs.tilesize_adjusted_speed, gs.ghost_speed_factor * gs.tilesize_adjusted_speed)
+		gs.max_dt = compute_max_dt(gs.tilemap_view.tilesize, gs.autoplayer_speed_factor * gs.tilesize_adjusted_speed, gs.ghost_speed_factor * gs.tilesize_adjusted_speed)
 		gs.game_conf.max_dt = gs.max_dt
 
 		-- save configuration used
@@ -413,7 +421,7 @@ function gs.load(map_file_path)
 					gs.game_speed = 0.1
 				end
 				gs.tilesize_adjusted_speed = gs.game_speed * gs.tilemap_view.tilesize / TILESIZE_SPEED_FACTOR
-				gs.max_dt = (gs.tilemap_view.tilesize / 4) / qpd.value.max(gs.autoplayer_speed_factor * gs.tilesize_adjusted_speed, gs.ghost_speed_factor * gs.tilesize_adjusted_speed)
+				gs.max_dt = compute_max_dt(gs.tilemap_view.tilesize, gs.autoplayer_speed_factor * gs.tilesize_adjusted_speed, gs.ghost_speed_factor * gs.tilesize_adjusted_speed)
 				print("speed:", gs.game_speed)
 			end
 		gs.actions_keyup['s'] =
@@ -425,7 +433,7 @@ function gs.load(map_file_path)
 					gs.game_speed = gs.game_speed + 10
 				end
 				gs.tilesize_adjusted_speed = gs.game_speed * gs.tilemap_view.tilesize / TILESIZE_SPEED_FACTOR
-				gs.max_dt = (gs.tilemap_view.tilesize / 4) / qpd.value.max(gs.autoplayer_speed_factor * gs.tilesize_adjusted_speed, gs.ghost_speed_factor * gs.tilesize_adjusted_speed)
+				gs.max_dt = compute_max_dt(gs.tilemap_view.tilesize, gs.autoplayer_speed_factor * gs.tilesize_adjusted_speed, gs.ghost_speed_factor * gs.tilesize_adjusted_speed)
 				print("speed:", gs.game_speed)
 			end
 		gs.actions_keyup['g'] =
@@ -493,53 +501,63 @@ function gs.update(dt)
 	-- center camera
 	-- gs.tilemap_view:follow(dt, gs.player.speed_factor, gs.player:get_center())
 	if not gs.paused then
-		-- dt should not be to high
-		-- dt should not be to high
+		-- Sub-step the physics so every step satisfies speed*sub_dt <= tilesize/4.
+		-- Previously we clamped dt to max_dt, which silently dropped physics time
+		-- whenever the frame took longer than max_dt (common at game_speed 150).
+		-- Now we run ceil(dt/max_dt) steps each of size dt/n_steps, which:
+		--   * keeps every step within the physics-safe envelope
+		--   * preserves the correct total movement for the frame
+		--   * eliminates the "Actor traveled distance > tilesize/4" warning
+		local n_steps, sub_dt
 		if gs.game_fixed_distance_per_update then
-			-- print("fixed speed")
-			dt = gs.max_dt
+			n_steps = 1
+			sub_dt  = gs.max_dt
 		else
-			if (dt > gs.max_dt) then
-				-- print("ops, dt too high, physics wont work, limiting dt too:", gs.max_dt)
-				dt = gs.max_dt
-			end
+			n_steps = math.max(1, math.ceil(dt / gs.max_dt))
+			sub_dt  = dt / n_steps   -- guaranteed <= max_dt by construction
 		end
 
-		-- clear grid collisions
-		gs.grid:clear_collisions()
+		local ghost_speed      = gs.ghost_speed_factor      * gs.tilesize_adjusted_speed
+		local autoplayer_speed = gs.autoplayer_speed_factor * gs.tilesize_adjusted_speed
 
-		--pill
-		gs.pillsPopulation:update(dt, 0)
+		for _ = 1, n_steps do
+			-- clear grid collisions
+			gs.grid:clear_collisions()
 
-		if (gs.got_pill == true) and (gs.pill_is_in_effect == false) then
-			gs.pill_is_in_effect = true
-			gs.ghost_state = "frightened"
-			gs.ghost_state_timer:stop()
-			-- Ghost.set_speed(gs.ghost_speed * gs.ghost_speed_boost)
+			--pill
+			gs.pillsPopulation:update(sub_dt, 0)
 
-			local ghosts = gs.GhostPopulation:get_population()
-			for i=1, #ghosts, 1 do
-				ghosts[i]:flip_direction()
+			if (gs.got_pill == true) and (gs.pill_is_in_effect == false) then
+				gs.pill_is_in_effect = true
+				gs.ghost_state = "frightened"
+				gs.ghost_state_timer:stop()
+				-- Ghost.set_speed(gs.ghost_speed * gs.ghost_speed_boost)
+
+				local ghosts = gs.GhostPopulation:get_population()
+				for i=1, #ghosts, 1 do
+					ghosts[i]:flip_direction()
+				end
+			elseif (gs.pill_is_in_effect == true) and (gs.got_pill == false) then
+				gs.pill_is_in_effect = false
+				gs.ghost_state = "scattering"
+
+				-- Ghost.set_speed(gs.ghost_speed)
+				gs.ghost_state_timer:reset()
+				gs.ghost_state_timer:start()
 			end
-		elseif (gs.pill_is_in_effect == true) and (gs.got_pill == false) then
-			gs.pill_is_in_effect = false
-			gs.ghost_state = "scattering"
 
-			-- Ghost.set_speed(gs.ghost_speed)
-			gs.ghost_state_timer:reset()
-			gs.ghost_state_timer:start()
+			-- game.ghost_state timer
+			gs.ghost_state_timer:update(sub_dt)
+
+			-- set ghost state
+			Ghost.set_state(gs.ghost_state)
+			gs.GhostPopulation:update(sub_dt, ghost_speed, gs.AutoPlayerPopulation:get_population())
+
+			gs.AutoPlayerPopulation:update(sub_dt, autoplayer_speed, gs.ghost_state)
 		end
-
-		-- game.ghost_state timer
-		gs.ghost_state_timer:update(dt)
-
-		-- set ghost state
-		Ghost.set_state(gs.ghost_state)
-		gs.GhostPopulation:update(dt, gs.ghost_speed_factor * gs.tilesize_adjusted_speed, gs.AutoPlayerPopulation:get_population())
-
-		gs.AutoPlayerPopulation:update(dt, gs.autoplayer_speed_factor * gs.tilesize_adjusted_speed, gs.ghost_state)
 
 		-- Checkpoint at every generation boundary (configurable; NEAT only).
+		-- Once per frame, not per sub-step.
 		if gs.game_conf.autoplayer_neat_enable and gs._run_dir then
 			local gen = gs.AutoPlayerPopulation:get_generation()
 			if gen > gs._last_saved_generation then
@@ -573,7 +591,7 @@ function gs.resize(w, h)
 
 	GridActor.set_tilesize(gs.tilemap_view.tilesize)
 	gs.tilesize_adjusted_speed = gs.game_speed * gs.tilemap_view.tilesize / TILESIZE_SPEED_FACTOR
-	gs.max_dt = (gs.tilemap_view.tilesize / 4) / qpd.value.max(gs.autoplayer_speed_factor * gs.tilesize_adjusted_speed, gs.ghost_speed_factor * gs.tilesize_adjusted_speed)
+	gs.max_dt = compute_max_dt(gs.tilemap_view.tilesize, gs.autoplayer_speed_factor * gs.tilesize_adjusted_speed, gs.ghost_speed_factor * gs.tilesize_adjusted_speed)
 
 end
 

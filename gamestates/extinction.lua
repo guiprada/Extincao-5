@@ -501,63 +501,56 @@ function gs.update(dt)
 	-- center camera
 	-- gs.tilemap_view:follow(dt, gs.player.speed_factor, gs.player:get_center())
 	if not gs.paused then
-		-- Sub-step the physics so every step satisfies speed*sub_dt <= tilesize/4.
-		-- Previously we clamped dt to max_dt, which silently dropped physics time
-		-- whenever the frame took longer than max_dt (common at game_speed 150).
-		-- Now we run ceil(dt/max_dt) steps each of size dt/n_steps, which:
-		--   * keeps every step within the physics-safe envelope
-		--   * preserves the correct total movement for the frame
-		--   * eliminates the "Actor traveled distance > tilesize/4" warning
-		local n_steps, sub_dt
-		if gs.game_fixed_distance_per_update then
-			n_steps = 1
-			sub_dt  = gs.max_dt
-		else
-			n_steps = math.max(1, math.ceil(dt / gs.max_dt))
-			sub_dt  = dt / n_steps   -- guaranteed <= max_dt by construction
+		-- Clamp dt to max_dt so each physics step stays within the safe
+		-- envelope (speed*dt <= tilesize/4).  At high game_speed the
+		-- interactive game runs visually slower than real-time, but each
+		-- step the AI sees is physically valid and matches headless behaviour
+		-- (headless runner always passes max_dt as dt).
+		-- Sub-stepping was tried but breaks AI space-time continuity: the AI
+		-- would observe N ticks per wall-clock frame instead of one, which
+		-- changes training dynamics and is not what the network was designed for.
+		if gs.game_fixed_distance_per_update or dt > gs.max_dt then
+			dt = gs.max_dt
 		end
 
 		local ghost_speed      = gs.ghost_speed_factor      * gs.tilesize_adjusted_speed
 		local autoplayer_speed = gs.autoplayer_speed_factor * gs.tilesize_adjusted_speed
 
-		for _ = 1, n_steps do
-			-- clear grid collisions
-			gs.grid:clear_collisions()
+		-- clear grid collisions
+		gs.grid:clear_collisions()
 
-			--pill
-			gs.pillsPopulation:update(sub_dt, 0)
+		--pill
+		gs.pillsPopulation:update(dt, 0)
 
-			if (gs.got_pill == true) and (gs.pill_is_in_effect == false) then
-				gs.pill_is_in_effect = true
-				gs.ghost_state = "frightened"
-				gs.ghost_state_timer:stop()
-				-- Ghost.set_speed(gs.ghost_speed * gs.ghost_speed_boost)
+		if (gs.got_pill == true) and (gs.pill_is_in_effect == false) then
+			gs.pill_is_in_effect = true
+			gs.ghost_state = "frightened"
+			gs.ghost_state_timer:stop()
+			-- Ghost.set_speed(gs.ghost_speed * gs.ghost_speed_boost)
 
-				local ghosts = gs.GhostPopulation:get_population()
-				for i=1, #ghosts, 1 do
-					ghosts[i]:flip_direction()
-				end
-			elseif (gs.pill_is_in_effect == true) and (gs.got_pill == false) then
-				gs.pill_is_in_effect = false
-				gs.ghost_state = "scattering"
-
-				-- Ghost.set_speed(gs.ghost_speed)
-				gs.ghost_state_timer:reset()
-				gs.ghost_state_timer:start()
+			local ghosts = gs.GhostPopulation:get_population()
+			for i=1, #ghosts, 1 do
+				ghosts[i]:flip_direction()
 			end
+		elseif (gs.pill_is_in_effect == true) and (gs.got_pill == false) then
+			gs.pill_is_in_effect = false
+			gs.ghost_state = "scattering"
 
-			-- game.ghost_state timer
-			gs.ghost_state_timer:update(sub_dt)
-
-			-- set ghost state
-			Ghost.set_state(gs.ghost_state)
-			gs.GhostPopulation:update(sub_dt, ghost_speed, gs.AutoPlayerPopulation:get_population())
-
-			gs.AutoPlayerPopulation:update(sub_dt, autoplayer_speed, gs.ghost_state)
+			-- Ghost.set_speed(gs.ghost_speed)
+			gs.ghost_state_timer:reset()
+			gs.ghost_state_timer:start()
 		end
 
+		-- game.ghost_state timer
+		gs.ghost_state_timer:update(dt)
+
+		-- set ghost state
+		Ghost.set_state(gs.ghost_state)
+		gs.GhostPopulation:update(dt, ghost_speed, gs.AutoPlayerPopulation:get_population())
+
+		gs.AutoPlayerPopulation:update(dt, autoplayer_speed, gs.ghost_state)
+
 		-- Checkpoint at every generation boundary (configurable; NEAT only).
-		-- Once per frame, not per sub-step.
 		if gs.game_conf.autoplayer_neat_enable and gs._run_dir then
 			local gen = gs.AutoPlayerPopulation:get_generation()
 			if gen > gs._last_saved_generation then

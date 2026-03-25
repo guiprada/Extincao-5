@@ -42,14 +42,15 @@ color_array[16] = qpd.color.lime
 local TILESIZE_SPEED_FACTOR = 34
 
 -- Compute the physics-safe max dt given the current tilesize and speed factors.
--- Theoretical collision-detection limit is tilesize/2: two actors approaching
--- each other must not pass through in one step, so each can move at most
--- tilesize/2 per step (combined motion < tilesize).
+-- Hard collision-detection limit is strictly less than tilesize/2: two actors
+-- approaching each other must not pass through in one step, so combined motion
+-- must be strictly < tilesize, i.e. each moves strictly < tilesize/2.
+-- We use 4/9 (~0.444) as a safety margin below that hard limit.
 -- Multiplying by (1-1e-9) makes max_dt strictly conservative: IEEE 754 rounding
--- can make speed*(tilesize/2/speed) land just above tilesize/2 otherwise.
+-- can make speed*(tilesize*4/9/speed) land just above tilesize*4/9 otherwise.
 local function compute_max_dt(tilesize, autoplayer_speed, ghost_speed)
 	local max_speed = qpd.value.max(autoplayer_speed, ghost_speed)
-	return (tilesize / 2) / max_speed * (1 - 1e-9)
+	return (tilesize * 4 / 9) / max_speed * (1 - 1e-9)
 end
 
 --------------------------------------------------------------------------------

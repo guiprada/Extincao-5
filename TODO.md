@@ -28,14 +28,6 @@
 	- the resulting workflow will be, any upstream changes to qpd are imedially available - the core libs are in place and ready - supporting files are available but should be moved/merged manually - so they can be customized without the risk of being overwritten
 
 ----------------- KNOWN BUGS / INVESTIGATION
-- ipairs vs # on _layers: OPEN. table.sort on o._layers[i] was observed to
-  change #_layers[i] in practice. Hash-part contamination was investigated and
-  ruled out (user removed it, bug persisted). Root cause unknown — possibly a
-  LuaJIT sort quirk with specific input patterns, or a side effect during
-  comparison. Defensive clone-check kept in ANN:new(). NOTE: the recovery path
-  uses qpd_array.clone which does NOT exist in array.lua — if sort corruption
-  is triggered, the recovery will crash. Either add array.clone or replace
-  recovery with a plain numeric-loop copy.
 
 ----------------- TODO
 - TESTAR usar a distancia para um cruzamento como entrada
@@ -52,7 +44,6 @@
 	- Adicionar suporte a headless
 - todas as configuracoes em lua
 - remove unused neurons from NEAT fenotype
-- implementar funcoes que nao usam "self" para AutoplayerAnnModes.lua
 - implementar gameplay data capture and offline learning
 - implementar teste com o dataset mnist
 - NEAT para fantasmas
@@ -93,6 +84,15 @@
   Original code had a precedence bug that added raw n_matched/longest to the
   excess term. New formula is correct. qpd.ann (non-NEAT) still active and needed
   by AutoPlayer.lua and extinction.lua — not dead code.
+- ipairs vs # on _layers: FIXED. table.sort on o._layers[i] was observed to
+  change #_layers[i] in practice (LuaJIT quirk with certain input patterns).
+  Fixed in ann_neat.lua by switching the post-sort loop to ipairs, which walks
+  the sequence directly without consulting #. qpd_array.clone phantom reference
+  in recovery path was never written; the underlying corruption path is now
+  unreachable.
+- AutoPlayerAnnModes.lua: all local helper functions now take explicit data
+  (cell, orientation, ann, enabled_directions) instead of self — pure and
+  independently testable. Update-mode entry points still take self.
 
 ----------------- CORRUPTED
 1671132502 B2

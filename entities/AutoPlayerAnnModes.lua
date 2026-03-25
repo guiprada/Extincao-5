@@ -1,94 +1,40 @@
-local AutoplayerAnnModes = {}
+AutoplayerAnnModes = AutoplayerAnnModes or {}
 AutoplayerAnnModes.update = {}
 AutoplayerAnnModes.new = {}
 
-local qpd = require "qpd.qpd"
-
-local orientation_direction_to_action = {
-	["up"] = {
-		["up"] = "keep",
-		["down"] = "flip",
-		["left"] = "rotate_left",
-		["right"] = "rotate_right",
-	},
-	["down"] = {
-		["up"] = "flip",
-		["down"] = "keep",
-		["left"] = "rotate_right",
-		["right"] = "rotate_left",
-	},
-	["left"] = {
-		["up"] = "rotate_right",
-		["down"] = "rotate_left",
-		["left"] = "keep",
-		["right"] = "flip",
-	},
-	["right"] = {
-		["up"] = "rotate_left",
-		["down"] = "rotate_right",
-		["left"] = "flip",
-		["right"] = "keep",
-	},
-}
-
--- helper functions
-local function print_array(array)
-	for _, item in ipairs(array) do
-		io.write(item, " | ")
-	end
-	print("")
-end
+-- ── Direction utilities (pure, no entity state) ───────────────────────────────
 
 local function rotate_left_dir(direction)
-	if direction == "up" then
-		return "left"
-	elseif direction == "down" then
-		return "right"
-	elseif direction == "left" then
-		return "down"
-	elseif direction == "right" then
-		return "up"
+	if direction == "up"    then return "left"
+	elseif direction == "down"  then return "right"
+	elseif direction == "left"  then return "down"
+	elseif direction == "right" then return "up"
 	end
 end
 
 local function rotate_right_dir(direction)
-	if direction == "up" then
-		return "right"
-	elseif direction == "down" then
-		return "left"
-	elseif direction == "left" then
-		return "up"
-	elseif direction == "right" then
-		return "down"
+	if direction == "up"    then return "right"
+	elseif direction == "down"  then return "left"
+	elseif direction == "left"  then return "up"
+	elseif direction == "right" then return "down"
 	end
 end
 
 local function flip_dir(direction)
-	if direction == "up" then
-		return "down"
-	elseif direction == "down" then
-		return "up"
-	elseif direction == "left" then
-		return "right"
-	elseif direction == "right" then
-		return "left"
+	if direction == "up"    then return "down"
+	elseif direction == "down"  then return "up"
+	elseif direction == "left"  then return "right"
+	elseif direction == "right" then return "left"
 	end
 end
 
-local function rotate_left(self)
-	self._orientation = rotate_left_dir(self._orientation)
-end
-
-local function rotate_right(self)
-	self._orientation = rotate_right_dir(self._orientation)
-end
-
-local function flip(self)
-	self._orientation = flip_dir(self._orientation)
-end
-
-local function keep(self)
-end
+-- ── Grid / sensor helpers (pure: take cell, orientation; no entity object) ────
+-- All functions that previously took (self, ...) now take explicit data:
+--   cell        = self._cell   (table with .x, .y)
+--   orientation = self._orientation  (string "up"/"down"/"left"/"right")
+--   ann         = self._ann   (only grade_path_* functions)
+--   enabled_directions = self:get_enabled_directions()  (can_see_class, etc.)
+-- This makes every helper independently testable without an AutoPlayer instance.
 
 local function list_has_class(class_name, grid_actor_list)
 	for i = 1, #grid_actor_list do
@@ -96,453 +42,274 @@ local function list_has_class(class_name, grid_actor_list)
 			return true
 		end
 	end
-
 	return false
 end
 
--- Autoplayer helper Methods
-local function distance_to_class_x(self, dx, class, grid, search_path_length)
-	local cell_x, cell_y = self._cell.x, self._cell.y
-
+local function distance_to_class_x(cell, dx, class, grid, search_path_length)
+	local cell_x, cell_y = cell.x, cell.y
 	for i = 1, search_path_length do
 		if grid:is_blocked_cell(cell_x + dx * i, cell_y) then
 			return search_path_length
 		end
-
 		local collision_list = grid:get_collisions_in_cell(cell_x + dx * i, cell_y)
-		if (#collision_list > 0) then
-			if list_has_class(class, collision_list) then
-				return i
-			end
+		if #collision_list > 0 and list_has_class(class, collision_list) then
+			return i
 		end
 	end
 	return search_path_length
 end
 
-local function distance_to_class_y(self, dy, class, grid, search_path_length)
-	local cell_x, cell_y = self._cell.x, self._cell.y
-
+local function distance_to_class_y(cell, dy, class, grid, search_path_length)
+	local cell_x, cell_y = cell.x, cell.y
 	for i = 1, search_path_length do
 		if grid:is_blocked_cell(cell_x, cell_y + dy * i) then
 			return search_path_length
 		end
-
 		local collision_list = grid:get_collisions_in_cell(cell_x, cell_y + dy * i)
-		if (#collision_list > 0) then
-			if list_has_class(class, collision_list) then
-				return i
-			end
-		end
-	end
-	return search_path_length
-end
-
-local function distance_in_front_class(self, class, grid, search_path_length)
-	if self._orientation == "up" then
-		return distance_to_class_y(self, -1, class, grid, search_path_length)/search_path_length
-	elseif self._orientation == "down" then
-		return distance_to_class_y(self, 1, class, grid, search_path_length)/search_path_length
-	elseif self._orientation == "left" then
-		return distance_to_class_x(self, -1, class, grid, search_path_length)/search_path_length
-	elseif self._orientation == "right" then
-		return distance_to_class_x(self, 1, class, grid, search_path_length)/search_path_length
-	end
-	print("no orientation set", self._orientation)
-end
-
-local function distance_in_back_class(self, class, grid, search_path_length)
-	if self._orientation == "up" then
-		return distance_to_class_y(self, 1, class, grid, search_path_length)/search_path_length
-	elseif self._orientation == "down" then
-		return distance_to_class_y(self, -1, class, grid, search_path_length)/search_path_length
-	elseif self._orientation == "left" then
-		return distance_to_class_x(self, 1, class, grid, search_path_length)/search_path_length
-	elseif self._orientation == "right" then
-		return distance_to_class_x(self, -1, class, grid, search_path_length)/search_path_length
-	end
-	print("no orientation set", self._orientation)
-end
-
-local function distance_in_left_class(self, class, grid, search_path_length)
-	if self._orientation == "up" then
-		return distance_to_class_x(self, -1, class, grid, search_path_length)/search_path_length
-	elseif self._orientation == "down" then
-		return distance_to_class_x(self, 1, class, grid, search_path_length)/search_path_length
-	elseif self._orientation == "left" then
-		return distance_to_class_y(self, 1, class, grid, search_path_length)/search_path_length
-	elseif self._orientation == "right" then
-		return distance_to_class_y(self, -1, class, grid, search_path_length)/search_path_length
-	end
-	print("no orientation set", self._orientation)
-end
-
-local function distance_in_right_class(self, class, grid, search_path_length)
-	if self._orientation == "up" then
-		return distance_to_class_x(self, 1, class, grid, search_path_length)/search_path_length
-	elseif self._orientation == "down" then
-		return distance_to_class_x(self, -1, class, grid, search_path_length)/search_path_length
-	elseif self._orientation == "left" then
-		return distance_to_class_y(self, -1, class, grid, search_path_length)/search_path_length
-	elseif self._orientation == "right" then
-		return distance_to_class_y(self, 1, class, grid, search_path_length)/search_path_length
-	end
-	print("no orientation set", self._orientation)
-end
-
-local function find_collision_in_path_x(self, dx, grid, search_path_length)
-	local cell_x, cell_y = self._cell.x, self._cell.y
-
-	for i = 1, search_path_length do
-		if grid:is_blocked_cell(cell_x + dx * i, cell_y) then
+		if #collision_list > 0 and list_has_class(class, collision_list) then
 			return i
 		end
 	end
 	return search_path_length
 end
 
-local function find_collision_in_path_y(self, dy, grid, search_path_length)
-	local cell_x, cell_y = self._cell.x, self._cell.y
+local function distance_in_front_class(cell, orientation, class, grid, search_path_length)
+	if orientation == "up"    then return distance_to_class_y(cell, -1, class, grid, search_path_length)/search_path_length
+	elseif orientation == "down"  then return distance_to_class_y(cell,  1, class, grid, search_path_length)/search_path_length
+	elseif orientation == "left"  then return distance_to_class_x(cell, -1, class, grid, search_path_length)/search_path_length
+	elseif orientation == "right" then return distance_to_class_x(cell,  1, class, grid, search_path_length)/search_path_length
+	end
+	print("no orientation set", orientation)
+end
 
+local function distance_in_back_class(cell, orientation, class, grid, search_path_length)
+	if orientation == "up"    then return distance_to_class_y(cell,  1, class, grid, search_path_length)/search_path_length
+	elseif orientation == "down"  then return distance_to_class_y(cell, -1, class, grid, search_path_length)/search_path_length
+	elseif orientation == "left"  then return distance_to_class_x(cell,  1, class, grid, search_path_length)/search_path_length
+	elseif orientation == "right" then return distance_to_class_x(cell, -1, class, grid, search_path_length)/search_path_length
+	end
+	print("no orientation set", orientation)
+end
+
+local function distance_in_left_class(cell, orientation, class, grid, search_path_length)
+	if orientation == "up"    then return distance_to_class_x(cell, -1, class, grid, search_path_length)/search_path_length
+	elseif orientation == "down"  then return distance_to_class_x(cell,  1, class, grid, search_path_length)/search_path_length
+	elseif orientation == "left"  then return distance_to_class_y(cell,  1, class, grid, search_path_length)/search_path_length
+	elseif orientation == "right" then return distance_to_class_y(cell, -1, class, grid, search_path_length)/search_path_length
+	end
+	print("no orientation set", orientation)
+end
+
+local function distance_in_right_class(cell, orientation, class, grid, search_path_length)
+	if orientation == "up"    then return distance_to_class_x(cell,  1, class, grid, search_path_length)/search_path_length
+	elseif orientation == "down"  then return distance_to_class_x(cell, -1, class, grid, search_path_length)/search_path_length
+	elseif orientation == "left"  then return distance_to_class_y(cell, -1, class, grid, search_path_length)/search_path_length
+	elseif orientation == "right" then return distance_to_class_y(cell,  1, class, grid, search_path_length)/search_path_length
+	end
+	print("no orientation set", orientation)
+end
+
+local function find_collision_in_path_x(cell, dx, grid, search_path_length)
+	local cell_x, cell_y = cell.x, cell.y
 	for i = 1, search_path_length do
-		if grid:is_blocked_cell(cell_x, cell_y + dy * i) then
-			return i
-		end
+		if grid:is_blocked_cell(cell_x + dx * i, cell_y) then return i end
 	end
 	return search_path_length
 end
 
-local function distance_in_front_collision(self, grid, search_path_length)
-	if self._orientation == "up" then
-		return find_collision_in_path_y(self, -1, grid, search_path_length)/search_path_length
-	elseif self._orientation == "down" then
-		return find_collision_in_path_y(self, 1, grid, search_path_length)/search_path_length
-	elseif self._orientation == "left" then
-		return find_collision_in_path_x(self, -1, grid, search_path_length)/search_path_length
-	elseif self._orientation == "right" then
-		return find_collision_in_path_x(self, 1, grid, search_path_length)/search_path_length
+local function find_collision_in_path_y(cell, dy, grid, search_path_length)
+	local cell_x, cell_y = cell.x, cell.y
+	for i = 1, search_path_length do
+		if grid:is_blocked_cell(cell_x, cell_y + dy * i) then return i end
 	end
-	print("no orientation set", self._orientation)
+	return search_path_length
 end
 
-local function distance_in_left_collision(self, grid, search_path_length)
-	if self._orientation == "up" then
-		return find_collision_in_path_x(self, -1, grid, search_path_length)/search_path_length
-	elseif self._orientation == "down" then
-		return find_collision_in_path_x(self, 1, grid, search_path_length)/search_path_length
-	elseif self._orientation == "left" then
-		return find_collision_in_path_y(self, 1, grid, search_path_length)/search_path_length
-	elseif self._orientation == "right" then
-		return find_collision_in_path_y(self, -1, grid, search_path_length)/search_path_length
+local function distance_in_front_collision(cell, orientation, grid, search_path_length)
+	if orientation == "up"    then return find_collision_in_path_y(cell, -1, grid, search_path_length)/search_path_length
+	elseif orientation == "down"  then return find_collision_in_path_y(cell,  1, grid, search_path_length)/search_path_length
+	elseif orientation == "left"  then return find_collision_in_path_x(cell, -1, grid, search_path_length)/search_path_length
+	elseif orientation == "right" then return find_collision_in_path_x(cell,  1, grid, search_path_length)/search_path_length
 	end
-	print("no orientation set", self._orientation)
+	print("no orientation set", orientation)
 end
 
-local function distance_in_right_collision(self, grid, search_path_length)
-	if self._orientation == "up" then
-		return find_collision_in_path_x(self, 1, grid, search_path_length)/search_path_length
-	elseif self._orientation == "down" then
-		return find_collision_in_path_x(self, -1, grid, search_path_length)/search_path_length
-	elseif self._orientation == "left" then
-		return find_collision_in_path_y(self, -1, grid, search_path_length)/search_path_length
-	elseif self._orientation == "right" then
-		return find_collision_in_path_y(self, 1, grid, search_path_length)/search_path_length
+local function distance_in_left_collision(cell, orientation, grid, search_path_length)
+	if orientation == "up"    then return find_collision_in_path_x(cell, -1, grid, search_path_length)/search_path_length
+	elseif orientation == "down"  then return find_collision_in_path_x(cell,  1, grid, search_path_length)/search_path_length
+	elseif orientation == "left"  then return find_collision_in_path_y(cell,  1, grid, search_path_length)/search_path_length
+	elseif orientation == "right" then return find_collision_in_path_y(cell, -1, grid, search_path_length)/search_path_length
 	end
-	print("no orientation set", self._orientation)
+	print("no orientation set", orientation)
 end
 
-local function is_front_valid(self, grid)
-	if self._orientation == "up" then
-		return grid:is_blocked_cell(self._cell.x, self._cell.y - 1) and 0 or 1
-	elseif self._orientation == "down" then
-		return grid:is_blocked_cell(self._cell.x, self._cell.y + 1) and 0 or 1
-	elseif self._orientation == "left" then
-		return grid:is_blocked_cell(self._cell.x - 1, self._cell.y) and 0 or 1
-	elseif self._orientation == "right" then
-		return grid:is_blocked_cell(self._cell.x + 1, self._cell.y) and 0 or 1
+local function distance_in_right_collision(cell, orientation, grid, search_path_length)
+	if orientation == "up"    then return find_collision_in_path_x(cell,  1, grid, search_path_length)/search_path_length
+	elseif orientation == "down"  then return find_collision_in_path_x(cell, -1, grid, search_path_length)/search_path_length
+	elseif orientation == "left"  then return find_collision_in_path_y(cell, -1, grid, search_path_length)/search_path_length
+	elseif orientation == "right" then return find_collision_in_path_y(cell,  1, grid, search_path_length)/search_path_length
 	end
-	print("no orientation set", self._orientation)
+	print("no orientation set", orientation)
 end
 
-local function is_left_valid(self, grid)
-	if self._orientation == "up" then
-		return grid:is_blocked_cell(self._cell.x - 1, self._cell.y) and 0 or 1
-	elseif self._orientation == "down" then
-		return grid:is_blocked_cell(self._cell.x + 1, self._cell.y) and 0 or 1
-	elseif self._orientation == "left" then
-		return grid:is_blocked_cell(self._cell.x, self._cell.y + 1) and 0 or 1
-	elseif self._orientation == "right" then
-		return grid:is_blocked_cell(self._cell.x, self._cell.y - 1) and 0 or 1
+local function is_front_valid(cell, orientation, grid)
+	if orientation == "up"    then return grid:is_blocked_cell(cell.x,     cell.y - 1) and 0 or 1
+	elseif orientation == "down"  then return grid:is_blocked_cell(cell.x,     cell.y + 1) and 0 or 1
+	elseif orientation == "left"  then return grid:is_blocked_cell(cell.x - 1, cell.y    ) and 0 or 1
+	elseif orientation == "right" then return grid:is_blocked_cell(cell.x + 1, cell.y    ) and 0 or 1
 	end
-	print("no orientation set", self._orientation)
+	print("no orientation set", orientation)
 end
 
-local function is_right_valid(self, grid)
-	if self._orientation == "up" then
-		return grid:is_blocked_cell(self._cell.x + 1, self._cell.y) and 0 or 1
-	elseif self._orientation == "down" then
-		return grid:is_blocked_cell(self._cell.x - 1, self._cell.y) and 0 or 1
-	elseif self._orientation == "left" then
-		return grid:is_blocked_cell(self._cell.x, self._cell.y - 1) and 0 or 1
-	elseif self._orientation == "right" then
-		return grid:is_blocked_cell(self._cell.x, self._cell.y + 1) and 0 or 1
+local function is_left_valid(cell, orientation, grid)
+	if orientation == "up"    then return grid:is_blocked_cell(cell.x - 1, cell.y    ) and 0 or 1
+	elseif orientation == "down"  then return grid:is_blocked_cell(cell.x + 1, cell.y    ) and 0 or 1
+	elseif orientation == "left"  then return grid:is_blocked_cell(cell.x,     cell.y + 1) and 0 or 1
+	elseif orientation == "right" then return grid:is_blocked_cell(cell.x,     cell.y - 1) and 0 or 1
 	end
-	print("no orientation set", self._orientation)
+	print("no orientation set", orientation)
 end
 
-local function is_collision_x(self, dx, grid)
-	return grid:is_blocked_cell(self._cell.x + dx, self._cell.y) and 1 or 0
+local function is_right_valid(cell, orientation, grid)
+	if orientation == "up"    then return grid:is_blocked_cell(cell.x + 1, cell.y    ) and 0 or 1
+	elseif orientation == "down"  then return grid:is_blocked_cell(cell.x - 1, cell.y    ) and 0 or 1
+	elseif orientation == "left"  then return grid:is_blocked_cell(cell.x,     cell.y - 1) and 0 or 1
+	elseif orientation == "right" then return grid:is_blocked_cell(cell.x,     cell.y + 1) and 0 or 1
+	end
+	print("no orientation set", orientation)
 end
 
-local function is_collision_y(self, dy, grid)
-	return grid:is_blocked_cell(self._cell.x, self._cell.y + dy) and 1 or 0
-end
-
-local function grade_path_x(self, dx, grid, search_path_length, ghost_state)
+-- grade_path_*: also needs ann to run the per-direction sub-network
+local function grade_path_x(cell, ann, dx, grid, search_path_length, ghost_state)
 	local inputs = {
-		-- grid:is_blocked_cell(self._cell.x + dx, self._cell.y) and 1 or 0,
-		find_collision_in_path_x(self, dx, grid, search_path_length)/search_path_length,
-		distance_to_class_x(self, dx, "ghost", grid, search_path_length)/search_path_length,
-		distance_to_class_x(self, dx, "pill", grid, search_path_length)/search_path_length,
-		-- distance_to_class_x(self, dx, "player", grid, search_path_length)/search_path_length,
-		(ghost_state == "frightened") and 1 or 0, -- ghosts frightened
-		-- (ghost_state == "frightened") and 0 or 1, -- ghosts frightened
-		-- (ghost_state == "chasing") and 1 or 0, -- ghosts chasing
-		-- (ghost_state == "scattering") and 1 or 0, -- ghosts scattering,
+		find_collision_in_path_x(cell, dx, grid, search_path_length)/search_path_length,
+		distance_to_class_x(cell, dx, "ghost", grid, search_path_length)/search_path_length,
+		distance_to_class_x(cell, dx, "pill",  grid, search_path_length)/search_path_length,
+		(ghost_state == "frightened") and 1 or 0,
 	}
-	-- print_array(inputs)
-	local outputs = self._ann:get_outputs(inputs, true)
-
+	local outputs = ann:get_outputs(inputs, true)
 	return outputs[1], inputs
 end
 
-local function grade_path_y(self, dy, grid, search_path_length, ghost_state)
+local function grade_path_y(cell, ann, dy, grid, search_path_length, ghost_state)
 	local inputs = {
-		-- grid:is_blocked_cell(self._cell.x, self._cell.y + dy) and 1 or 0,
-		find_collision_in_path_y(self, dy, grid, search_path_length)/search_path_length,
-		distance_to_class_y(self, dy, "ghost", grid, search_path_length)/search_path_length,
-		distance_to_class_y(self,dy, "pill", grid, search_path_length)/search_path_length,
-		-- distance_to_class_y(self, dy,"player", grid, search_path_length)/search_path_length,
-		(ghost_state == "frightened") and 1 or 0, -- ghosts frightened
-		-- (ghost_state == "frightened") and 0 or 1, -- ghosts frightened
-		-- (ghost_state == "chasing") and 1 or 0, -- ghosts chasing
-		-- (ghost_state == "scattering") and 1 or 0, -- ghosts scattering,
+		find_collision_in_path_y(cell, dy, grid, search_path_length)/search_path_length,
+		distance_to_class_y(cell, dy, "ghost", grid, search_path_length)/search_path_length,
+		distance_to_class_y(cell, dy, "pill",  grid, search_path_length)/search_path_length,
+		(ghost_state == "frightened") and 1 or 0,
 	}
-	-- print_array(inputs)
-	local outputs = self._ann:get_outputs(inputs, true)
-
+	local outputs = ann:get_outputs(inputs, true)
 	return outputs[1], inputs
 end
 
-local function can_see_class(self, class, grid, search_path_length)
-	local enabled_directions = self:get_enabled_directions()
-
+-- can_see_class needs enabled_directions (which directions are open to move)
+local function can_see_class(cell, enabled_directions, class, grid, search_path_length)
 	local see_class = false
-	local best_class_distance = search_path_length
-	local best_class_direction_index
+	local best_distance = search_path_length
+	local best_direction_index
+
 	for i = 1, 2 do
 		if enabled_directions[i] then
-			local this_distance = distance_to_class_y(self, (-1)^i, class, grid, search_path_length)
-			if (this_distance < best_class_distance) then
+			local d = distance_to_class_y(cell, (-1)^i, class, grid, search_path_length)
+			if d < best_distance then
 				see_class = true
-				best_class_distance = this_distance
-				best_class_direction_index = i
+				best_distance = d
+				best_direction_index = i
 			end
 		end
 	end
 	for i = 3, 4 do
 		if enabled_directions[i] then
-			local this_distance = distance_to_class_x(self, (-1)^i, class, grid, search_path_length)
-			if (this_distance < best_class_distance) then
+			local d = distance_to_class_x(cell, (-1)^i, class, grid, search_path_length)
+			if d < best_distance then
 				see_class = true
-				best_class_distance = this_distance
-				best_class_direction_index = i
+				best_distance = d
+				best_direction_index = i
 			end
 		end
 	end
 
 	if see_class then
-		return true, best_class_distance, grid.directions[best_class_direction_index]
+		return true, best_distance, grid.directions[best_direction_index]
 	else
 		return false
 	end
 end
 
+-- ── Direction-to-callback maps (pure) ────────────────────────────────────────
+
 local function get_distance_callback_and_dxy_from_direction(direction)
-	if direction == "up" then
-		return distance_to_class_y, -1
-	elseif direction == "down" then
-		return distance_to_class_y, 1
-	elseif direction == "left" then
-		return distance_to_class_x,-1
-	elseif direction == "right" then
-		return distance_to_class_x, 1
-	elseif direction == "idle" then
-		return false
-	else
-		print("[ERROR] - AutoPlayerAnnModes get_distance_callback_and_dxy_from_direction() - Received a invalid direction")
-	end
+	if direction == "up"    then return distance_to_class_y, -1
+	elseif direction == "down"  then return distance_to_class_y,  1
+	elseif direction == "left"  then return distance_to_class_x, -1
+	elseif direction == "right" then return distance_to_class_x,  1
+	elseif direction == "idle"  then return false
+	else print("[ERROR] - AutoPlayerAnnModes get_distance_callback_and_dxy_from_direction() - invalid direction") end
 end
 
 local function get_grade_callback_and_dxy_from_direction(direction)
-	if direction == "up" then
-		return grade_path_y, -1
-	elseif direction == "down" then
-		return grade_path_y, 1
-	elseif direction == "left" then
-		return grade_path_x,-1
-	elseif direction == "right" then
-		return grade_path_x, 1
-	elseif direction == "idle" then
-		return false
-	else
-		print("[ERROR] - AutoPlayerAnnModes get_grade_callback_and_dxy_from_direction() - Received a invalid direction")
-	end
+	if direction == "up"    then return grade_path_y, -1
+	elseif direction == "down"  then return grade_path_y,  1
+	elseif direction == "left"  then return grade_path_x, -1
+	elseif direction == "right" then return grade_path_x,  1
+	elseif direction == "idle"  then return false
+	else print("[ERROR] - AutoPlayerAnnModes get_grade_callback_and_dxy_from_direction() - invalid direction") end
 end
 
-local function can_get_pill(self, current_direction, grid, search_path_length)
-	local see_pill, pill_distance, pill_direction = can_see_class(self, "pill", grid, search_path_length)
+-- ── Baseline helpers (pure) ───────────────────────────────────────────────────
 
+local function can_get_pill(cell, enabled_directions, current_direction, grid, search_path_length)
+	local see_pill, pill_distance, pill_direction = can_see_class(cell, enabled_directions, "pill", grid, search_path_length)
 	if see_pill then
-		local distance_function, dxy = get_distance_callback_and_dxy_from_direction(current_direction)
-		if distance_function and (distance_function(self, dxy, "ghost", grid, search_path_length) > pill_distance) then
+		local distance_fn, dxy = get_distance_callback_and_dxy_from_direction(current_direction)
+		if distance_fn and distance_fn(cell, dxy, "ghost", grid, search_path_length) > pill_distance then
 			return true, pill_direction
 		end
 	end
-
 	return false
 end
 
-local function is_direction_good(self, current_direction, ghosts_state, grid, search_path_length)
-	local enabled_directions = self:get_enabled_directions()
+local function is_direction_good(cell, enabled_directions, current_direction, ghost_state, grid, search_path_length)
 	local direction_index = grid.direction_to_index[current_direction]
+	local distance_fn, dxy = get_distance_callback_and_dxy_from_direction(current_direction)
 
-	local distance_function, dxy = get_distance_callback_and_dxy_from_direction(current_direction)
-
-	if ghosts_state == "frightened" then
-		if enabled_directions[direction_index] then
-			-- if (distance_function(self, dxy, "ghost", grid, search_path_length) <= (search_path_length - 1)) then
-				return true
-			-- end
-		end
+	if ghost_state == "frightened" then
+		return enabled_directions[direction_index] == true
 	else
-		if enabled_directions[direction_index] then
-			if (distance_function(self, dxy, "ghost", grid, search_path_length) > 3) then
-				return true
-			end
-		end
+		return enabled_directions[direction_index] == true
+			and distance_fn(cell, dxy, "ghost", grid, search_path_length) > 3
 	end
-
-	return false
 end
 
-local function find_good_direction(self, current_direction, ghosts_state, grid, search_path_length)
-	local enabled_directions = self:get_enabled_directions()
+local function find_good_direction(cell, enabled_directions, current_direction, ghost_state, grid, search_path_length)
+	local prefer_x = (current_direction == "up" or current_direction == "down")
 
-	local prefer_x
-	if current_direction == "up" then
-		prefer_x = true
-	elseif current_direction == "down" then
-		prefer_x = true
-	elseif current_direction == "left" then
-		prefer_x = false
-	elseif current_direction == "right" then
-		prefer_x = false
-	elseif current_direction == "idle" then
-		prefer_x = false
-	else
-		print("[ERROR] - AutoPlayerAnnModes find_good_direction() - Received a invalid direction")
-	end
-
-	if ghosts_state ~= "frightened" then
+	if ghost_state ~= "frightened" then
 		for value = search_path_length, 0, -1 do
 			if prefer_x then
-				if enabled_directions[3] then
-					if (distance_to_class_x(self, -1, "ghost", grid, search_path_length) >= value) then
-						return "left"
-					end
-				end
-				if enabled_directions[4] then
-					if (distance_to_class_x(self, 1, "ghost", grid, search_path_length) >= value) then
-						return "right"
-					end
-				end
-				if enabled_directions[1] then
-					if (distance_to_class_y(self, -1, "ghost", grid, search_path_length) >= value) then
-						return "up"
-					end
-				end
-				if enabled_directions[2] then
-					if (distance_to_class_y(self, 1, "ghost", grid, search_path_length) >= value) then
-						return "down"
-					end
-				end
+				if enabled_directions[3] and distance_to_class_x(cell, -1, "ghost", grid, search_path_length) >= value then return "left"  end
+				if enabled_directions[4] and distance_to_class_x(cell,  1, "ghost", grid, search_path_length) >= value then return "right" end
+				if enabled_directions[1] and distance_to_class_y(cell, -1, "ghost", grid, search_path_length) >= value then return "up"    end
+				if enabled_directions[2] and distance_to_class_y(cell,  1, "ghost", grid, search_path_length) >= value then return "down"  end
 			else
-				if enabled_directions[1] then
-					if (distance_to_class_y(self, -1, "ghost", grid, search_path_length) >= value) then
-						return "up"
-					end
-				end
-				if enabled_directions[2] then
-					if (distance_to_class_y(self, 1, "ghost", grid, search_path_length) >= value) then
-						return "down"
-					end
-				end
-				if enabled_directions[3] then
-					if (distance_to_class_x(self, -1, "ghost", grid, search_path_length) >= value) then
-						return "left"
-					end
-				end
-				if enabled_directions[4] then
-					if (distance_to_class_x(self, 1, "ghost", grid, search_path_length) >= value) then
-						return "right"
-					end
-				end
+				if enabled_directions[1] and distance_to_class_y(cell, -1, "ghost", grid, search_path_length) >= value then return "up"    end
+				if enabled_directions[2] and distance_to_class_y(cell,  1, "ghost", grid, search_path_length) >= value then return "down"  end
+				if enabled_directions[3] and distance_to_class_x(cell, -1, "ghost", grid, search_path_length) >= value then return "left"  end
+				if enabled_directions[4] and distance_to_class_x(cell,  1, "ghost", grid, search_path_length) >= value then return "right" end
 			end
 		end
 	else
 		for value = 0, search_path_length, 1 do
 			if prefer_x then
-				if enabled_directions[3] then
-					if (distance_to_class_x(self, -1, "ghost", grid, search_path_length) < value) then
-						return "left"
-					end
-				end
-				if enabled_directions[4] then
-					if (distance_to_class_x(self, 1, "ghost", grid, search_path_length) < value) then
-						return "right"
-					end
-				end
-				if enabled_directions[1] then
-					if (distance_to_class_y(self, -1, "ghost", grid, search_path_length) < value) then
-						return "up"
-					end
-				end
-				if enabled_directions[2] then
-					if (distance_to_class_y(self, 1, "ghost", grid, search_path_length) < value) then
-						return "down"
-					end
-				end
+				if enabled_directions[3] and distance_to_class_x(cell, -1, "ghost", grid, search_path_length) < value then return "left"  end
+				if enabled_directions[4] and distance_to_class_x(cell,  1, "ghost", grid, search_path_length) < value then return "right" end
+				if enabled_directions[1] and distance_to_class_y(cell, -1, "ghost", grid, search_path_length) < value then return "up"    end
+				if enabled_directions[2] and distance_to_class_y(cell,  1, "ghost", grid, search_path_length) < value then return "down"  end
 			else
-				if enabled_directions[1] then
-					if (distance_to_class_y(self, -1, "ghost", grid, search_path_length) < value) then
-						return "up"
-					end
-				end
-				if enabled_directions[2] then
-					if (distance_to_class_y(self, 1, "ghost", grid, search_path_length) < value) then
-						return "down"
-					end
-				end
-				if enabled_directions[3] then
-					if (distance_to_class_x(self, -1, "ghost", grid, search_path_length) < value) then
-						return "left"
-					end
-				end
-				if enabled_directions[4] then
-					if (distance_to_class_x(self, 1, "ghost", grid, search_path_length) < value) then
-						return "right"
-					end
-				end
+				if enabled_directions[1] and distance_to_class_y(cell, -1, "ghost", grid, search_path_length) < value then return "up"    end
+				if enabled_directions[2] and distance_to_class_y(cell,  1, "ghost", grid, search_path_length) < value then return "down"  end
+				if enabled_directions[3] and distance_to_class_x(cell, -1, "ghost", grid, search_path_length) < value then return "left"  end
+				if enabled_directions[4] and distance_to_class_x(cell,  1, "ghost", grid, search_path_length) < value then return "right" end
 			end
 		end
 	end
@@ -550,447 +317,368 @@ local function find_good_direction(self, current_direction, ghosts_state, grid, 
 	return nil
 end
 
--------------------------------------------------------------------------------
+local function get_baseline_next_direction(cell, enabled_directions, current_direction, ghost_state, grid, search_path_length)
+	if is_direction_good(cell, enabled_directions, current_direction, ghost_state, grid, search_path_length) then
+		return current_direction
+	end
+	return find_good_direction(cell, enabled_directions, current_direction, ghost_state, grid, search_path_length)
+		or grid:get_random_valid_direction(cell.x, cell.y)
+end
+
+local function get_baseline_pill_next_direction(cell, enabled_directions, current_direction, ghost_state, grid, search_path_length)
+	if ghost_state ~= "frightened" then
+		local found_pill, pill_direction = can_get_pill(cell, enabled_directions, current_direction, grid, search_path_length)
+		if found_pill then return pill_direction end
+	end
+	return get_baseline_next_direction(cell, enabled_directions, current_direction, ghost_state, grid, search_path_length)
+end
+
+local function get_baseline_pill_ghost_next_direction(cell, enabled_directions, current_direction, ghost_state, grid, search_path_length)
+	if ghost_state == "frightened" then
+		local found_ghost, _, ghost_direction = can_see_class(cell, enabled_directions, "ghost", grid, search_path_length)
+		if found_ghost then return ghost_direction end
+	end
+	return get_baseline_pill_next_direction(cell, enabled_directions, current_direction, ghost_state, grid, search_path_length)
+end
+
+-- ── Random direction helpers (pure, no state) ─────────────────────────────────
+
 local function get_random_direction()
 	return qpd.random.choose("up", "down", "left", "right")
 end
 
 local function get_different_random_direction(current_direction)
-	if current_direction == "up" then
-		return qpd.random.choose("down", "left", "right")
-	elseif current_direction == "down" then
-		return qpd.random.choose("up", "left", "right")
-	elseif current_direction == "left" then
-		return qpd.random.choose("up", "down", "right")
-	elseif current_direction == "right" then
-		return qpd.random.choose("up", "down", "left")
+	if current_direction == "up"    then return qpd.random.choose("down", "left", "right")
+	elseif current_direction == "down"  then return qpd.random.choose("up",   "left", "right")
+	elseif current_direction == "left"  then return qpd.random.choose("up",   "down", "right")
+	elseif current_direction == "right" then return qpd.random.choose("up",   "down", "left")
 	end
-
 	return qpd.random.choose("up", "down", "left", "right")
 end
 
-local function get_baseline_next_direction(self, grid, search_path_length, ghost_state, current_direction)
-	current_direction = current_direction or self._direction
+-- ── grade_path helper (pure) ──────────────────────────────────────────────────
 
-	if is_direction_good(self, current_direction, ghost_state, grid, search_path_length) then
-		return current_direction
-	end
-
-	local next_direction = find_good_direction(self, current_direction, ghost_state, grid, search_path_length)
-	if not next_direction then
-		next_direction = grid:get_random_valid_direction(self._cell.x, self._cell.y)
-	end
-	return next_direction
+local function get_direction_grade(cell, ann, direction, grid, search_path_length, ghost_state)
+	local callback, dxy = get_grade_callback_and_dxy_from_direction(direction)
+	return callback(cell, ann, dxy, grid, search_path_length, ghost_state)
 end
 
-local function get_baseline_pill_next_direction(self, grid, search_path_length, ghost_state, current_direction)
-	current_direction = current_direction or self._direction
-
-	if ghost_state ~= "frightened" then
-		local found_pill, pill_direction = can_get_pill(self, current_direction, grid, search_path_length)
-		if found_pill then
-			return pill_direction
-		end
-	end
-
-	return get_baseline_next_direction(self, grid, search_path_length, ghost_state, current_direction)
-end
-
-local function get_baseline_pill_ghost_next_direction(self, grid, search_path_length, ghost_state, current_direction)
-	current_direction = current_direction or self._direction
-
-	if ghost_state == "frightened" then
-		local found_ghost, _, ghost_direction = can_see_class(self, "ghost", grid, search_path_length)
-		if found_ghost then
-			return ghost_direction
-		end
-	end
-
-	return get_baseline_pill_next_direction(self, grid, search_path_length, ghost_state, current_direction)
-end
-
--- implementations
--- NN Class
--- layers = {
--- 	{
--- 		count = 5,
--- 		activation_function_name = = "identity",
--- 	},
--- 	{
--- 		count = 3,
--- 		activation_function_name = = "sigmoid",
---		activation_function_parameters = {p = 1}
--- 	},
--- }
+-- ── ANN update modes ──────────────────────────────────────────────────────────
+-- Each update function still takes (self, ...) — self is the AutoPlayer entity.
+-- It extracts cell/orientation/ann at the top, calls pure helpers, then writes
+-- self._orientation and self._next_direction back at the end.
 
 AutoplayerAnnModes.update.b1 = function (self, grid, search_path_length, ghost_state)
+	local cell, ann = self._cell, self._ann
+	local orientation = self._orientation
+
 	local inputs = {
-		is_left_valid(self, grid),
-		distance_in_front_collision(self, grid, search_path_length),
-		is_right_valid(self, grid),
-		distance_in_front_class(self, "ghost", grid, search_path_length),
-		distance_in_back_class(self, "ghost", grid, search_path_length),
-		distance_in_left_class(self, "ghost", grid, search_path_length),
-		distance_in_right_class(self, "ghost", grid, search_path_length),
-		distance_in_front_class(self, "pill", grid, search_path_length),
-		distance_in_back_class(self, "pill", grid, search_path_length),
-		distance_in_left_class(self, "pill", grid, search_path_length),
-		distance_in_right_class(self, "pill", grid, search_path_length),
-		-- distance_in_front_class(self, "player", grid, search_path_length),
-		-- distance_in_back_class(self, "player", grid, search_path_length),
-		-- distance_in_left_class(self, "player", grid, search_path_length),
-		-- distance_in_right_class(self, "player", grid, search_path_length),
-		(ghost_state == "frightened") and 1 or 0, -- ghosts frightened
-		-- (ghost_state == "chasing") and 1 or 0, -- ghosts chasing
-		-- (ghost_state == "scattering") and 1 or 0, -- ghosts scattering,
+		is_left_valid(cell, orientation, grid),
+		distance_in_front_collision(cell, orientation, grid, search_path_length),
+		is_right_valid(cell, orientation, grid),
+		distance_in_front_class(cell, orientation, "ghost", grid, search_path_length),
+		distance_in_back_class(cell,  orientation, "ghost", grid, search_path_length),
+		distance_in_left_class(cell,  orientation, "ghost", grid, search_path_length),
+		distance_in_right_class(cell, orientation, "ghost", grid, search_path_length),
+		distance_in_front_class(cell, orientation, "pill",  grid, search_path_length),
+		distance_in_back_class(cell,  orientation, "pill",  grid, search_path_length),
+		distance_in_left_class(cell,  orientation, "pill",  grid, search_path_length),
+		distance_in_right_class(cell, orientation, "pill",  grid, search_path_length),
+		(ghost_state == "frightened") and 1 or 0,
 	}
 
-	local outputs = self._ann:get_outputs(inputs)
-	if outputs[1] == 1 then
-		rotate_left(self)
-	end
+	local outputs = ann:get_outputs(inputs)
+	if outputs[1] == 1 then orientation = rotate_left_dir(orientation) end
 
-	self._next_direction = self._orientation
+	self._orientation    = orientation
+	self._next_direction = orientation
 end
 
 AutoplayerAnnModes.update.b2 = function (self, grid, search_path_length, ghost_state)
+	local cell, ann = self._cell, self._ann
+	local orientation = self._orientation
+
 	local inputs = {
-		is_left_valid(self, grid),
-		distance_in_front_collision(self, grid, search_path_length),
-		is_right_valid(self, grid),
-		distance_in_front_class(self, "ghost", grid, search_path_length),
-		distance_in_back_class(self, "ghost", grid, search_path_length),
-		distance_in_left_class(self, "ghost", grid, search_path_length),
-		distance_in_right_class(self, "ghost", grid, search_path_length),
-		distance_in_front_class(self, "pill", grid, search_path_length),
-		distance_in_back_class(self, "pill", grid, search_path_length),
-		distance_in_left_class(self, "pill", grid, search_path_length),
-		distance_in_right_class(self, "pill", grid, search_path_length),
-		-- distance_in_front_class(self, "player", grid, search_path_length),
-		-- distance_in_back_class(self, "player", grid, search_path_length),
-		-- distance_in_left_class(self, "player", grid, search_path_length),
-		-- distance_in_right_class(self, "player", grid, search_path_length),
-		(ghost_state == "frightened") and 1 or 0, -- ghosts frightened
-		-- (ghost_state == "chasing") and 1 or 0, -- ghosts chasing
-		-- (ghost_state == "scattering") and 1 or 0, -- ghosts scattering,
+		is_left_valid(cell, orientation, grid),
+		distance_in_front_collision(cell, orientation, grid, search_path_length),
+		is_right_valid(cell, orientation, grid),
+		distance_in_front_class(cell, orientation, "ghost", grid, search_path_length),
+		distance_in_back_class(cell,  orientation, "ghost", grid, search_path_length),
+		distance_in_left_class(cell,  orientation, "ghost", grid, search_path_length),
+		distance_in_right_class(cell, orientation, "ghost", grid, search_path_length),
+		distance_in_front_class(cell, orientation, "pill",  grid, search_path_length),
+		distance_in_back_class(cell,  orientation, "pill",  grid, search_path_length),
+		distance_in_left_class(cell,  orientation, "pill",  grid, search_path_length),
+		distance_in_right_class(cell, orientation, "pill",  grid, search_path_length),
+		(ghost_state == "frightened") and 1 or 0,
 	}
 
-	local outputs = self._ann:get_outputs(inputs)
-	if outputs[1] == 1 then
-		flip(self)
-	end
-	if outputs[2] == 1 then
-		rotate_left(self)
-	end
+	local outputs = ann:get_outputs(inputs)
+	if outputs[1] == 1 then orientation = flip_dir(orientation) end
+	if outputs[2] == 1 then orientation = rotate_left_dir(orientation) end
 
-	self._next_direction = self._orientation
+	self._orientation    = orientation
+	self._next_direction = orientation
 end
 
 AutoplayerAnnModes.update.b3 = function (self, grid, search_path_length, ghost_state)
+	local cell, ann = self._cell, self._ann
+	local orientation = self._orientation
+
 	local inputs = {
-		is_left_valid(self, grid),
-		distance_in_front_collision(self, grid, search_path_length),
-		is_right_valid(self, grid),
-		distance_in_front_class(self, "ghost", grid, search_path_length),
-		distance_in_back_class(self, "ghost", grid, search_path_length),
-		distance_in_left_class(self, "ghost", grid, search_path_length),
-		distance_in_right_class(self, "ghost", grid, search_path_length),
-		distance_in_front_class(self, "pill", grid, search_path_length),
-		distance_in_back_class(self, "pill", grid, search_path_length),
-		distance_in_left_class(self, "pill", grid, search_path_length),
-		distance_in_right_class(self, "pill", grid, search_path_length),
-		-- distance_in_front_class(self, "player", grid, search_path_length),
-		-- distance_in_back_class(self, "player", grid, search_path_length),
-		-- distance_in_left_class(self, "player", grid, search_path_length),
-		-- distance_in_right_class(self, "player", grid, search_path_length),
-		(ghost_state == "frightened") and 1 or 0, -- ghosts frightened
-		-- (ghost_state == "chasing") and 1 or 0, -- ghosts chasing
-		-- (ghost_state == "scattering") and 1 or 0, -- ghosts scattering,
+		is_left_valid(cell, orientation, grid),
+		distance_in_front_collision(cell, orientation, grid, search_path_length),
+		is_right_valid(cell, orientation, grid),
+		distance_in_front_class(cell, orientation, "ghost", grid, search_path_length),
+		distance_in_back_class(cell,  orientation, "ghost", grid, search_path_length),
+		distance_in_left_class(cell,  orientation, "ghost", grid, search_path_length),
+		distance_in_right_class(cell, orientation, "ghost", grid, search_path_length),
+		distance_in_front_class(cell, orientation, "pill",  grid, search_path_length),
+		distance_in_back_class(cell,  orientation, "pill",  grid, search_path_length),
+		distance_in_left_class(cell,  orientation, "pill",  grid, search_path_length),
+		distance_in_right_class(cell, orientation, "pill",  grid, search_path_length),
+		(ghost_state == "frightened") and 1 or 0,
 	}
 
-	local outputs = self._ann:get_outputs(inputs)
-	if outputs[1] == 1 then
-		flip(self)
-	end
-	if outputs[2] == 1 then
-		rotate_left(self)
-	end
-	if outputs[3] == 1 then
-		rotate_left(self)
-	end
+	local outputs = ann:get_outputs(inputs)
+	if outputs[1] == 1 then orientation = flip_dir(orientation) end
+	if outputs[2] == 1 then orientation = rotate_left_dir(orientation) end
+	if outputs[3] == 1 then orientation = rotate_left_dir(orientation) end
 
-	self._next_direction = self._orientation
+	self._orientation    = orientation
+	self._next_direction = orientation
 end
 
 AutoplayerAnnModes.update.nb4 = function (self, grid, search_path_length, ghost_state)
-	local old_orientation = self._orientation
+	local cell, ann = self._cell, self._ann
+	local orientation = self._orientation
+
 	local inputs = {
-		is_left_valid(self, grid),
-		distance_in_front_collision(self, grid, search_path_length),
-		is_right_valid(self, grid),
-		distance_in_front_class(self, "ghost", grid, search_path_length),
-		distance_in_back_class(self, "ghost", grid, search_path_length),
-		distance_in_left_class(self, "ghost", grid, search_path_length),
-		distance_in_right_class(self, "ghost", grid, search_path_length),
-		distance_in_front_class(self, "pill", grid, search_path_length),
-		distance_in_back_class(self, "pill", grid, search_path_length),
-		distance_in_left_class(self, "pill", grid, search_path_length),
-		distance_in_right_class(self, "pill", grid, search_path_length),
-		-- distance_in_front_class(self, "player", grid, search_path_length),
-		-- distance_in_back_class(self, "player", grid, search_path_length),
-		-- distance_in_left_class(self, "player", grid, search_path_length),
-		-- distance_in_right_class(self, "player", grid, search_path_length),
-		(ghost_state == "frightened") and 1 or 0, -- ghosts frightened
-		-- (ghost_state == "chasing") and 1 or 0, -- ghosts chasing
-		-- (ghost_state == "scattering") and 1 or 0, -- ghosts scattering,
+		is_left_valid(cell, orientation, grid),
+		distance_in_front_collision(cell, orientation, grid, search_path_length),
+		is_right_valid(cell, orientation, grid),
+		distance_in_front_class(cell, orientation, "ghost", grid, search_path_length),
+		distance_in_back_class(cell,  orientation, "ghost", grid, search_path_length),
+		distance_in_left_class(cell,  orientation, "ghost", grid, search_path_length),
+		distance_in_right_class(cell, orientation, "ghost", grid, search_path_length),
+		distance_in_front_class(cell, orientation, "pill",  grid, search_path_length),
+		distance_in_back_class(cell,  orientation, "pill",  grid, search_path_length),
+		distance_in_left_class(cell,  orientation, "pill",  grid, search_path_length),
+		distance_in_right_class(cell, orientation, "pill",  grid, search_path_length),
+		(ghost_state == "frightened") and 1 or 0,
 	}
 
-	local outputs = self._ann:get_outputs(inputs)
+	local outputs = ann:get_outputs(inputs)
 
-	local greatest_index = 1
-	local greatest_value = outputs[greatest_index]
-	for i = 1, #outputs do
+	local greatest_index, greatest_value = 1, outputs[1]
+	for i = 2, #outputs do
 		if outputs[i] > greatest_value then
 			greatest_index = i
+			greatest_value = outputs[i]
 		end
 	end
 
-	if greatest_index == 1 then
-		keep(self)
-	elseif greatest_index == 2 then
-		flip(self)
-	elseif greatest_index == 3 then
-		rotate_left(self)
-	elseif greatest_index == 4 then
-		rotate_right(self)
+	if     greatest_index == 2 then orientation = flip_dir(orientation)
+	elseif greatest_index == 3 then orientation = rotate_left_dir(orientation)
+	elseif greatest_index == 4 then orientation = rotate_right_dir(orientation)
+	-- greatest_index == 1: keep orientation
 	end
 
-	self._next_direction = self._orientation
+	self._orientation    = orientation
+	self._next_direction = orientation
 end
 
 AutoplayerAnnModes.update.nb4_flat = function (self, grid, search_path_length, ghost_state)
-	local old_orientation = self._next_direction
+	local cell, ann = self._cell, self._ann
+	local prev_direction = self._next_direction   -- flat mode uses the previous decision as input
+
 	local inputs = {
-		(old_orientation == "up") and 1 or 0,
-		(old_orientation == "down") and 1 or 0,
-		(old_orientation == "left") and 1 or 0,
-		(old_orientation == "right") and 1 or 0,
-		find_collision_in_path_y(self, -1, grid, search_path_length)/search_path_length,
-		find_collision_in_path_y(self, 1, grid, search_path_length)/search_path_length,
-		find_collision_in_path_x(self, -1, grid, search_path_length)/search_path_length,
-		find_collision_in_path_x(self, 1, grid, search_path_length)/search_path_length,
-		distance_to_class_y(self, -1, "ghost", grid, search_path_length)/search_path_length,
-		distance_to_class_y(self, 1, "ghost", grid, search_path_length)/search_path_length,
-		distance_to_class_x(self, -1, "ghost", grid, search_path_length)/search_path_length,
-		distance_to_class_x(self, 1, "ghost", grid, search_path_length)/search_path_length,
-		distance_to_class_y(self, -1, "pill", grid, search_path_length)/search_path_length,
-		distance_to_class_y(self, 1, "pill", grid, search_path_length)/search_path_length,
-		distance_to_class_x(self, -1, "pill", grid, search_path_length)/search_path_length,
-		distance_to_class_x(self, 1, "pill", grid, search_path_length)/search_path_length,
-		(ghost_state == "frightened") and 1 or 0, -- ghosts frightened
+		(prev_direction == "up")    and 1 or 0,
+		(prev_direction == "down")  and 1 or 0,
+		(prev_direction == "left")  and 1 or 0,
+		(prev_direction == "right") and 1 or 0,
+		find_collision_in_path_y(cell, -1, grid, search_path_length)/search_path_length,
+		find_collision_in_path_y(cell,  1, grid, search_path_length)/search_path_length,
+		find_collision_in_path_x(cell, -1, grid, search_path_length)/search_path_length,
+		find_collision_in_path_x(cell,  1, grid, search_path_length)/search_path_length,
+		distance_to_class_y(cell, -1, "ghost", grid, search_path_length)/search_path_length,
+		distance_to_class_y(cell,  1, "ghost", grid, search_path_length)/search_path_length,
+		distance_to_class_x(cell, -1, "ghost", grid, search_path_length)/search_path_length,
+		distance_to_class_x(cell,  1, "ghost", grid, search_path_length)/search_path_length,
+		distance_to_class_y(cell, -1, "pill",  grid, search_path_length)/search_path_length,
+		distance_to_class_y(cell,  1, "pill",  grid, search_path_length)/search_path_length,
+		distance_to_class_x(cell, -1, "pill",  grid, search_path_length)/search_path_length,
+		distance_to_class_x(cell,  1, "pill",  grid, search_path_length)/search_path_length,
+		(ghost_state == "frightened") and 1 or 0,
 	}
 
-	local outputs = self._ann:get_outputs(inputs)
+	local outputs = ann:get_outputs(inputs)
 
-	local greatest_index = 1
-	local greatest_value = outputs[greatest_index]
-	for i = 1, #outputs do
+	local greatest_index, greatest_value = 1, outputs[1]
+	for i = 2, #outputs do
 		if outputs[i] > greatest_value then
 			greatest_index = i
+			greatest_value = outputs[i]
 		end
 	end
 
-	if greatest_index == 1 then
-		self._next_direction = "up"
-	elseif greatest_index == 2 then
-		self._next_direction = "down"
-	elseif greatest_index == 3 then
-		self._next_direction = "left"
-	elseif greatest_index == 4 then
-		self._next_direction = "right"
+	local orientation
+	if     greatest_index == 1 then orientation = "up"
+	elseif greatest_index == 2 then orientation = "down"
+	elseif greatest_index == 3 then orientation = "left"
+	elseif greatest_index == 4 then orientation = "right"
 	end
 
-	self._orientation = self._next_direction
+	self._orientation    = orientation
+	self._next_direction = orientation
 end
 
 AutoplayerAnnModes.update.b1_path_grading = function (self, grid, search_path_length, ghost_state)
-	local old_direction = self._direction
+	local cell, ann = self._cell, self._ann
+	local orientation = self._orientation
 
-	local callback, dxy = get_grade_callback_and_dxy_from_direction(self._orientation)
-	--grade_path_y(self, -1, grid, search_path_length, ghost_state)
-	local grade, inputs = callback(self, dxy, grid, search_path_length, ghost_state)
+	local callback, dxy = get_grade_callback_and_dxy_from_direction(orientation)
+	local grade = callback(cell, ann, dxy, grid, search_path_length, ghost_state)
 
-	if (grade == 1) then
-		rotate_left(self)
-		self._next_direction = self._orientation
+	if grade == 1 then
+		orientation = rotate_left_dir(orientation)
+		self._orientation    = orientation
+		self._next_direction = orientation
 	end
 end
 
 AutoplayerAnnModes.update.b1_path_grading_simple = function (self, grid, search_path_length, ghost_state)
+	local cell, ann = self._cell, self._ann
+	local orientation = self._orientation
+
 	for _ = 1, 4 do
-		local callback, dxy = get_grade_callback_and_dxy_from_direction(self._orientation)
-
-		local grade, inputs = callback(self, dxy, grid, search_path_length, ghost_state)
-
-		if (grade == 1) then
-			rotate_left(self)
-			self._next_direction = self._orientation
+		local callback, dxy = get_grade_callback_and_dxy_from_direction(orientation)
+		local grade = callback(cell, ann, dxy, grid, search_path_length, ghost_state)
+		if grade == 1 then
+			orientation = rotate_left_dir(orientation)
+			self._next_direction = orientation
 		else
-			self._next_direction = self._orientation
+			self._orientation    = orientation
+			self._next_direction = orientation
 			return
 		end
 	end
+	self._orientation    = orientation
+	self._next_direction = orientation
 end
 
-local function get_direction_grade(self, direction, grid, search_path_length, ghost_state)
-	local callback, dxy = get_grade_callback_and_dxy_from_direction(direction)
-	return callback(self, dxy, grid, search_path_length, ghost_state)
-end
 AutoplayerAnnModes.update.b1_path_grading_hack = function (self, grid, search_path_length, ghost_state)
-	local grade, inputs = get_direction_grade(self, self._orientation, grid, search_path_length, ghost_state)
+	local cell, ann = self._cell, self._ann
+	local orientation = self._orientation
 
+	local grade = get_direction_grade(cell, ann, orientation, grid, search_path_length, ghost_state)
 	if grade == 1 then
-		grade, _ = get_direction_grade(self, rotate_left_dir(self._orientation), grid, search_path_length, ghost_state)
-		if grade == 0 then
-			rotate_left(self)
+		local left = rotate_left_dir(orientation)
+		if get_direction_grade(cell, ann, left, grid, search_path_length, ghost_state) == 0 then
+			orientation = left
 		else
-			grade, _ = get_direction_grade(self, rotate_right_dir(self._orientation), grid, search_path_length, ghost_state)
-			if grade == 0 then
-				rotate_right(self)
+			local right = rotate_right_dir(orientation)
+			if get_direction_grade(cell, ann, right, grid, search_path_length, ghost_state) == 0 then
+				orientation = right
 			else
-				flip(self)
+				orientation = flip_dir(orientation)
 			end
 		end
 	end
-	self._next_direction = self._orientation
+
+	self._orientation    = orientation
+	self._next_direction = orientation
 end
 
 AutoplayerAnnModes.update.nb4_path_grading = function (self, grid, search_path_length, ghost_state)
-	self._orientation = self._direction  -- not needed, just to keep it synced for effect :)
+	local cell, ann = self._cell, self._ann
+	self._orientation = self._direction  -- sync orientation (cosmetic)
 
 	local enabled_directions = self:get_enabled_directions()
 	local available_paths = {}
-	if enabled_directions[1] == true then -- "up"
-		local this_direction = {}
-		this_direction.grade = grade_path_y(self, -1, grid, search_path_length, ghost_state)
-		this_direction.direction = "up"
-		table.insert(available_paths, this_direction)
-	end
-	if enabled_directions[2] == true then -- "down"
-		local this_direction = {}
-		this_direction.grade = grade_path_y(self, 1, grid, search_path_length, ghost_state)
-		this_direction.direction = "down"
-		table.insert(available_paths, this_direction)
-	end
-	if enabled_directions[3] == true then -- "left"
-		local this_direction = {}
-		this_direction.grade = grade_path_x(self, -1, grid, search_path_length, ghost_state)
-		this_direction.direction = "left"
-		table.insert(available_paths, this_direction)
-	end
-	if enabled_directions[4] == true then -- "right"
-		local this_direction = {}
-		this_direction.grade = grade_path_x(self, 1, grid, search_path_length, ghost_state)
-		this_direction.direction = "right"
-		table.insert(available_paths, this_direction)
-	end
+	if enabled_directions[1] then table.insert(available_paths, { grade = grade_path_y(cell, ann, -1, grid, search_path_length, ghost_state), direction = "up"    }) end
+	if enabled_directions[2] then table.insert(available_paths, { grade = grade_path_y(cell, ann,  1, grid, search_path_length, ghost_state), direction = "down"  }) end
+	if enabled_directions[3] then table.insert(available_paths, { grade = grade_path_x(cell, ann, -1, grid, search_path_length, ghost_state), direction = "left"  }) end
+	if enabled_directions[4] then table.insert(available_paths, { grade = grade_path_x(cell, ann,  1, grid, search_path_length, ghost_state), direction = "right" }) end
 
 	local old_direction = self._direction
-	local best_index
-	local best_grade
-	if (#available_paths >= 2) then
-		-- keep going unless there is a strictly better path
+	local best_index, best_grade
+
+	if #available_paths >= 2 then
+		-- Prefer to keep going in the same direction unless a strictly better path exists.
 		if old_direction ~= "idle" then
 			for i = 1, #available_paths do
-				if available_paths[i].direction == old_direction then
-					best_index = i
-				end
+				if available_paths[i].direction == old_direction then best_index = i end
 			end
 		end
-		if not best_index then
-			best_index = 1
-		end
-
+		best_index = best_index or 1
 		best_grade = available_paths[best_index].grade
-
 		for i = 1, #available_paths do
-			if (available_paths[i].grade > best_grade) then
+			if available_paths[i].grade > best_grade then
 				best_grade = available_paths[i].grade
 				best_index = i
 			end
 		end
 		self._next_direction = available_paths[best_index].direction
-	elseif (#available_paths >= 1) then
+	elseif #available_paths >= 1 then
 		self._next_direction = available_paths[1].direction
 	else
 		print("AutoPlayer has nowhere to go!")
 	end
 end
 
--------------------------------------------------------------------------------
+-- ── Baseline update modes ─────────────────────────────────────────────────────
+
 AutoplayerAnnModes.update.baseline = function (self, grid, search_path_length, ghost_state)
--- autoplayer_ann_mode = baseline
--- autoplayer_initial_random_population_size = 1
--- autoplayer_fitness_mode = movement
-	self._next_direction = get_baseline_next_direction(self, grid, search_path_length, ghost_state)
+-- autoplayer_update_mode = baseline
+	local cell, enabled_directions = self._cell, self:get_enabled_directions()
+	self._next_direction = get_baseline_next_direction(cell, enabled_directions, self._direction, ghost_state, grid, search_path_length)
 end
 
 AutoplayerAnnModes.update.baseline_pill = function (self, grid, search_path_length, ghost_state)
--- autoplayer_ann_mode = baseline_pill
--- autoplayer_initial_random_population_size = 1
--- autoplayer_fitness_mode = movement
-	self._next_direction = get_baseline_pill_next_direction(self, grid, search_path_length, ghost_state)
+-- autoplayer_update_mode = baseline_pill
+	local cell, enabled_directions = self._cell, self:get_enabled_directions()
+	self._next_direction = get_baseline_pill_next_direction(cell, enabled_directions, self._direction, ghost_state, grid, search_path_length)
 end
 
 AutoplayerAnnModes.update.baseline_pill_ghost = function (self, grid, search_path_length, ghost_state)
--- autoplayer_ann_mode = baseline_pill
--- autoplayer_initial_random_population_size = 1
--- autoplayer_fitness_mode = movement
-	self._next_direction = get_baseline_pill_ghost_next_direction(self, grid, search_path_length, ghost_state)
+-- autoplayer_update_mode = baseline_pill_ghost
+	local cell, enabled_directions = self._cell, self:get_enabled_directions()
+	self._next_direction = get_baseline_pill_ghost_next_direction(cell, enabled_directions, self._direction, ghost_state, grid, search_path_length)
 end
 
 AutoplayerAnnModes.update.baseline_random = function (self, grid, search_path_length, ghost_state)
--- autoplayer_ann_mode = baseline_random
--- autoplayer_initial_random_population_size = 1
--- autoplayer_fitness_mode = movement
-	if is_direction_good(self, self._direction, ghost_state, grid, search_path_length) then
+-- autoplayer_update_mode = baseline_random
+	local cell, enabled_directions = self._cell, self:get_enabled_directions()
+	if is_direction_good(cell, enabled_directions, self._direction, ghost_state, grid, search_path_length) then
 		return
 	end
-
 	self._next_direction = get_different_random_direction(self._direction)
 end
 
 AutoplayerAnnModes.update.baseline_full_random = function (self, grid, search_path_length, ghost_state)
--- autoplayer_ann_mode = baseline_full_random
--- autoplayer_initial_random_population_size = 1
--- autoplayer_fitness_mode = movement
+-- autoplayer_update_mode = baseline_full_random
 	self._next_direction = get_random_direction()
 end
 
 AutoplayerAnnModes.update.baseline_collide_random = function (self, grid, search_path_length, ghost_state)
--- autoplayer_ann_mode = baseline_full_random
--- autoplayer_initial_random_population_size = 1
--- autoplayer_fitness_mode = movement
+-- autoplayer_update_mode = baseline_collide_random
 	if self._direction == "idle" then
 		self._next_direction = get_different_random_direction(self._direction)
 	end
 end
 
 AutoplayerAnnModes.update.baseline_valid_random = function (self, grid, search_path_length, ghost_state)
--- autoplayer_ann_mode = baseline_valid_random
--- autoplayer_initial_random_population_size = 1
--- autoplayer_fitness_mode = movement
-	if is_direction_good(self, self._direction, ghost_state, grid, search_path_length) then
+-- autoplayer_update_mode = baseline_valid_random
+	local cell, enabled_directions = self._cell, self:get_enabled_directions()
+	if is_direction_good(cell, enabled_directions, self._direction, ghost_state, grid, search_path_length) then
 		return
 	end
-
 	self:set_different_random_valid_direction()
 end
 
 AutoplayerAnnModes.update.baseline_valid_full_random = function (self, grid, search_path_length, ghost_state)
--- autoplayer_ann_mode = baseline_valid_full_random
--- autoplayer_initial_random_population_size = 1
--- autoplayer_fitness_mode = movement
+-- autoplayer_update_mode = baseline_valid_full_random
 	self:set_random_valid_direction()
 end
 

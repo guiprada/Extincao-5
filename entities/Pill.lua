@@ -4,6 +4,7 @@ local Pill = GridActor:new()
 Pill.__index = Pill
 
 local pill_type_name = "pill"
+GridActor.register_type(pill_type_name)  -- register at load time so new() never races init()
 
 local qpd = require "qpd.qpd"
 
@@ -12,8 +13,6 @@ function Pill.init(grid, got_pill_update_callback, time_left_update_callback)
 	Pill.grid = grid
 	Pill.got_pill_update = got_pill_update_callback
 	Pill.time_left_update = time_left_update_callback
-
-	GridActor.register_type(pill_type_name)
 end
 
 local function pill_warning()

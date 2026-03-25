@@ -8,6 +8,7 @@ AutoPlayer.__index = AutoPlayer
 local qpd = require "qpd.qpd"
 
 local autoplayer_type_name = "player"
+GridActor.register_type(autoplayer_type_name)  -- register at load time so new() never races init()
 
 -------------------------------------------------------------------------------
 local fitness_modes = {}
@@ -89,8 +90,6 @@ function AutoPlayer.init(search_path_length, mutate_chance, mutate_percentage, a
 	AutoPlayer._initial_bias = initial_bias
 	AutoPlayer._start_idle = start_idle or false
 	AutoPlayer._start_on_center = start_on_center or false
-
-	GridActor.register_type(autoplayer_type_name)
 end
 
 function AutoPlayer:new(o)

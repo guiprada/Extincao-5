@@ -5,6 +5,7 @@ Ghost.__index = Ghost
 
 local qpd = require "qpd.qpd"
 local ghost_type_name = "ghost"
+GridActor.register_type(ghost_type_name)  -- register at load time so new() never races init()
 
 Ghost._state = "none"
 Ghost._sequential_home = false
@@ -53,8 +54,6 @@ function Ghost.init(grid,
 	Ghost._grid = grid
 	Ghost._target_spread = target_spread or 0
 	Ghost.set_state(initial_state)
-
-	GridActor.register_type(ghost_type_name)
 end
 
 function Ghost:new(o)

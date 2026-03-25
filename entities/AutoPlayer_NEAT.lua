@@ -8,6 +8,7 @@ AutoPlayer_NEAT.__index = AutoPlayer_NEAT
 local qpd = require "qpd.qpd"
 
 local autoplayer_type_name = "player"
+GridActor.register_type(autoplayer_type_name)  -- register at load time so new() never races init()
 
 -------------------------------------------------------------------------------
 local fitness_modes = {}
@@ -98,8 +99,6 @@ function AutoPlayer_NEAT.init(search_path_length, mutate_chance, mutate_percenta
 
 	qpd.ann_neat:set_negative_weight_initialization(negative_weight_and_activation_initialization)
 	qpd.ann_neat:set_add_neuron_with_unit_activation(autoplayer_neat_add_neuron_with_unit_activation)
-
-	GridActor.register_type(autoplayer_type_name)
 end
 
 function AutoPlayer_NEAT:new(o)

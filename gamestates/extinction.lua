@@ -42,11 +42,14 @@ color_array[16] = qpd.color.lime
 local TILESIZE_SPEED_FACTOR = 34
 
 -- Compute the physics-safe max dt given the current tilesize and speed factors.
+-- Theoretical collision-detection limit is tilesize/2: two actors approaching
+-- each other must not pass through in one step, so each can move at most
+-- tilesize/2 per step (combined motion < tilesize).
 -- Multiplying by (1-1e-9) makes max_dt strictly conservative: IEEE 754 rounding
--- can make speed*(tilesize/4/speed) land just above tilesize/4 otherwise.
+-- can make speed*(tilesize/2/speed) land just above tilesize/2 otherwise.
 local function compute_max_dt(tilesize, autoplayer_speed, ghost_speed)
 	local max_speed = qpd.value.max(autoplayer_speed, ghost_speed)
-	return (tilesize / 4) / max_speed * (1 - 1e-9)
+	return (tilesize / 2) / max_speed * (1 - 1e-9)
 end
 
 --------------------------------------------------------------------------------
@@ -502,7 +505,7 @@ function gs.update(dt)
 	-- gs.tilemap_view:follow(dt, gs.player.speed_factor, gs.player:get_center())
 	if not gs.paused then
 		-- Clamp dt to max_dt so each physics step stays within the safe
-		-- envelope (speed*dt <= tilesize/4).  At high game_speed the
+		-- envelope (speed*dt <= tilesize/2).  At high game_speed the
 		-- interactive game runs visually slower than real-time, but each
 		-- step the AI sees is physically valid and matches headless behaviour
 		-- (headless runner always passes max_dt as dt).

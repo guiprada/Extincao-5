@@ -29,6 +29,17 @@
 
 ----------------- KNOWN BUGS / INVESTIGATION
 
+- [VISUAL SPEED] Interactive game runs slower than real-time at high game_speed.
+  Root cause: physics step budget is tilesize*4/9 per frame (safety margin below
+  the hard tilesize/2 collision-detection limit). max_dt = 4/9 * TILESIZE_SPEED_FACTOR
+  / (factor * game_speed). At game_speed=150, factor=10, TILESIZE_SPEED_FACTOR=34:
+  max_dt ~10ms → physics needs ~99fps to saturate real-time; at 60fps the game
+  runs at ~60% speed. For 50fps saturation, game_speed must be ~75.
+  Sub-stepping was rejected (breaks AI space-time continuity).
+  Render frame-skipping (custom love.run() accumulator) would help visually
+  without affecting physics/AI correctness, but not implemented yet.
+  Headless training is unaffected (always runs at max_dt).
+
 ----------------- TODO
 - TESTAR usar a distancia para um cruzamento como entrada
 - TESTAR usar o vetor para a pilula mais proxima como entrada
